@@ -1,0 +1,19 @@
+[package]
+name = "daidai-hub"
+version = "0.1.0"
+description = "DaiDai Hub desktop application"
+authors = ["DaiDai"]
+edition = "2021"
+
+[lib]
+name = "daidai_hub_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
