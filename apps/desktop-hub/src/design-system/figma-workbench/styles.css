@@ -1,0 +1,67 @@
+@import 'tailwindcss' source(none);
+@source '../**/*.{js,ts,jsx,tsx}';
+@import 'tw-animate-css';
+@import '../tokens.css';
+@import '../figma-primitives/../tokens.css';
+
+/* The workbench is a product-level overlay. It must not inherit the hub's
+   clipped viewport or appear as a transparent child below the home screen. */
+.figma-workbench-root {
+  isolation: isolate;
+  color-scheme: light;
+  overscroll-behavior: contain;
+}
+.figma-workbench-root button,
+.figma-workbench-root input,
+.figma-workbench-root textarea,
+.figma-workbench-root select {
+  font-family: inherit;
+}
+.figma-workbench-root button:focus-visible,
+.figma-workbench-root input:focus-visible,
+.figma-workbench-root textarea:focus-visible,
+.figma-workbench-root select:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+:root {
+  --card: var(--surface);
+  --card-foreground: var(--surface-foreground);
+  --popover: var(--surface);
+  --popover-foreground: var(--surface-foreground);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--foreground);
+  --input: var(--border);
+  --input-background: var(--surface);
+  --destructive: var(--dd-status-danger);
+  --destructive-foreground: #fff;
+  --radius: var(--dd-radius-control);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-status-success: var(--dd-status-success);
+  --color-status-success-surface: var(--dd-status-success-surface);
+  --color-status-warning: var(--dd-status-warning);
+  --color-status-warning-surface: var(--dd-status-warning-surface);
+  --color-status-danger: var(--dd-status-danger);
+  --color-status-danger-surface: var(--dd-status-danger-surface);
+}

@@ -6,15 +6,22 @@ title DaiDai Hub Desktop
 
 where pnpm >nul 2>nul
 if errorlevel 1 (
-  echo [ERROR] pnpm was not found.
-  echo Install Node.js and pnpm, then run this file again.
-  pause
-  exit /b 1
+  where npx >nul 2>nul
+  if errorlevel 1 (
+    echo [ERROR] Neither pnpm nor npx was found.
+    echo Install Node.js, then run this file again.
+    pause
+    exit /b 1
+  )
+  echo pnpm was not found. Using pnpm 9 through npx...
+  set "PNPM_CMD=npx --yes pnpm@9.15.9"
+) else (
+  set "PNPM_CMD=pnpm"
 )
 
-if not exist "node_modules\.pnpm" (
+if not exist "apps\desktop-hub\node_modules\.bin\tauri.cmd" (
   echo Installing workspace dependencies...
-  call pnpm install
+  call %PNPM_CMD% install
   if errorlevel 1 (
     echo [ERROR] Dependency installation failed.
     pause
@@ -23,7 +30,7 @@ if not exist "node_modules\.pnpm" (
 )
 
 echo Starting DaiDai Hub desktop app...
-call pnpm --dir apps\desktop-hub desktop:dev
+call %PNPM_CMD% --dir apps\desktop-hub desktop:dev
 
 if errorlevel 1 (
   echo.

@@ -2,7 +2,7 @@ import { BookOpen, Calculator, Gamepad2, Image, Wrench } from 'lucide-react';
 import type { ComponentType } from 'react';
 
 export type ModuleCategory = 'learning' | 'entertainment' | 'tools';
-export type ModuleDefinition = { id: string; title: string; description: string; category: ModuleCategory; icon: ComponentType<{ size?: number }>; color: string; status: 'ready' | 'planned'; };
+export type ModuleDefinition = { id: string; title: string; description: string; category: ModuleCategory; icon: ComponentType<{ size?: number }>; color: string; status: 'ready' | 'planned' };
 
 export const moduleRegistry: ModuleDefinition[] = [
   { id: 'knowledge', title: '知识空间', description: '整理、连接和复习你的知识', category: 'learning', icon: BookOpen, color: 'violet', status: 'ready' },

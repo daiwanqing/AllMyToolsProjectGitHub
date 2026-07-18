@@ -1,0 +1,74 @@
+import type { ButtonHTMLAttributes, InputHTMLAttributes, PropsWithChildren, ReactNode } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
+
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { tone?: 'primary' | 'surface' | 'quiet' };
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({ tone = 'surface', className = '', ...props }, ref) {
+  return <button ref={ref} className={`ds-button ds-button-${tone} ${className}`} {...props} />;
+});
+
+export function IconButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
+  return <Button {...props} className={`ds-icon-button ${props.className ?? ''}`} />;
+}
+
+export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input({ className = '', ...props }, ref) {
+  return <input ref={ref} className={`ds-input ${className}`} {...props} />;
+});
+
+export function Surface({ children, className = '' }: PropsWithChildren<{ className?: string }>) {
+  return <div className={`ds-surface ${className}`}>{children}</div>;
+}
+
+export function Card({ children, className = '' }: PropsWithChildren<{ className?: string }>) {
+  return <Surface className={`ds-card ${className}`}>{children}</Surface>;
+}
+
+export function Badge({ children, tone = 'neutral' }: PropsWithChildren<{ tone?: 'neutral' | 'success' | 'warning' | 'danger' | 'info' }>) {
+  return <span className={`ds-badge ds-badge-${tone}`}>{children}</span>;
+}
+
+export function Separator({ vertical = false }: { vertical?: boolean }) {
+  return <span role="separator" className={`ds-separator ${vertical ? 'is-vertical' : ''}`} />;
+}
+
+export function Tabs({ items, value, onChange }: { items: { value: string; label: ReactNode }[]; value: string; onChange: (value: string) => void }) {
+  return <div className="ds-tabs" role="tablist">{items.map((item) => <button key={item.value} type="button" role="tab" aria-selected={item.value === value} className={item.value === value ? 'is-active' : ''} onClick={() => onChange(item.value)}>{item.label}</button>)}</div>;
+}
+
+export function Toast({ message, onClose }: { message?: string; onClose: () => void }) {
+  if (!message) return null;
+  return <div className="ds-toast" role="status"><span>{message}</span><button type="button" onClick={onClose} aria-label="关闭提示">×</button></div>;
+}
+
+export function useToast(timeout = 2600) {
+  const [message, setMessage] = useState<string>();
+  useEffect(() => { if (!message) return; const timer = window.setTimeout(() => setMessage(undefined), timeout); return () => window.clearTimeout(timer); }, [message, timeout]);
+  return { message, notify: setMessage, clear: () => setMessage(undefined) };
+}
+
+export function Dialog({ open, title, children, onClose, className = '' }: PropsWithChildren<{ open: boolean; title: string; onClose: () => void; className?: string }>) {
+  if (!open) return null;
+  return <div className={`ds-dialog-backdrop ${className}`} role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}><section className="ds-dialog" role="dialog" aria-modal="true" aria-label={title}><div className="ds-dialog-head"><div><div className="ds-dialog-kicker">DAIDAI UI</div><h3>{title}</h3></div><button type="button" className="ds-dialog-close" onClick={onClose} aria-label="关闭">×</button></div>{children}</section></div>;
+}
+
+export function Drawer({ open, title, children, onClose }: PropsWithChildren<{ open: boolean; title: string; onClose: () => void }>) {
+  if (!open) return null;
+  return <div className="ds-dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}><aside className="ds-drawer" role="dialog" aria-modal="true" aria-label={title}><div className="ds-dialog-head"><h3>{title}</h3><button type="button" className="ds-dialog-close" onClick={onClose} aria-label="关闭">×</button></div>{children}</aside></div>;
+}
+
+export function CommandMenu({ open, query, onQueryChange, items, onSelect, onClose }: { open: boolean; query: string; onQueryChange: (value: string) => void; items: string[]; onSelect: (value: string) => void; onClose: () => void }) {
+  if (!open) return null;
+  const visibleItems = items.filter((item) => item.includes(query));
+  return <Dialog open title="快速打开" onClose={onClose}><div className="ds-command-search"><span>⌕</span><Input autoFocus value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="搜索工具或命令" /><kbd>ESC</kbd></div><div className="ds-command-list">{visibleItems.map((item) => <button type="button" key={item} onClick={() => onSelect(item)}>{item}<span>↵</span></button>)}{visibleItems.length === 0 && <p className="ds-empty">没有匹配的内容</p>}</div></Dialog>;
+}
+
+export function Select({ value, options, onChange }: { value: string; options: string[]; onChange: (value: string) => void }) {
+  return <select className="ds-select" value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option key={option} value={option}>{option}</option>)}</select>;
+}
+
+export function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
+  return <div className="ds-table-wrap"><table className="ds-table"><thead><tr>{headers.map((header) => <th key={header}>{header}</th>)}</tr></thead><tbody>{rows.map((row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={`${index}-${cellIndex}`}>{cell}</td>)}</tr>)}</tbody></table></div>;
+}
+
+export function Sidebar({ children, open = true }: PropsWithChildren<{ open?: boolean }>) {
+  return <aside className={`ds-sidebar ${open ? 'is-open' : 'is-collapsed'}`}>{children}</aside>;
+}

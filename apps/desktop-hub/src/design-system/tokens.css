@@ -1,0 +1,70 @@
+:root {
+  --font-body: 'Manrope', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-display: 'Playfair Display', serif;
+  --background: #f7f8fa;
+  --foreground: #172033;
+  --surface: #ffffff;
+  --surface-foreground: #172033;
+  --primary: #5255d8;
+  --primary-foreground: #ffffff;
+  --muted: #f4f5f7;
+  --muted-foreground: #737e93;
+  --accent: #eef0ff;
+  --accent-foreground: #373ac3;
+  --border: #e5e8ee;
+  --ring: #8184ee;
+  --dd-space-1: 4px;
+  --dd-space-2: 8px;
+  --dd-space-3: 12px;
+  --dd-space-4: 16px;
+  --dd-space-6: 24px;
+  --dd-space-8: 32px;
+  --dd-radius-control: 6px;
+  --dd-radius-emphasis: 12px;
+  --dd-control-compact: 32px;
+  --dd-control-default: 36px;
+  --dd-control-large: 44px;
+  --dd-duration-fast: 120ms;
+  --dd-duration-standard: 180ms;
+  --dd-duration-layout: 220ms;
+  --dd-duration-expressive: 280ms;
+  --dd-ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+  --dd-ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --dd-ease-linear: linear;
+  --dd-shadow-sm: 0 1px 2px rgba(20, 25, 40, .08);
+  --dd-shadow-md: 0 8px 24px rgba(20, 25, 40, .12);
+  --dd-shadow-lg: 0 20px 48px rgba(20, 25, 40, .18);
+  --dd-status-success: #287a57;
+  --dd-status-success-surface: #e8f6ef;
+  --dd-status-warning: #9a580d;
+  --dd-status-warning-surface: #fff0d9;
+  --dd-status-danger: #b4263c;
+  --dd-status-danger-surface: #fdebed;
+  --dd-status-info: #285da8;
+  --dd-status-info-surface: #e8f0ff;
+}
+
+.theme-paper, .theme-violet { }
+.theme-warm { --background:#f4f1eb;--foreground:#302d29;--surface:#fbfaf7;--surface-foreground:#302d29;--primary:#74614a;--primary-foreground:#fffdf7;--muted:#eee9e0;--muted-foreground:#847b70;--accent:#e4ece1;--accent-foreground:#4b654c;--border:#ddd6ca;--ring:#9b896f; }
+.theme-ocean { --primary:#087b88;--accent:#e5f4f4;--accent-foreground:#08606a;--ring:#42a9b2; }
+.theme-amber { --primary:#b86612;--accent:#fff2df;--accent-foreground:#914b08;--ring:#e39b45; }
+.theme-rose { --primary:#bd4a68;--accent:#fff0f3;--accent-foreground:#9b294b;--ring:#dd7993; }
+.theme-forest { --primary:#39765a;--accent:#eaf5ed;--accent-foreground:#285940;--ring:#6aab81; }
+.theme-mono { --background:#f8f8f8;--foreground:#161616;--surface:#fff;--surface-foreground:#161616;--primary:#161616;--primary-foreground:#fff;--muted:#f2f2f2;--muted-foreground:#767676;--accent:#e8e8e8;--accent-foreground:#161616;--border:#d8d8d8;--ring:#4a4a4a; }
+.theme-graphite { --background:#202124;--foreground:#f2f1ee;--surface:#292a2e;--surface-foreground:#f2f1ee;--primary:#d8d6ce;--primary-foreground:#202124;--muted:#303136;--muted-foreground:#aaa9a5;--accent:#393a40;--accent-foreground:#f4f2ed;--border:#414247;--ring:#c9c7bc; }
+.theme-midnight { --background:#0e1828;--foreground:#edf5ff;--surface:#142238;--surface-foreground:#edf5ff;--primary:#55b8e9;--primary-foreground:#062032;--muted:#1a2a40;--muted-foreground:#9cb4ce;--accent:#173b56;--accent-foreground:#9fe1ff;--border:#27425d;--ring:#65c8fb; }
+.theme-plum { --background:#211528;--foreground:#faeffb;--surface:#2c1d35;--surface-foreground:#faeffb;--primary:#dd9ce8;--primary-foreground:#35183b;--muted:#382141;--muted-foreground:#c5a8c9;--accent:#4a2854;--accent-foreground:#f3bdf8;--border:#593362;--ring:#efb1fa; }
+.theme-sunset { --background:#fff3eb;--foreground:#352422;--surface:#fffaf6;--surface-foreground:#352422;--primary:#e15c45;--primary-foreground:#fffaf5;--muted:#f9ebe5;--muted-foreground:#937267;--accent:#ffe0b8;--accent-foreground:#9c4c22;--border:#efd4c8;--ring:#ee917a; }
+.theme-mono-night { --background:#090909;--foreground:#f5f5f5;--surface:#151515;--surface-foreground:#f5f5f5;--primary:#fafafa;--primary-foreground:#0a0a0a;--muted:#202020;--muted-foreground:#9a9a9a;--accent:#303030;--accent-foreground:#fff;--border:#3b3b3b;--ring:#d4d4d4; }
+.theme-dopamine { --background:#fff9e8;--foreground:#1c1c2d;--surface:#fff;--surface-foreground:#1c1c2d;--primary:#5a38e9;--primary-foreground:#fff;--muted:#f5f0df;--muted-foreground:#746d76;--accent:#ffda3e;--accent-foreground:#3b2c00;--border:#e7ddc3;--ring:#00a4b8; }
+.theme-citrus { --background:#f7ffe8;--foreground:#173a33;--surface:#fffffb;--surface-foreground:#173a33;--primary:#00a873;--primary-foreground:#fff;--muted:#eef8dc;--muted-foreground:#64806d;--accent:#d5ff3d;--accent-foreground:#234000;--border:#d5e6bd;--ring:#00b6aa; }
+.theme-candy { --background:#fff0f8;--foreground:#301a3b;--surface:#fffaff;--surface-foreground:#301a3b;--primary:#e438a4;--primary-foreground:#fff;--muted:#fbe8f4;--muted-foreground:#906e85;--accent:#50d5e8;--accent-foreground:#063f4a;--border:#eed1e4;--ring:#e438a4; }
+.theme-lavender { --background:#f7f4ff;--foreground:#2d2940;--surface:#fffdff;--surface-foreground:#2d2940;--primary:#7861c9;--primary-foreground:#fff;--muted:#f0edf8;--muted-foreground:#7e7891;--accent:#d9cef7;--accent-foreground:#513e90;--border:#ded8ee;--ring:#947ce0; }
+.theme-coastal { --background:#effafa;--foreground:#173842;--surface:#fff;--surface-foreground:#173842;--primary:#1c8396;--primary-foreground:#fff;--muted:#e8f5f5;--muted-foreground:#66858c;--accent:#bde9df;--accent-foreground:#1f655b;--border:#cee7e8;--ring:#2baabc; }
+.theme-copper { --background:#f8f1e8;--foreground:#392a21;--surface:#fffdfa;--surface-foreground:#392a21;--primary:#a95e36;--primary-foreground:#fff;--muted:#f4e9dd;--muted-foreground:#887267;--accent:#e9bb71;--accent-foreground:#653a18;--border:#e7d3bf;--ring:#bb7048; }
+.theme-jade { --background:#effaf4;--foreground:#16392c;--surface:#fffefa;--surface-foreground:#16392c;--primary:#16865e;--primary-foreground:#fff;--muted:#e7f6ee;--muted-foreground:#668575;--accent:#8ee0bd;--accent-foreground:#12583e;--border:#cbe7d7;--ring:#27aa76; }
+.theme-ultramarine { --background:#edf2ff;--foreground:#192746;--surface:#fff;--surface-foreground:#192746;--primary:#2454ca;--primary-foreground:#fff;--muted:#e9eeff;--muted-foreground:#697ba1;--accent:#aecdff;--accent-foreground:#153d9c;--border:#d1dcfa;--ring:#4373e3; }
+.theme-ember { --background:#fff1e8;--foreground:#3e211e;--surface:#fffaf7;--surface-foreground:#3e211e;--primary:#c93e32;--primary-foreground:#fff;--muted:#fbe8e2;--muted-foreground:#966e66;--accent:#ffb14a;--accent-foreground:#6d3300;--border:#f0d0c6;--ring:#df5746; }
+.theme-arctic { --background:#f0f9ff;--foreground:#183342;--surface:#fff;--surface-foreground:#183342;--primary:#287ca3;--primary-foreground:#fff;--muted:#e8f5fb;--muted-foreground:#668593;--accent:#bce8fb;--accent-foreground:#17546f;--border:#cde5f0;--ring:#45a3d2; }
+.theme-motionora { --background:#f8f7f1;--foreground:#192235;--surface:#fffdf8;--surface-foreground:#192235;--primary:#1b2433;--primary-foreground:#fffdf8;--muted:#eeece4;--muted-foreground:#697083;--accent:#f5d65c;--accent-foreground:#192235;--border:#d8d8d2;--ring:#7374de; }
