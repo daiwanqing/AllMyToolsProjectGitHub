@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import motionoraReference from "./image.png";
 import "./styles.css";
 import {
@@ -9,6 +9,80 @@ import {
 } from "lucide-react";
 
 type Theme = "paper" | "warm" | "violet" | "ocean" | "amber" | "rose" | "forest" | "mono" | "mono-night" | "graphite" | "midnight" | "plum" | "sunset" | "dopamine" | "citrus" | "candy" | "lavender" | "coastal" | "copper" | "jade" | "ultramarine" | "ember" | "arctic" | "motionora";
+
+const baseWorkbenchPalette = {
+  "--ui-background": "#f7f8fa", "--ui-foreground": "#172033", "--ui-surface": "#ffffff", "--ui-surface-foreground": "#172033",
+  "--ui-muted": "#f4f5f7", "--ui-muted-foreground": "#737e93", "--ui-accent": "#eef0ff", "--ui-accent-foreground": "#373ac3", "--ui-border": "#e5e8ee",
+  "--ui-primary": "#5255d8", "--ui-primary-foreground": "#ffffff",
+  "--ui-success": "#287a57", "--ui-success-surface": "#e8f6ef", "--ui-warning": "#9a580d", "--ui-warning-surface": "#fff0d9",
+  "--ui-danger": "#b4263c", "--ui-danger-surface": "#fdebed", "--ui-info": "#285da8", "--ui-info-surface": "#e8f0ff",
+};
+
+const darkStatusPalette = { "--ui-success": "#7de2ae", "--ui-success-surface": "#173b2d", "--ui-warning": "#ffcf70", "--ui-warning-surface": "#4a3213", "--ui-danger": "#ff8c9d", "--ui-danger-surface": "#4b2028", "--ui-info": "#8dc8ff", "--ui-info-surface": "#1c3554" };
+
+const workbenchThemePalettes: Record<Theme, Record<string, string>> = {
+  paper: baseWorkbenchPalette,
+  violet: baseWorkbenchPalette,
+  warm: { ...baseWorkbenchPalette, "--ui-background": "#f4f1eb", "--ui-foreground": "#302d29", "--ui-surface": "#fbfaf7", "--ui-surface-foreground": "#302d29", "--ui-muted": "#eee9e0", "--ui-muted-foreground": "#847b70", "--ui-primary": "#74614a", "--ui-primary-foreground": "#fffdf7", "--ui-accent": "#e4ece1", "--ui-accent-foreground": "#4b654c", "--ui-border": "#ddd6ca" },
+  ocean: { ...baseWorkbenchPalette, "--ui-primary": "#087b88", "--ui-accent": "#e5f4f4", "--ui-accent-foreground": "#08606a" },
+  amber: { ...baseWorkbenchPalette, "--ui-primary": "#b86612", "--ui-accent": "#fff2df", "--ui-accent-foreground": "#914b08" },
+  rose: { ...baseWorkbenchPalette, "--ui-primary": "#bd4a68", "--ui-accent": "#fff0f3", "--ui-accent-foreground": "#9b294b" },
+  forest: { ...baseWorkbenchPalette, "--ui-primary": "#39765a", "--ui-accent": "#eaf5ed", "--ui-accent-foreground": "#285940" },
+  mono: { ...baseWorkbenchPalette, "--ui-background": "#f8f8f8", "--ui-foreground": "#161616", "--ui-surface": "#ffffff", "--ui-surface-foreground": "#161616", "--ui-muted": "#f2f2f2", "--ui-muted-foreground": "#767676", "--ui-accent": "#e8e8e8", "--ui-accent-foreground": "#161616", "--ui-border": "#d8d8d8", "--ui-primary": "#161616", "--ui-primary-foreground": "#ffffff" },
+  graphite: { ...baseWorkbenchPalette, ...darkStatusPalette, "--ui-background": "#202124", "--ui-foreground": "#f2f1ee", "--ui-surface": "#292a2e", "--ui-surface-foreground": "#f2f1ee", "--ui-muted": "#303136", "--ui-muted-foreground": "#aaa9a5", "--ui-accent": "#393a40", "--ui-accent-foreground": "#f4f2ed", "--ui-border": "#414247", "--ui-primary": "#d8d6ce", "--ui-primary-foreground": "#202124" },
+  midnight: { ...baseWorkbenchPalette, ...darkStatusPalette, "--ui-background": "#0e1828", "--ui-foreground": "#edf5ff", "--ui-surface": "#142238", "--ui-surface-foreground": "#edf5ff", "--ui-muted": "#1a2a40", "--ui-muted-foreground": "#9cb4ce", "--ui-accent": "#173b56", "--ui-accent-foreground": "#9fe1ff", "--ui-border": "#27425d", "--ui-primary": "#55b8e9", "--ui-primary-foreground": "#062032" },
+  plum: { ...baseWorkbenchPalette, ...darkStatusPalette, "--ui-background": "#211528", "--ui-foreground": "#faeffb", "--ui-surface": "#2c1d35", "--ui-surface-foreground": "#faeffb", "--ui-muted": "#382141", "--ui-muted-foreground": "#c5a8c9", "--ui-accent": "#4a2854", "--ui-accent-foreground": "#f3bdf8", "--ui-border": "#593362", "--ui-primary": "#dd9ce8", "--ui-primary-foreground": "#35183b" },
+  "mono-night": { ...baseWorkbenchPalette, ...darkStatusPalette, "--ui-background": "#090909", "--ui-foreground": "#f5f5f5", "--ui-surface": "#151515", "--ui-surface-foreground": "#f5f5f5", "--ui-muted": "#202020", "--ui-muted-foreground": "#9a9a9a", "--ui-accent": "#303030", "--ui-accent-foreground": "#ffffff", "--ui-border": "#3b3b3b", "--ui-primary": "#fafafa", "--ui-primary-foreground": "#0a0a0a" },
+  sunset: { ...baseWorkbenchPalette, "--ui-background": "#fff3eb", "--ui-foreground": "#352422", "--ui-surface": "#fffaf6", "--ui-surface-foreground": "#352422", "--ui-muted": "#f9ebe5", "--ui-muted-foreground": "#937267", "--ui-primary": "#e15c45", "--ui-primary-foreground": "#fffaf5", "--ui-accent": "#ffe0b8", "--ui-accent-foreground": "#9c4c22", "--ui-border": "#efd4c8" },
+  dopamine: { ...baseWorkbenchPalette, "--ui-background": "#fff9e8", "--ui-foreground": "#1c1c2d", "--ui-surface": "#ffffff", "--ui-surface-foreground": "#1c1c2d", "--ui-muted": "#f5f0df", "--ui-muted-foreground": "#746d76", "--ui-primary": "#5a38e9", "--ui-accent": "#ffda3e", "--ui-accent-foreground": "#3b2c00", "--ui-border": "#e7ddc3" },
+  citrus: { ...baseWorkbenchPalette, "--ui-background": "#f7ffe8", "--ui-foreground": "#173a33", "--ui-surface": "#fffffb", "--ui-surface-foreground": "#173a33", "--ui-muted": "#eef8dc", "--ui-muted-foreground": "#64806d", "--ui-primary": "#00a873", "--ui-accent": "#d5ff3d", "--ui-accent-foreground": "#234000", "--ui-border": "#d5e6bd" },
+  candy: { ...baseWorkbenchPalette, "--ui-background": "#fff0f8", "--ui-foreground": "#301a3b", "--ui-surface": "#fffaff", "--ui-surface-foreground": "#301a3b", "--ui-muted": "#fbe8f4", "--ui-muted-foreground": "#906e85", "--ui-primary": "#e438a4", "--ui-accent": "#50d5e8", "--ui-accent-foreground": "#063f4a", "--ui-border": "#eed1e4" },
+  lavender: { ...baseWorkbenchPalette, "--ui-background": "#f7f4ff", "--ui-foreground": "#2d2940", "--ui-surface": "#fffdff", "--ui-surface-foreground": "#2d2940", "--ui-muted": "#f0edf8", "--ui-muted-foreground": "#7e7891", "--ui-primary": "#7861c9", "--ui-accent": "#d9cef7", "--ui-accent-foreground": "#513e90", "--ui-border": "#ded8ee" },
+  coastal: { ...baseWorkbenchPalette, "--ui-background": "#effafa", "--ui-foreground": "#173842", "--ui-surface": "#ffffff", "--ui-surface-foreground": "#173842", "--ui-muted": "#e8f5f5", "--ui-muted-foreground": "#66858c", "--ui-primary": "#1c8396", "--ui-accent": "#bde9df", "--ui-accent-foreground": "#1f655b", "--ui-border": "#cee7e8" },
+  copper: { ...baseWorkbenchPalette, "--ui-background": "#f8f1e8", "--ui-foreground": "#392a21", "--ui-surface": "#fffdfa", "--ui-surface-foreground": "#392a21", "--ui-muted": "#f4e9dd", "--ui-muted-foreground": "#887267", "--ui-primary": "#a95e36", "--ui-accent": "#e9bb71", "--ui-accent-foreground": "#653a18", "--ui-border": "#e7d3bf" },
+  jade: { ...baseWorkbenchPalette, "--ui-background": "#effaf4", "--ui-foreground": "#16392c", "--ui-surface": "#fffefa", "--ui-surface-foreground": "#16392c", "--ui-muted": "#e7f6ee", "--ui-muted-foreground": "#668575", "--ui-primary": "#16865e", "--ui-accent": "#8ee0bd", "--ui-accent-foreground": "#12583e", "--ui-border": "#cbe7d7" },
+  ultramarine: { ...baseWorkbenchPalette, "--ui-background": "#edf2ff", "--ui-foreground": "#192746", "--ui-surface": "#ffffff", "--ui-surface-foreground": "#192746", "--ui-muted": "#e9eeff", "--ui-muted-foreground": "#697ba1", "--ui-primary": "#2454ca", "--ui-accent": "#aecdff", "--ui-accent-foreground": "#153d9c", "--ui-border": "#d1dcfa" },
+  ember: { ...baseWorkbenchPalette, "--ui-background": "#fff1e8", "--ui-foreground": "#3e211e", "--ui-surface": "#fffaf7", "--ui-surface-foreground": "#3e211e", "--ui-muted": "#fbe8e2", "--ui-muted-foreground": "#966e66", "--ui-primary": "#c93e32", "--ui-accent": "#ffb14a", "--ui-accent-foreground": "#6d3300", "--ui-border": "#f0d0c6" },
+  arctic: { ...baseWorkbenchPalette, "--ui-background": "#f0f9ff", "--ui-foreground": "#183342", "--ui-surface": "#ffffff", "--ui-surface-foreground": "#183342", "--ui-muted": "#e8f5fb", "--ui-muted-foreground": "#668593", "--ui-primary": "#287ca3", "--ui-accent": "#bce8fb", "--ui-accent-foreground": "#17546f", "--ui-border": "#cde5f0" },
+  motionora: { ...baseWorkbenchPalette, "--ui-background": "#f8f7f1", "--ui-foreground": "#192235", "--ui-surface": "#fffdf8", "--ui-surface-foreground": "#192235", "--ui-muted": "#eeece4", "--ui-muted-foreground": "#697083", "--ui-primary": "#1b2433", "--ui-primary-foreground": "#fffdf8", "--ui-accent": "#f5d65c", "--ui-accent-foreground": "#192235", "--ui-border": "#d8d8d2" },
+};
+
+function getWorkbenchStyle(theme: Theme): CSSProperties {
+  const palette = workbenchThemePalettes[theme];
+  return {
+    ...palette,
+    "--background": palette["--ui-background"],
+    "--foreground": palette["--ui-foreground"],
+    "--surface": palette["--ui-surface"],
+    "--surface-foreground": palette["--ui-surface-foreground"],
+    "--muted": palette["--ui-muted"],
+    "--muted-foreground": palette["--ui-muted-foreground"],
+    "--accent": palette["--ui-accent"],
+    "--accent-foreground": palette["--ui-accent-foreground"],
+    "--border": palette["--ui-border"],
+    "--primary": palette["--ui-primary"],
+    "--primary-foreground": palette["--ui-primary-foreground"],
+    "--card": palette["--ui-surface"],
+    "--card-foreground": palette["--ui-surface-foreground"],
+    "--popover": palette["--ui-surface"],
+    "--popover-foreground": palette["--ui-surface-foreground"],
+    "--secondary": palette["--ui-muted"],
+    "--secondary-foreground": palette["--ui-foreground"],
+    "--input": palette["--ui-border"],
+    "--input-background": palette["--ui-surface"],
+    "--ring": palette["--ui-primary"],
+    "--destructive": palette["--ui-danger"],
+    "--destructive-foreground": palette["--ui-primary-foreground"],
+    "--dd-status-success": palette["--ui-success"],
+    "--dd-status-success-surface": palette["--ui-success-surface"],
+    "--dd-status-warning": palette["--ui-warning"],
+    "--dd-status-warning-surface": palette["--ui-warning-surface"],
+    "--dd-status-danger": palette["--ui-danger"],
+    "--dd-status-danger-surface": palette["--ui-danger-surface"],
+    "--dd-status-info": palette["--ui-info"],
+    "--dd-status-info-surface": palette["--ui-info-surface"],
+  } as CSSProperties;
+}
 
 const navItems = [
   ["概览", Grid2X2, "workbench-overview"], ["主题", Palette, "workbench-theme"], ["Token", Layers3, "workbench-tokens"],
@@ -156,10 +230,10 @@ export function FigmaWorkbench({ initialTheme = "paper", onClose }: { initialThe
   const [showProfile, setShowProfile] = useState(false);
   const notify = (message: string) => setStatusMessage(message);
   const toggleRow = (name: string) => setSelectedRows(rows => rows.includes(name) ? rows.filter(row => row !== name) : [...rows, name]);
-  const rootClass = theme === "paper" ? "" : `theme-${theme}`;
+  const rootClass = `theme-${theme}`;
   const themeNames: Record<Theme, string> = { paper: "纸白", warm: "暖灰", violet: "紫罗兰", ocean: "深海青", amber: "琥珀橙", rose: "玫瑰红", forest: "松柏绿", mono: "黑白灰", graphite: "石墨", midnight: "午夜蓝", plum: "李子紫", sunset: "日落珊瑚", "mono-night": "黑白灰 · 夜", dopamine: "多巴胺", citrus: "青柠汽水", candy: "糖果霓虹", lavender: "薰衣草雾", coastal: "海岸蓝", copper: "铜金棕", jade: "玉石绿", ultramarine: "群青蓝", ember: "余烬红", arctic: "极地冰", motionora: "帧动多巴胺" };
 
-  return <div className={`${rootClass} figma-workbench-root fixed inset-0 z-[100] min-h-screen overflow-auto bg-background font-[Manrope] text-foreground transition-colors duration-300`}>
+  return <div data-ui-theme={theme} style={getWorkbenchStyle(theme)} className={`${rootClass} figma-workbench-root fixed inset-0 z-[100] min-h-screen overflow-auto bg-background font-[Manrope] text-foreground transition-colors duration-300`}>
     <div className="grid min-h-screen grid-cols-[232px_minmax(0,1fr)] max-[900px]:grid-cols-1">
       <aside className="flex min-h-screen flex-col border-r border-border bg-card px-3 py-5 max-[900px]:hidden">
         <div className="mb-8 flex items-center gap-3 px-3"><div className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground shadow-sm"><Sparkles size={16}/></div><div><p className="text-sm font-extrabold tracking-[-0.03em]">DAIDAI</p><p className="font-mono text-[9px] uppercase tracking-[0.13em] text-muted-foreground">product UI system</p></div></div>
