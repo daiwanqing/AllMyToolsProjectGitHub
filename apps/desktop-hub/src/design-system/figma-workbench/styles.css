@@ -206,6 +206,29 @@
   outline-offset: 2px;
 }
 
+/* Workbench layout: a stable navigation rail and one independent content
+   scroller keep long documentation sections usable on desktop. */
+.figma-workbench-grid { height: 100vh; min-height: 0; }
+.figma-workbench-main { display: flex; min-height: 0; flex-direction: column; overflow: hidden; }
+.figma-workbench-content { width: 100%; max-width: var(--dd-layout-content-max) !important; flex: 1; overflow: auto; padding: var(--dd-layout-section-gap) var(--dd-layout-gutter) 64px !important; scrollbar-gutter: stable; }
+.figma-workbench-main > header { flex: none; }
+.figma-workbench-content > section { margin-bottom: var(--dd-layout-section-gap) !important; }
+.figma-workbench-content > section.rounded-lg { border: 0 !important; background: transparent !important; box-shadow: none !important; padding: 0 !important; }
+.figma-workbench-content > section.rounded-lg > header,
+.figma-workbench-content > section.rounded-lg > main { border-radius: var(--dd-radius-control); }
+.figma-workbench-content > section:not(#workbench-overview) h2 { font-size: 24px; line-height: 1.2; }
+.figma-workbench-content > section:not(#workbench-overview) > .mb-5 { margin-bottom: 18px; }
+.figma-workbench-content > section:not(#workbench-overview) > .mb-12 { margin-bottom: 0; }
+.figma-workbench-content .rounded-xl { border-radius: var(--dd-radius-emphasis); }
+.figma-workbench-content .shadow-\[0_18px_40px_rgba\(20\,25\,40\,.08\)\] { box-shadow: var(--dd-shadow-sm); }
+
+@media (max-width: 900px) {
+  .figma-workbench-root { overflow: auto; }
+  .figma-workbench-grid { height: auto; min-height: 100vh; }
+  .figma-workbench-main { overflow: visible; }
+  .figma-workbench-content { overflow: visible; padding: 28px 20px 48px !important; }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
