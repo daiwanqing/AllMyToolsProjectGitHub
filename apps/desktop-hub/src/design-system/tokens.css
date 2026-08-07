@@ -29,6 +29,9 @@
   --dd-space-6: 24px;
   --dd-space-8: 32px;
   --dd-layout-sidebar: 216px;
+  --dd-layout-workspace-sidebar: 150px;
+  --dd-layout-workspace-topbar: 48px;
+  --dd-layout-workspace-content-padding: 20px;
   --dd-layout-content-max: 1220px;
   --dd-layout-content-wide: 1600px;
   --dd-layout-explore-nav: 216px;

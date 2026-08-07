@@ -29,6 +29,13 @@ if not exist "apps\desktop-hub\node_modules\.bin\tauri.cmd" (
   )
 )
 
+set "DAIDAI_HUB_DIR=%~dp0apps\desktop-hub"
+echo Cleaning stale DaiDai Hub dev servers...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$hubDir = [IO.Path]::GetFullPath($env:DAIDAI_HUB_DIR); Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne $PID -and $_.CommandLine -and $_.CommandLine.Contains($hubDir) -and $_.CommandLine -match 'vite' } | ForEach-Object { Write-Host ('Stopping stale Vite process ' + $_.ProcessId); Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
+if errorlevel 1 (
+  echo [WARN] Could not inspect stale dev servers. Continuing...
+)
+
 echo Starting DaiDai Hub desktop app...
 call %PNPM_CMD% --dir apps\desktop-hub desktop:dev
 
