@@ -3,6 +3,7 @@ import { ArrowLeft, BookOpen, ChevronRight, Command, Gamepad2, Moon, Palette, Pa
 import { moduleRegistry, type ModuleCategory, type ModuleDefinition } from './moduleRegistry';
 import { Badge, Button, CommandMenu, IconButton, Input, Surface, Tabs, Toast, useToast } from '../design-system';
 import { FigmaWorkbench } from '../design-system/figma-workbench/FigmaWorkbench';
+import { PublicUISpecPage } from '../design-system/PublicUISpecPage';
 import { ToolWorkspace } from './ToolWorkspace';
 
 type View = 'welcome' | 'explore';
@@ -20,6 +21,7 @@ export function HubApp() {
   const [search, setSearch] = useState('');
   const [showThemes, setShowThemes] = useState(false);
   const [showWorkbench, setShowWorkbench] = useState(false);
+  const [showPublicUISpec, setShowPublicUISpec] = useState(false);
   const [activeModule, setActiveModule] = useState<ModuleDefinition>();
   const [showCommand, setShowCommand] = useState(false);
   const [commandQuery, setCommandQuery] = useState('');
@@ -33,6 +35,7 @@ export function HubApp() {
       <div className="brand"><span className="brand-mark"><Sparkles size={16} /></span><span>DaiDai Hub</span></div>
       <div className="top-actions">
         <Button tone="quiet" className="system-button" onClick={() => setShowWorkbench(true)} title="\u67e5\u770b\u5f53\u524d\u4ea7\u54c1 UI \u4f53\u7cfb"><PanelsTopLeft size={15} /> {'UI \u4f53\u7cfb'}</Button>
+        <Button tone="quiet" className="system-button" onClick={() => setShowPublicUISpec(true)} title="\u67e5\u770b\u5f53\u524d\u5de5\u5177\u7684\u516c\u5171 UI \u89c4\u8303"><BookOpen size={15} /> {'\u516c\u5171UI\u89c4\u8303'}</Button>
         <IconButton title="\u5207\u6362\u4e3b\u9898" onClick={() => setShowThemes(!showThemes)}><Palette size={17} /></IconButton>
         <IconButton title="\u5207\u6362\u660e\u6697\u663e\u793a" onClick={() => changeTheme(theme === 'midnight' ? 'paper' : 'midnight')}>{theme === 'midnight' ? <Sun size={17} /> : <Moon size={17} />}</IconButton>
         <Button tone="quiet" className="command-button" onClick={() => setShowCommand(true)}><Command size={15} /> {'\u5feb\u901f\u6253\u5f00'} <kbd>\u2318K</kbd></Button>
@@ -62,6 +65,7 @@ export function HubApp() {
     <Toast message={toast.message} onClose={toast.clear} />
     <CommandMenu open={showCommand} query={commandQuery} onQueryChange={setCommandQuery} onClose={() => { setShowCommand(false); setCommandQuery(''); }} items={['\u8fdb\u5165\u63a2\u7d22', '\u5207\u6362\u4e3b\u9898', '\u67e5\u770b UI \u4f53\u7cfb', '\u6253\u5f00\u77e5\u8bc6\u7a7a\u95f4', '\u6253\u5f00\u56fe\u50cf\u5de5\u4f5c\u5ba4', '\u6253\u5f00\u8ba1\u7b97\u5de5\u5177']} onSelect={(item) => { if (item === '\u8fdb\u5165\u63a2\u7d22') setView('explore'); if (item === '\u5207\u6362\u4e3b\u9898') setShowThemes(true); if (item === '\u67e5\u770b UI \u4f53\u7cfb') setShowWorkbench(true); toast.notify(`\u5df2\u6267\u884c\uff1a${item}`); setShowCommand(false); setCommandQuery(''); }} />
     {showWorkbench && <FigmaWorkbench initialTheme={theme as Parameters<typeof FigmaWorkbench>[0]['initialTheme']} onClose={() => setShowWorkbench(false)} />}
+    {showPublicUISpec && <PublicUISpecPage onClose={() => setShowPublicUISpec(false)} />}
     {activeModule && <ToolWorkspace module={activeModule} onClose={() => setActiveModule(undefined)} />}
     <footer><span>DAIDAI DESIGN SYSTEM</span><span>Theme · Motion · Clarity</span></footer>
   </div>;
