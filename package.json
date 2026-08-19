@@ -7,6 +7,7 @@
     "dev": "pnpm --filter @allmytools/desktop dev",
     "build": "pnpm --filter @allmytools/desktop build",
     "desktop": "pnpm --filter @allmytools/desktop tauri",
+    "release:check": "node scripts/发布环境检查.mjs",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
