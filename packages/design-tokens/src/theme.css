@@ -1,0 +1,112 @@
+:root {
+  --amt-primitive-color-neutral-0: #ffffff;
+  --amt-primitive-color-neutral-50: #f7f8f8;
+  --amt-primitive-color-neutral-100: #edf0f1;
+  --amt-primitive-color-neutral-300: #ced5d8;
+  --amt-primitive-color-neutral-500: #647079;
+  --amt-primitive-color-neutral-600: #3c464d;
+  --amt-primitive-color-neutral-750: #22272b;
+  --amt-primitive-color-neutral-850: #171a1d;
+  --amt-primitive-color-neutral-950: #0f1113;
+  --amt-primitive-color-cyan-300: #77cad3;
+  --amt-primitive-color-cyan-700: #216570;
+  --amt-primitive-color-red-300: #ea9292;
+  --amt-primitive-color-red-700: #a84242;
+  --amt-primitive-space-1: 4px;
+  --amt-primitive-space-2: 8px;
+  --amt-primitive-space-3: 12px;
+  --amt-primitive-space-4: 16px;
+  --amt-primitive-space-5: 20px;
+  --amt-primitive-space-6: 24px;
+  --amt-primitive-space-8: 32px;
+  --amt-primitive-space-10: 40px;
+  --amt-primitive-radius-1: 4px;
+  --amt-primitive-radius-2: 6px;
+  --amt-primitive-radius-3: 8px;
+  --amt-primitive-border-width-default: 1px;
+  --amt-primitive-focus-width-default: 2px;
+  --amt-primitive-opacity-disabled: 0.56;
+  --amt-primitive-dimension-control-compact: 32px;
+  --amt-primitive-dimension-control-default: 40px;
+  --amt-primitive-dimension-icon-default: 16px;
+  --amt-primitive-dimension-navigation-rail: 156px;
+  --amt-primitive-duration-fast: 120ms;
+  --amt-primitive-duration-normal: 180ms;
+  --amt-primitive-z-index-content: 0;
+  --amt-primitive-z-index-menu: 100;
+  --amt-primitive-z-index-dialog: 200;
+  --amt-primitive-z-index-notification: 300;
+  --amt-space-1: var(--amt-primitive-space-1);
+  --amt-space-2: var(--amt-primitive-space-2);
+  --amt-space-3: var(--amt-primitive-space-3);
+  --amt-space-4: var(--amt-primitive-space-4);
+  --amt-space-5: var(--amt-primitive-space-5);
+  --amt-space-6: var(--amt-primitive-space-6);
+  --amt-space-8: var(--amt-primitive-space-8);
+  --amt-space-10: var(--amt-primitive-space-10);
+  --amt-radius-control: var(--amt-primitive-radius-2);
+  --amt-radius-surface: var(--amt-primitive-radius-3);
+  --amt-dimension-control-compact: var(--amt-primitive-dimension-control-compact);
+  --amt-dimension-control-default: var(--amt-primitive-dimension-control-default);
+  --amt-dimension-navigation-rail: var(--amt-primitive-dimension-navigation-rail);
+  --amt-motion-fast: var(--amt-primitive-duration-fast);
+  --amt-motion-normal: var(--amt-primitive-duration-normal);
+  --amt-border-width-default: var(--amt-primitive-border-width-default);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --amt-color-background-canvas: var(--amt-primitive-color-neutral-50);
+  --amt-color-background-surface: var(--amt-primitive-color-neutral-0);
+  --amt-color-background-selected: var(--amt-primitive-color-neutral-100);
+  --amt-color-text-primary: var(--amt-primitive-color-neutral-950);
+  --amt-color-text-secondary: var(--amt-primitive-color-neutral-500);
+  --amt-color-border-default: var(--amt-primitive-color-neutral-300);
+  --amt-color-border-strong: var(--amt-primitive-color-neutral-600);
+  --amt-color-action-primary: var(--amt-primitive-color-cyan-700);
+  --amt-color-action-primary-text: var(--amt-primitive-color-neutral-0);
+  --amt-color-focus-ring: var(--amt-primitive-color-cyan-700);
+  --amt-color-status-error: var(--amt-primitive-color-red-700);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --amt-color-background-canvas: var(--amt-primitive-color-neutral-850);
+  --amt-color-background-surface: var(--amt-primitive-color-neutral-750);
+  --amt-color-background-selected: var(--amt-primitive-color-neutral-600);
+  --amt-color-text-primary: var(--amt-primitive-color-neutral-50);
+  --amt-color-text-secondary: var(--amt-primitive-color-neutral-300);
+  --amt-color-border-default: var(--amt-primitive-color-neutral-600);
+  --amt-color-border-strong: var(--amt-primitive-color-neutral-300);
+  --amt-color-action-primary: var(--amt-primitive-color-cyan-300);
+  --amt-color-action-primary-text: var(--amt-primitive-color-neutral-950);
+  --amt-color-focus-ring: var(--amt-primitive-color-cyan-300);
+  --amt-color-status-error: var(--amt-primitive-color-red-300);
+}
+
+:root {
+  --amt-button-compact-height: var(--amt-dimension-control-compact);
+  --amt-button-compact-radius: var(--amt-radius-control);
+  --amt-button-compact-padding-x: var(--amt-space-3);
+  --amt-button-default-height: var(--amt-dimension-control-default);
+  --amt-button-default-radius: var(--amt-radius-control);
+  --amt-button-default-padding-x: var(--amt-space-4);
+  --amt-field-height: var(--amt-dimension-control-default);
+  --amt-field-radius: var(--amt-radius-control);
+  --amt-field-padding-x: var(--amt-space-3);
+  --amt-message-radius: var(--amt-radius-control);
+  --amt-message-padding: var(--amt-space-3);
+  --amt-control-disabled-opacity: var(--amt-primitive-opacity-disabled);
+  --amt-navigation-item-radius: var(--amt-radius-control);
+  --amt-navigation-item-padding-x: var(--amt-space-3);
+  --amt-navigation-item-padding-y: var(--amt-space-2);
+  --amt-focus-ring-width: var(--amt-primitive-focus-width-default);
+  --amt-focus-ring-offset: var(--amt-space-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --amt-motion-fast: 0ms;
+    --amt-motion-normal: 0ms;
+  }
+}

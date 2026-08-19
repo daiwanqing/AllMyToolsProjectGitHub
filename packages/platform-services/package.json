@@ -1,0 +1,20 @@
+{
+  "name": "@allmytools/platform-services",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --max-warnings 0",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@allmytools/platform-contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "vitest": "^3.1.2"
+  }
+}

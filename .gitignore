@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/gen/
+apps/desktop/src-tauri/icons/android/
+apps/desktop/src-tauri/icons/ios/
+apps/desktop/light-theme.png
+apps/desktop/dark-theme.png
+apps/desktop/shell-preview.png
+apps/desktop/settings-preview.png
+apps/desktop/design-system-preview.png
+apps/desktop/edge-profile/

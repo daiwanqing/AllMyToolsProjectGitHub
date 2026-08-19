@@ -1,0 +1,6 @@
+AGENTS.md
+docs/
+pnpm-lock.yaml
+apps/desktop/src-tauri/icons/
+apps/desktop/src-tauri/target/
+apps/desktop/edge-profile/
