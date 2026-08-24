@@ -65,6 +65,40 @@
   animation: amt-spin var(--amt-motion-normal) linear infinite;
 }
 
+.amt-icon-button {
+  display: grid;
+  width: var(--amt-button-default-height);
+  height: var(--amt-button-default-height);
+  place-items: center;
+  border: var(--amt-border-width-default) solid var(--amt-color-border-default);
+  border-radius: var(--amt-button-default-radius);
+  color: var(--amt-color-text-secondary);
+  background: var(--amt-color-background-surface);
+  cursor: pointer;
+}
+
+.amt-icon-button:hover:not(:disabled),
+.amt-icon-button[aria-pressed='true'] {
+  border-color: var(--amt-color-border-strong);
+  color: var(--amt-color-action-primary);
+  background: var(--amt-color-background-selected);
+}
+
+.amt-icon-button:focus-visible {
+  outline: var(--amt-focus-ring-width) solid var(--amt-color-focus-ring);
+  outline-offset: var(--amt-focus-ring-offset);
+}
+
+.amt-icon-button:disabled {
+  cursor: not-allowed;
+  opacity: var(--amt-control-disabled-opacity);
+}
+
+.amt-icon-button svg {
+  width: var(--amt-primitive-dimension-icon-default);
+  height: var(--amt-primitive-dimension-icon-default);
+}
+
 .amt-tabs-list {
   display: flex;
   gap: var(--amt-space-1);

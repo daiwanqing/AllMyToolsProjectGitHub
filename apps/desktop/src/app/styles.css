@@ -23,7 +23,9 @@ body {
 
 button,
 a,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 
@@ -292,30 +294,6 @@ h2 {
   gap: var(--amt-space-2);
 }
 
-.icon-button {
-  display: grid;
-  width: var(--amt-button-default-height);
-  height: var(--amt-button-default-height);
-  place-items: center;
-  border: var(--amt-border-width-default) solid var(--amt-color-border-default);
-  border-radius: var(--amt-button-default-radius);
-  color: var(--amt-color-text-secondary);
-  background: var(--amt-color-background-surface);
-  cursor: pointer;
-}
-
-.icon-button:hover,
-.icon-button[aria-pressed='true'] {
-  border-color: var(--amt-color-border-strong);
-  color: var(--amt-color-action-primary);
-  background: var(--amt-color-background-selected);
-}
-
-.icon-button svg {
-  width: var(--amt-primitive-dimension-icon-default);
-  height: var(--amt-primitive-dimension-icon-default);
-}
-
 .settings-workspace {
   display: grid;
   gap: var(--amt-space-8);
@@ -439,7 +417,7 @@ h2 {
   border-radius: var(--amt-radius-control);
 }
 
-.token-copy-button.icon-button {
+.token-copy-button {
   width: var(--amt-dimension-control-compact);
   height: var(--amt-dimension-control-compact);
 }
@@ -571,8 +549,7 @@ h2 {
   margin-top: var(--amt-space-4);
 }
 
-.component-preview-row,
-.tool-option-list {
+.component-preview-row {
   display: flex;
   flex-wrap: wrap;
   gap: var(--amt-space-2);
@@ -660,12 +637,6 @@ h2 {
 .tool-workspace .amt-field,
 .tool-workspace .amt-button {
   margin-top: var(--amt-space-4);
-}
-
-.tool-option-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--amt-space-2);
 }
 
 @media (max-width: 640px) {

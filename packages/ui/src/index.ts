@@ -8,6 +8,7 @@ export {
   type UiGuidelineGroup,
 } from './designSystemCatalog';
 export { EmptyState, type EmptyStateProps } from './EmptyState';
+export { IconButton, type IconButtonProps } from './IconButton';
 export { InlineMessage, type InlineMessageProps, type InlineMessageTone } from './InlineMessage';
 export { ProgressBar, type ProgressBarProps } from './ProgressBar';
 export { SettingRow, type SettingRowProps } from './SettingRow';

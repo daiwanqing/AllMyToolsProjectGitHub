@@ -5,6 +5,7 @@ import {
   ChoiceGroup,
   Disclosure,
   EmptyState,
+  IconButton,
   InlineMessage,
   ProgressBar,
   SettingRow,
@@ -147,15 +148,13 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
                     <TokenValue value={row.value} />
                   </td>
                   <td>
-                    <button
-                      className="icon-button token-copy-button"
-                      type="button"
-                      title={`复制 ${row.name}`}
-                      aria-label={`复制 ${row.name}`}
+                    <IconButton
+                      className="token-copy-button"
+                      label={`复制 ${row.name}`}
                       onClick={() => void copyToken(row.name, row.value)}
                     >
                       <Copy aria-hidden="true" />
-                    </button>
+                    </IconButton>
                   </td>
                 </tr>
               ))}

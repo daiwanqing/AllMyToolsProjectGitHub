@@ -5,6 +5,7 @@ import { Button } from './Button';
 import { ChoiceGroup } from './ChoiceGroup';
 import { Disclosure } from './Disclosure';
 import { EmptyState } from './EmptyState';
+import { IconButton } from './IconButton';
 import { InlineMessage } from './InlineMessage';
 import { ProgressBar } from './ProgressBar';
 import { SelectField } from './SelectField';
@@ -45,6 +46,20 @@ describe('Button', () => {
     button.focus();
 
     expect(button).toHaveFocus();
+  });
+});
+
+describe('IconButton', () => {
+  it('provides a tooltip, accessible name, and pressed state', () => {
+    render(
+      <IconButton label="收藏工具" pressed>
+        <span aria-hidden="true">*</span>
+      </IconButton>,
+    );
+
+    const button = screen.getByRole('button', { name: '收藏工具' });
+    expect(button).toHaveAttribute('title', '收藏工具');
+    expect(button).toHaveAttribute('aria-pressed', 'true');
   });
 });
 
@@ -150,6 +165,7 @@ describe('composite controls', () => {
       'TextField',
       'EmptyState',
       'InlineMessage',
+      'IconButton',
       'Tabs',
       'ChoiceGroup',
       'ToggleField',

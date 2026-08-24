@@ -5,6 +5,7 @@ import {
   Button,
   ChoiceGroup,
   EmptyState,
+  IconButton,
   InlineMessage,
   SettingRow,
   Tabs,
@@ -178,16 +179,13 @@ function ToolRow({
         <p>{entry.description}</p>
       </div>
       <div className="tool-row-actions">
-        <button
-          className="icon-button"
-          type="button"
-          title={favorite ? `取消收藏 ${entry.name}` : `收藏 ${entry.name}`}
-          aria-label={favorite ? `取消收藏 ${entry.name}` : `收藏 ${entry.name}`}
-          aria-pressed={favorite}
+        <IconButton
+          label={favorite ? `取消收藏 ${entry.name}` : `收藏 ${entry.name}`}
+          pressed={favorite}
           onClick={() => onToggleFavorite(entry.id)}
         >
           <Star aria-hidden="true" fill={favorite ? 'currentColor' : 'none'} />
-        </button>
+        </IconButton>
         <Button variant="secondary" onClick={() => onOpen(entry)}>
           打开
         </Button>

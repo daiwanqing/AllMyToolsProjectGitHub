@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, TextField } from '@allmytools/ui';
+import { Button, InlineMessage, TextField } from '@allmytools/ui';
 import { manifest } from './manifest';
 import { loadReviewDraft, saveReviewDraft } from './storage';
 
@@ -30,7 +30,7 @@ export function ToolView() {
       >
         保存草稿
       </Button>
-      {saved ? <p role="status">草稿已保存。</p> : null}
+      {saved ? <InlineMessage title="保存状态">草稿已保存。</InlineMessage> : null}
     </section>
   );
 }
