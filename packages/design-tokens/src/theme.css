@@ -10,6 +10,10 @@
   --amt-primitive-color-neutral-950: #0f1113;
   --amt-primitive-color-cyan-300: #77cad3;
   --amt-primitive-color-cyan-700: #216570;
+  --amt-primitive-color-green-300: #8bc7a8;
+  --amt-primitive-color-green-700: #2f7657;
+  --amt-primitive-color-amber-300: #e1bb73;
+  --amt-primitive-color-amber-700: #8a5d16;
   --amt-primitive-color-red-300: #ea9292;
   --amt-primitive-color-red-700: #a84242;
   --amt-primitive-space-1: 4px;
@@ -66,6 +70,8 @@
   --amt-color-action-primary: var(--amt-primitive-color-cyan-700);
   --amt-color-action-primary-text: var(--amt-primitive-color-neutral-0);
   --amt-color-focus-ring: var(--amt-primitive-color-cyan-700);
+  --amt-color-status-success: var(--amt-primitive-color-green-700);
+  --amt-color-status-warning: var(--amt-primitive-color-amber-700);
   --amt-color-status-error: var(--amt-primitive-color-red-700);
 }
 
@@ -81,6 +87,8 @@
   --amt-color-action-primary: var(--amt-primitive-color-cyan-300);
   --amt-color-action-primary-text: var(--amt-primitive-color-neutral-950);
   --amt-color-focus-ring: var(--amt-primitive-color-cyan-300);
+  --amt-color-status-success: var(--amt-primitive-color-green-300);
+  --amt-color-status-warning: var(--amt-primitive-color-amber-300);
   --amt-color-status-error: var(--amt-primitive-color-red-300);
 }
 

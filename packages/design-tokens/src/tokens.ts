@@ -14,6 +14,10 @@ export const primitiveTokens = {
   'color.neutral.950': '#0f1113',
   'color.cyan.300': '#77cad3',
   'color.cyan.700': '#216570',
+  'color.green.300': '#8bc7a8',
+  'color.green.700': '#2f7657',
+  'color.amber.300': '#e1bb73',
+  'color.amber.700': '#8a5d16',
   'color.red.300': '#ea9292',
   'color.red.700': '#a84242',
   'space.1': '4px',
@@ -54,6 +58,8 @@ export const semanticThemeTokens = {
     'color.action.primary': primitiveTokens['color.cyan.700'],
     'color.action.primary-text': primitiveTokens['color.neutral.0'],
     'color.focus.ring': primitiveTokens['color.cyan.700'],
+    'color.status.success': primitiveTokens['color.green.700'],
+    'color.status.warning': primitiveTokens['color.amber.700'],
     'color.status.error': primitiveTokens['color.red.700'],
   },
   dark: {
@@ -67,6 +73,8 @@ export const semanticThemeTokens = {
     'color.action.primary': primitiveTokens['color.cyan.300'],
     'color.action.primary-text': primitiveTokens['color.neutral.950'],
     'color.focus.ring': primitiveTokens['color.cyan.300'],
+    'color.status.success': primitiveTokens['color.green.300'],
+    'color.status.warning': primitiveTokens['color.amber.300'],
     'color.status.error': primitiveTokens['color.red.300'],
   },
 } as const;

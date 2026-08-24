@@ -1,10 +1,23 @@
 import { Component, type ErrorInfo, type ReactNode, useEffect, useMemo, useState } from 'react';
 import type { ToolCategory } from '@allmytools/platform-contracts';
 import type { ThemeName } from '@allmytools/design-tokens';
-import { Button, EmptyState, InlineMessage, TextField } from '@allmytools/ui';
 import {
+  Button,
+  ChoiceGroup,
+  EmptyState,
+  InlineMessage,
+  SettingRow,
+  Tabs,
+  TextField,
+  ToggleField,
+  type TabsItem,
+} from '@allmytools/ui';
+import {
+  Code2,
   Clock3,
   Grid2X2,
+  Keyboard,
+  Palette,
   Search,
   Settings,
   Sparkles,
@@ -28,6 +41,7 @@ import {
 } from '../native/globalShortcut';
 
 type WorkspaceView = 'home' | 'settings';
+type SettingsTab = 'appearance' | 'shortcuts' | 'developer';
 
 type ToolErrorBoundaryProps = Readonly<{
   children: ReactNode;
@@ -77,11 +91,19 @@ const themes: ReadonlyArray<Readonly<{ id: ThemeName; label: string }>> = [
   { id: 'dark', label: '深色' },
 ];
 
+const settingsTabs: ReadonlyArray<Readonly<{ id: SettingsTab; label: string; icon: LucideIcon }>> =
+  [
+    { id: 'appearance', label: '外观', icon: Palette },
+    { id: 'shortcuts', label: '快捷键', icon: Keyboard },
+    { id: 'developer', label: '开发者', icon: Code2 },
+  ];
+
 const workspaceStorageKey = 'shell.workspace-state';
 
 type PersistedWorkspaceState = Readonly<{
   category: ToolCategory | 'all';
   query: string;
+  settingsTab: SettingsTab;
   theme: ThemeName;
   view: WorkspaceView;
 }>;
@@ -92,6 +114,10 @@ function isWorkspaceView(value: unknown): value is WorkspaceView {
 
 function isThemeName(value: unknown): value is ThemeName {
   return value === 'light' || value === 'dark';
+}
+
+function isSettingsTab(value: unknown): value is SettingsTab {
+  return value === 'appearance' || value === 'shortcuts' || value === 'developer';
 }
 
 function isToolCategory(value: unknown): value is ToolCategory | 'all' {
@@ -115,7 +141,8 @@ function readWorkspaceState(storage: Storage): PersistedWorkspaceState | undefin
       !isWorkspaceView(state.view) ||
       !isToolCategory(state.category) ||
       !isThemeName(state.theme) ||
-      typeof state.query !== 'string'
+      typeof state.query !== 'string' ||
+      (state.settingsTab !== undefined && !isSettingsTab(state.settingsTab))
     ) {
       return undefined;
     }
@@ -124,6 +151,7 @@ function readWorkspaceState(storage: Storage): PersistedWorkspaceState | undefin
       view: state.view,
       category: state.category,
       query: state.query,
+      settingsTab: isSettingsTab(state.settingsTab) ? state.settingsTab : 'appearance',
       theme: state.theme,
     };
   } catch {
@@ -176,6 +204,9 @@ export function App() {
     initialWorkspaceState?.category ?? 'all',
   );
   const [query, setQuery] = useState(initialWorkspaceState?.query ?? '');
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>(
+    initialWorkspaceState?.settingsTab ?? 'appearance',
+  );
   const [favoriteIds, setFavoriteIds] = useState<readonly string[]>(['tools.text-workbench']);
   const [recentIds, setRecentIds] = useState<readonly string[]>(['tools.text-workbench']);
   const [shortcutEnabled, setShortcutEnabled] = useState(
@@ -190,9 +221,15 @@ export function App() {
   }, [theme]);
 
   useEffect(() => {
-    const workspaceState: PersistedWorkspaceState = { theme, view, category, query };
+    const workspaceState: PersistedWorkspaceState = {
+      theme,
+      view,
+      category,
+      query,
+      settingsTab,
+    };
     window.localStorage.setItem(workspaceStorageKey, JSON.stringify(workspaceState));
-  }, [category, query, theme, view]);
+  }, [category, query, settingsTab, theme, view]);
 
   useEffect(() => {
     if (!shortcutEnabled || !supportsGlobalShortcuts()) {
@@ -281,6 +318,54 @@ export function App() {
       setShortcutMessage('快捷键已被其他应用占用，请关闭冲突应用后重试。');
     }
   }
+
+  const settingsPanels: Readonly<Record<SettingsTab, ReactNode>> = {
+    appearance: (
+      <div className="settings-section">
+        <p className="eyebrow">界面</p>
+        <h3>主题</h3>
+        <SettingRow label="界面主题" description="选择适合当前工作环境的界面主题。">
+          <ChoiceGroup
+            ariaLabel="主题设置"
+            options={themes.map(({ id, label }) => ({ id, label: `使用${label}主题` }))}
+            value={theme}
+            onChange={(value) => {
+              if (value === 'light' || value === 'dark') {
+                setTheme(value);
+              }
+            }}
+          />
+        </SettingRow>
+      </div>
+    ),
+    shortcuts: (
+      <div className="settings-section" aria-labelledby="shortcut-heading">
+        <p className="eyebrow">桌面</p>
+        <h3 id="shortcut-heading">全局快捷键</h3>
+        <SettingRow
+          label="全局快捷键"
+          description={`启用后可使用 ${quickToggleShortcut} 显示或隐藏主窗口。`}
+        >
+          <ToggleField
+            label="启用全局快捷键"
+            checked={shortcutEnabled}
+            onChange={() => void toggleQuickToggleShortcut()}
+          />
+        </SettingRow>
+        {shortcutMessage ? (
+          <InlineMessage title="快捷键状态">{shortcutMessage}</InlineMessage>
+        ) : null}
+      </div>
+    ),
+    developer: <DesignSystemViewer theme={theme} />,
+  };
+
+  const settingsItems: readonly TabsItem[] = settingsTabs.map(({ id, label, icon: Icon }) => ({
+    id,
+    label,
+    icon: <Icon aria-hidden="true" />,
+    panel: settingsPanels[id],
+  }));
 
   return (
     <main className="desktop-shell" aria-labelledby="application-title">
@@ -382,40 +467,24 @@ export function App() {
           </section>
         ) : view === 'settings' ? (
           <section className="settings-workspace" aria-labelledby="settings-heading">
-            <div className="settings-section">
-              <p className="eyebrow">界面</p>
-              <h2 id="settings-heading">主题</h2>
-              <p>选择适合当前工作环境的界面主题。</p>
-              <div className="settings-theme-options" role="group" aria-label="主题设置">
-                {themes.map(({ id, label }) => (
-                  <Button
-                    key={id}
-                    variant={theme === id ? 'primary' : 'secondary'}
-                    aria-pressed={theme === id}
-                    onClick={() => setTheme(id)}
-                  >
-                    使用{label}主题
-                  </Button>
-                ))}
+            <div className="settings-heading">
+              <div>
+                <p className="eyebrow">工作区</p>
+                <h2 id="settings-heading">设置</h2>
               </div>
+              <p className="settings-heading-description">按功能整理偏好设置，切换后立即生效。</p>
             </div>
-            <div className="settings-section" aria-labelledby="shortcut-heading">
-              <p className="eyebrow">桌面</p>
-              <h2 id="shortcut-heading">快捷键</h2>
-              <p>启用后可使用 {quickToggleShortcut} 显示或隐藏主窗口。</p>
-              <label className="shortcut-control">
-                <input
-                  type="checkbox"
-                  checked={shortcutEnabled}
-                  onChange={() => void toggleQuickToggleShortcut()}
-                />
-                启用全局快捷键
-              </label>
-              {shortcutMessage ? (
-                <InlineMessage title="快捷键状态">{shortcutMessage}</InlineMessage>
-              ) : null}
-            </div>
-            <DesignSystemViewer theme={theme} />
+            <Tabs
+              ariaLabel="设置页签"
+              idPrefix="settings"
+              items={settingsItems}
+              value={settingsTab}
+              onChange={(value) => {
+                if (isSettingsTab(value)) {
+                  setSettingsTab(value);
+                }
+              }}
+            />
           </section>
         ) : (
           <section className="catalog-workspace" aria-label="工具目录">

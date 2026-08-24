@@ -138,26 +138,81 @@ describe('desktop shell', () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole('button', { name: '打开设置' }));
+    expect(screen.getByRole('tablist', { name: '设置页签' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '外观' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('heading', { name: '主题' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '快捷键' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '全局快捷键' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: '快捷键' }));
+    expect(screen.getByRole('tab', { name: '快捷键' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('heading', { name: '全局快捷键' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '设计系统查看器' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: '开发者' }));
     expect(screen.getByRole('heading', { name: '设计系统查看器' })).toBeInTheDocument();
+    const developerTablist = screen.getByRole('tablist', { name: '开发者查看器页签' });
+    expect(developerTablist).toBeInTheDocument();
+    for (const tab of within(developerTablist).getAllByRole('tab')) {
+      expect(document.getElementById(tab.getAttribute('aria-controls') ?? '')).toBeInTheDocument();
+    }
+    expect(screen.getByRole('tab', { name: 'Token' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('columnheader', { name: '当前解析值' })).toBeInTheDocument();
+
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'Token' }), { key: 'ArrowRight' });
+    expect(screen.getByRole('tab', { name: '主题对比' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('heading', { name: '语义 Token 对比' })).toBeInTheDocument();
+    expect(screen.getByRole('tabpanel', { name: '主题对比' })).not.toHaveAttribute('hidden');
+    fireEvent.click(screen.getByRole('tab', { name: '组件状态' }));
+    expect(screen.getByRole('heading', { name: '公共组件' })).toBeInTheDocument();
+    expect(screen.getByText('SettingRow')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '组件展厅' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: '详情' }));
+    expect(screen.getByText('在同一工作区查看补充信息。')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: '紧凑' }));
+    expect(screen.getByRole('button', { name: '紧凑' })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('checkbox', { name: '启用同步' }));
+    expect(screen.getByRole('checkbox', { name: '启用同步' })).toBeChecked();
+    expect(screen.getByRole('button', { name: '创建视图' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '公共组件状态' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'UI规范' }));
+    expect(screen.getByRole('heading', { name: 'UI 规范' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '可访问性与交互' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Token' }));
     fireEvent.change(screen.getByRole('textbox', { name: '筛选 Token' }), {
       target: { value: 'color.background.canvas' },
     });
     fireEvent.click(screen.getByRole('button', { name: '复制 color.background.canvas' }));
     await waitFor(() => expect(screen.getByText('复制状态')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('tab', { name: '快捷键' }));
     fireEvent.click(screen.getByRole('checkbox', { name: '启用全局快捷键' }));
     await waitFor(() =>
       expect(screen.getByText('全局快捷键仅在桌面应用中可用。')).toBeInTheDocument(),
     );
 
+    fireEvent.click(screen.getByRole('tab', { name: '外观' }));
     fireEvent.click(screen.getByRole('button', { name: '使用深色主题' }));
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
     expect(screen.getByRole('button', { name: '使用深色主题' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
+  });
+
+  it('switches settings tabs with keyboard and restores the selected tab', () => {
+    const firstRender = render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: '打开设置' }));
+    const appearanceTab = screen.getByRole('tab', { name: '外观' });
+    fireEvent.keyDown(appearanceTab, { key: 'ArrowRight' });
+    expect(screen.getByRole('tab', { name: '快捷键' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.keyDown(screen.getByRole('tab', { name: '快捷键' }), { key: 'End' });
+    expect(screen.getByRole('tab', { name: '开发者' })).toHaveAttribute('aria-selected', 'true');
+
+    firstRender.unmount();
+    render(<App />);
+    expect(screen.getByRole('tab', { name: '开发者' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('heading', { name: '设计系统查看器' })).toBeInTheDocument();
   });
 
   it('restores the shell workspace after remounting', () => {

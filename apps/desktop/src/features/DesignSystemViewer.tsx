@@ -1,9 +1,27 @@
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { resolveThemeTokens, type ThemeName } from '@allmytools/design-tokens';
-import { Button, InlineMessage, TextField } from '@allmytools/ui';
-import { Copy } from 'lucide-react';
+import {
+  Button,
+  ChoiceGroup,
+  Disclosure,
+  EmptyState,
+  InlineMessage,
+  ProgressBar,
+  SettingRow,
+  SelectField,
+  StatusBadge,
+  StepperField,
+  Tabs,
+  TextField,
+  ToggleField,
+  uiComponentCatalog,
+  uiGuidelineGroups,
+  type TabsItem,
+} from '@allmytools/ui';
+import { BookOpen, Check, Code2, Copy, Palette, Settings2, type LucideIcon } from 'lucide-react';
 
 type TokenLayer = 'primitive' | 'semantic' | 'component';
+type DeveloperView = 'tokens' | 'themes' | 'components' | 'guidelines';
 
 type TokenRow = Readonly<{
   layer: TokenLayer;
@@ -16,6 +34,15 @@ const layerLabels: Readonly<Record<TokenLayer, string>> = {
   semantic: '语义',
   component: '组件',
 };
+
+const developerTabs: ReadonlyArray<
+  Readonly<{ id: DeveloperView; label: string; icon: LucideIcon }>
+> = [
+  { id: 'tokens', label: 'Token', icon: Code2 },
+  { id: 'themes', label: '主题对比', icon: Palette },
+  { id: 'components', label: '组件状态', icon: Settings2 },
+  { id: 'guidelines', label: 'UI规范', icon: BookOpen },
+];
 
 function tokenRows(theme: ThemeName): readonly TokenRow[] {
   const tokens = resolveThemeTokens(theme);
@@ -62,6 +89,13 @@ function TokenValue({ value }: Readonly<{ value: string }>) {
 export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
   const [filter, setFilter] = useState('');
   const [copied, setCopied] = useState<string>();
+  const [activeView, setActiveView] = useState<DeveloperView>('tokens');
+  const [previewTab, setPreviewTab] = useState('overview');
+  const [previewDensity, setPreviewDensity] = useState('comfortable');
+  const [previewEnabled, setPreviewEnabled] = useState(false);
+  const [previewNotifications, setPreviewNotifications] = useState(false);
+  const [previewMode, setPreviewMode] = useState('system');
+  const [previewCount, setPreviewCount] = useState(3);
   const currentRows = useMemo(() => tokenRows(theme), [theme]);
   const lightSemantic = useMemo(() => resolveThemeTokens('light').semantic, []);
   const darkSemantic = useMemo(() => resolveThemeTokens('dark').semantic, []);
@@ -79,67 +113,63 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
     }
   }
 
-  return (
-    <section
-      className="settings-section design-system-viewer"
-      aria-labelledby="design-system-heading"
-    >
-      <p className="eyebrow">开发者</p>
-      <h2 id="design-system-heading">设计系统查看器</h2>
-      <p>当前主题为{theme === 'light' ? '浅色' : '深色'}，下方数据直接来自设计 Token 包。</p>
+  const developerPanels: Readonly<Record<DeveloperView, ReactNode>> = {
+    tokens: (
+      <>
+        <div className="token-viewer-toolbar">
+          <TextField
+            label="筛选 Token"
+            placeholder="按层级、名称或值筛选"
+            value={filter}
+            onChange={(event) => setFilter(event.target.value)}
+          />
+          <span>{filteredRows.length} 个 Token</span>
+        </div>
 
-      <div className="token-viewer-toolbar">
-        <TextField
-          label="筛选 Token"
-          placeholder="按层级、名称或值筛选"
-          value={filter}
-          onChange={(event) => setFilter(event.target.value)}
-        />
-        <span>{filteredRows.length} 个 Token</span>
-      </div>
-
-      <div className="token-table-wrap" tabIndex={0} aria-label="当前主题 Token 列表">
-        <table className="token-table">
-          <thead>
-            <tr>
-              <th scope="col">层级</th>
-              <th scope="col">Token</th>
-              <th scope="col">当前解析值</th>
-              <th scope="col">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredRows.map((row) => (
-              <tr key={`${row.layer}-${row.name}`}>
-                <td>{layerLabels[row.layer]}</td>
-                <td>
-                  <code>{row.name}</code>
-                </td>
-                <td>
-                  <TokenValue value={row.value} />
-                </td>
-                <td>
-                  <button
-                    className="icon-button token-copy-button"
-                    type="button"
-                    title={`复制 ${row.name}`}
-                    aria-label={`复制 ${row.name}`}
-                    onClick={() => void copyToken(row.name, row.value)}
-                  >
-                    <Copy aria-hidden="true" />
-                  </button>
-                </td>
+        <div className="token-table-wrap" tabIndex={0} aria-label="当前主题 Token 列表">
+          <table className="token-table">
+            <thead>
+              <tr>
+                <th scope="col">层级</th>
+                <th scope="col">Token</th>
+                <th scope="col">当前解析值</th>
+                <th scope="col">操作</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {copied ? (
-        <InlineMessage title="复制状态">
-          {copied === '复制失败，请手动选择 Token 名称。' ? copied : `已复制 ${copied}。`}
-        </InlineMessage>
-      ) : null}
-
+            </thead>
+            <tbody>
+              {filteredRows.map((row) => (
+                <tr key={`${row.layer}-${row.name}`}>
+                  <td>{layerLabels[row.layer]}</td>
+                  <td>
+                    <code>{row.name}</code>
+                  </td>
+                  <td>
+                    <TokenValue value={row.value} />
+                  </td>
+                  <td>
+                    <button
+                      className="icon-button token-copy-button"
+                      type="button"
+                      title={`复制 ${row.name}`}
+                      aria-label={`复制 ${row.name}`}
+                      onClick={() => void copyToken(row.name, row.value)}
+                    >
+                      <Copy aria-hidden="true" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {copied ? (
+          <InlineMessage title="复制状态">
+            {copied === '复制失败，请手动选择 Token 名称。' ? copied : `已复制 ${copied}。`}
+          </InlineMessage>
+        ) : null}
+      </>
+    ),
+    themes: (
       <div className="theme-comparison" aria-labelledby="theme-comparison-heading">
         <h3 id="theme-comparison-heading">语义 Token 对比</h3>
         <div className="theme-comparison-table-wrap" tabIndex={0}>
@@ -169,26 +199,214 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
           </table>
         </div>
       </div>
-
+    ),
+    components: (
       <div className="component-preview" aria-labelledby="component-preview-heading">
-        <h3 id="component-preview-heading">公共组件状态</h3>
-        <div className="component-preview-row">
-          <Button variant="primary">主要操作</Button>
-          <Button variant="secondary">次要操作</Button>
-          <Button variant="ghost">无边框操作</Button>
-          <Button loading>加载中</Button>
-          <Button disabled>不可用</Button>
+        <div className="component-catalog" aria-labelledby="component-catalog-heading">
+          <h3 id="component-catalog-heading">公共组件</h3>
+          <div className="component-catalog-list">
+            {uiComponentCatalog.map((component) => (
+              <div className="component-catalog-item" key={component.name}>
+                <div className="component-catalog-name">
+                  <code>{component.name}</code>
+                  <span>{component.category}</span>
+                </div>
+                <p>{component.contract}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="component-preview-fields">
-          <TextField label="默认输入" placeholder="输入内容" />
-          <TextField label="错误输入" error="请输入有效内容。" value="无效示例" readOnly />
-          <TextField label="禁用输入" value="不可编辑" disabled readOnly />
+        <div className="component-showcase" aria-labelledby="component-showcase-heading">
+          <h3 id="component-showcase-heading">组件展厅</h3>
+          <p className="component-showcase-intro">
+            通过真实控件组合检查统一布局、交互状态和可访问性契约。
+          </p>
+          <div className="component-showcase-grid">
+            <section className="component-showcase-group" aria-labelledby="showcase-tabs-heading">
+              <h4 id="showcase-tabs-heading">Tabs 页签</h4>
+              <Tabs
+                ariaLabel="组件展厅页签"
+                className="showcase-tabs"
+                idPrefix="component-showcase"
+                value={previewTab}
+                onChange={setPreviewTab}
+                items={[
+                  { id: 'overview', label: '概览', panel: <p>保持当前工作上下文。</p> },
+                  { id: 'details', label: '详情', panel: <p>在同一工作区查看补充信息。</p> },
+                ]}
+              />
+            </section>
+            <section className="component-showcase-group" aria-labelledby="showcase-choice-heading">
+              <h4 id="showcase-choice-heading">ChoiceGroup 选项组</h4>
+              <ChoiceGroup
+                ariaLabel="密度选择"
+                options={[
+                  { id: 'compact', label: '紧凑' },
+                  { id: 'comfortable', label: '舒适' },
+                  { id: 'auto', label: '自动' },
+                ]}
+                value={previewDensity}
+                onChange={setPreviewDensity}
+              />
+            </section>
+            <section className="component-showcase-group" aria-labelledby="showcase-toggle-heading">
+              <h4 id="showcase-toggle-heading">ToggleField 开关</h4>
+              <ToggleField
+                label="启用同步"
+                description="允许在设备之间同步设置。"
+                checked={previewEnabled}
+                onChange={(event) => setPreviewEnabled(event.target.checked)}
+              />
+            </section>
+            <section className="component-showcase-group" aria-labelledby="showcase-row-heading">
+              <h4 id="showcase-row-heading">SettingRow 设置行</h4>
+              <SettingRow label="桌面通知" description="在重要状态变化时显示提示。">
+                <ToggleField
+                  label="启用通知"
+                  checked={previewNotifications}
+                  onChange={(event) => setPreviewNotifications(event.target.checked)}
+                />
+              </SettingRow>
+            </section>
+            <section className="component-showcase-group" aria-labelledby="showcase-empty-heading">
+              <h4 id="showcase-empty-heading">EmptyState 空内容</h4>
+              <EmptyState
+                title="暂无保存的视图"
+                description="创建一个视图后，它会显示在这里。"
+                action={<Button variant="secondary">创建视图</Button>}
+              />
+            </section>
+            <section className="component-showcase-group" aria-labelledby="showcase-select-heading">
+              <h4 id="showcase-select-heading">SelectField 下拉选择</h4>
+              <SelectField
+                label="启动模式"
+                description="选择应用启动时打开的工作区。"
+                options={[
+                  { value: 'system', label: '跟随系统' },
+                  { value: 'home', label: '工具首页' },
+                  { value: 'settings', label: '设置页' },
+                ]}
+                value={previewMode}
+                onChange={(event) => setPreviewMode(event.target.value)}
+              />
+            </section>
+            <section
+              className="component-showcase-group"
+              aria-labelledby="showcase-stepper-heading"
+            >
+              <h4 id="showcase-stepper-heading">StepperField 步进输入</h4>
+              <StepperField
+                label="保留最近工具数"
+                description="使用按钮或键盘输入调整数量。"
+                min={1}
+                max={9}
+                value={previewCount}
+                onChange={setPreviewCount}
+              />
+            </section>
+            <section className="component-showcase-group" aria-labelledby="showcase-status-heading">
+              <h4 id="showcase-status-heading">StatusBadge 与 ProgressBar</h4>
+              <div className="showcase-status-row">
+                <StatusBadge tone="success">已同步</StatusBadge>
+                <StatusBadge tone="warning">等待处理</StatusBadge>
+                <StatusBadge tone="error">需要关注</StatusBadge>
+              </div>
+              <ProgressBar label="同步进度" value={64} />
+            </section>
+            <section
+              className="component-showcase-group"
+              aria-labelledby="showcase-disclosure-heading"
+            >
+              <h4 id="showcase-disclosure-heading">Disclosure 折叠面板</h4>
+              <Disclosure title="显示高级选项" defaultOpen>
+                可将不常用的设置收纳在面板中，同时保留明确的展开状态。
+              </Disclosure>
+            </section>
+          </div>
         </div>
-        <InlineMessage title="信息状态">这是来自公共组件的原位提示。</InlineMessage>
-        <InlineMessage title="错误状态" tone="error">
-          这是来自公共组件的可恢复错误提示。
-        </InlineMessage>
+        <div className="component-state-preview">
+          <h3 id="component-preview-heading">公共组件状态</h3>
+          <div className="component-preview-row">
+            <Button variant="primary">主要操作</Button>
+            <Button variant="secondary">次要操作</Button>
+            <Button variant="ghost">无边框操作</Button>
+            <Button loading>加载中</Button>
+            <Button disabled>不可用</Button>
+          </div>
+          <div className="component-preview-fields">
+            <TextField label="默认输入" placeholder="输入内容" />
+            <TextField label="错误输入" error="请输入有效内容。" value="无效示例" readOnly />
+            <TextField label="禁用输入" value="不可编辑" disabled readOnly />
+          </div>
+          <InlineMessage title="信息状态">这是来自公共组件的原位提示。</InlineMessage>
+          <InlineMessage title="错误状态" tone="error">
+            这是来自公共组件的可恢复错误提示。
+          </InlineMessage>
+        </div>
       </div>
+    ),
+    guidelines: (
+      <div className="guidelines-view" aria-labelledby="guidelines-heading">
+        <div className="guidelines-heading">
+          <h3 id="guidelines-heading">UI 规范</h3>
+          <p>这里展示与 `docs/用户界面设计规范.md` 同步的当前约束。</p>
+        </div>
+        <div className="guideline-list">
+          {uiGuidelineGroups.map((group) => (
+            <section
+              className="guideline-group"
+              key={group.title}
+              aria-labelledby={`guideline-${group.title}`}
+            >
+              <h4 id={`guideline-${group.title}`}>{group.title}</h4>
+              <ul>
+                {group.rules.map((rule) => (
+                  <li key={rule}>
+                    <Check aria-hidden="true" />
+                    <span>{rule}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </div>
+    ),
+  };
+
+  const developerItems: readonly TabsItem[] = developerTabs.map(({ id, label, icon: Icon }) => ({
+    id,
+    label,
+    icon: <Icon aria-hidden="true" />,
+    panel: developerPanels[id],
+  }));
+
+  return (
+    <section
+      className="settings-section design-system-viewer"
+      aria-labelledby="design-system-heading"
+    >
+      <p className="eyebrow">开发者</p>
+      <h2 id="design-system-heading">设计系统查看器</h2>
+      <p>当前主题为{theme === 'light' ? '浅色' : '深色'}，下方数据直接来自设计 Token 包。</p>
+
+      <Tabs
+        ariaLabel="开发者查看器页签"
+        className="developer-tabs"
+        idPrefix="developer"
+        items={developerItems}
+        value={activeView}
+        onChange={(value) => {
+          if (
+            value === 'tokens' ||
+            value === 'themes' ||
+            value === 'components' ||
+            value === 'guidelines'
+          ) {
+            setActiveView(value);
+          }
+        }}
+      />
     </section>
   );
 }
