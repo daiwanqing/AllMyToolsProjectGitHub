@@ -75,4 +75,21 @@ describe('content states', () => {
     expect(screen.getByRole('button', { name: '创建工具' })).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent('请检查输入后重试。');
   });
+
+  it('keeps title associations unique when multiple empty states render', () => {
+    render(
+      <>
+        <EmptyState title="没有最近工具" description="打开工具后会显示在这里。" />
+        <EmptyState title="没有收藏工具" description="收藏工具后会显示在这里。" />
+      </>,
+    );
+
+    const sections = screen.getAllByRole('region');
+    const labelledBy = sections.map((section) => section.getAttribute('aria-labelledby'));
+    const headingIds = sections.map((section) => section.querySelector('h2')?.id);
+
+    expect(new Set(labelledBy).size).toBe(2);
+    expect(new Set(headingIds).size).toBe(2);
+    expect(labelledBy).toEqual(headingIds);
+  });
 });

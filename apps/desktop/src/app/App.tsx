@@ -77,6 +77,60 @@ const themes: ReadonlyArray<Readonly<{ id: ThemeName; label: string }>> = [
   { id: 'dark', label: '深色' },
 ];
 
+const workspaceStorageKey = 'shell.workspace-state';
+
+type PersistedWorkspaceState = Readonly<{
+  category: ToolCategory | 'all';
+  query: string;
+  theme: ThemeName;
+  view: WorkspaceView;
+}>;
+
+function isWorkspaceView(value: unknown): value is WorkspaceView {
+  return value === 'home' || value === 'settings';
+}
+
+function isThemeName(value: unknown): value is ThemeName {
+  return value === 'light' || value === 'dark';
+}
+
+function isToolCategory(value: unknown): value is ToolCategory | 'all' {
+  return value === 'all' || value === 'learning' || value === 'entertainment' || value === 'tools';
+}
+
+function readWorkspaceState(storage: Storage): PersistedWorkspaceState | undefined {
+  const stored = storage.getItem(workspaceStorageKey);
+  if (!stored) {
+    return undefined;
+  }
+
+  try {
+    const value: unknown = JSON.parse(stored);
+    if (!value || typeof value !== 'object') {
+      return undefined;
+    }
+
+    const state = value as Record<string, unknown>;
+    if (
+      !isWorkspaceView(state.view) ||
+      !isToolCategory(state.category) ||
+      !isThemeName(state.theme) ||
+      typeof state.query !== 'string'
+    ) {
+      return undefined;
+    }
+
+    return {
+      view: state.view,
+      category: state.category,
+      query: state.query,
+      theme: state.theme,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 function ToolRow({
   entry,
   favorite,
@@ -115,10 +169,13 @@ function ToolRow({
 }
 
 export function App() {
-  const [theme, setTheme] = useState<ThemeName>('light');
-  const [view, setView] = useState<WorkspaceView>('home');
-  const [category, setCategory] = useState<ToolCategory | 'all'>('all');
-  const [query, setQuery] = useState('');
+  const [initialWorkspaceState] = useState(() => readWorkspaceState(window.localStorage));
+  const [theme, setTheme] = useState<ThemeName>(initialWorkspaceState?.theme ?? 'light');
+  const [view, setView] = useState<WorkspaceView>(initialWorkspaceState?.view ?? 'home');
+  const [category, setCategory] = useState<ToolCategory | 'all'>(
+    initialWorkspaceState?.category ?? 'all',
+  );
+  const [query, setQuery] = useState(initialWorkspaceState?.query ?? '');
   const [favoriteIds, setFavoriteIds] = useState<readonly string[]>(['tools.text-workbench']);
   const [recentIds, setRecentIds] = useState<readonly string[]>(['tools.text-workbench']);
   const [shortcutEnabled, setShortcutEnabled] = useState(
@@ -131,6 +188,11 @@ export function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    const workspaceState: PersistedWorkspaceState = { theme, view, category, query };
+    window.localStorage.setItem(workspaceStorageKey, JSON.stringify(workspaceState));
+  }, [category, query, theme, view]);
 
   useEffect(() => {
     if (!shortcutEnabled || !supportsGlobalShortcuts()) {

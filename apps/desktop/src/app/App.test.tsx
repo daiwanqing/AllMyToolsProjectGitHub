@@ -159,4 +159,21 @@ describe('desktop shell', () => {
       'true',
     );
   });
+
+  it('restores the shell workspace after remounting', () => {
+    const firstRender = render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: '学习' }));
+    fireEvent.change(screen.getByRole('textbox', { name: '搜索工具' }), {
+      target: { value: '笔记' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '深色' }));
+    firstRender.unmount();
+
+    render(<App />);
+
+    expect(screen.getByRole('heading', { name: '学习' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: '搜索工具' })).toHaveValue('笔记');
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+  });
 });
