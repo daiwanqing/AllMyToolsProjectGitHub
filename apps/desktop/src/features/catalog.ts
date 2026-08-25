@@ -12,7 +12,7 @@ export type ToolCatalogEntry = Readonly<{
 const keywordsByToolId: Readonly<Record<string, readonly string[]>> = {
   'learning.note-review': ['笔记', '复习', '学习'],
   'entertainment.session-picker': ['活动', '娱乐', '选择'],
-  'tools.text-workbench': ['文本', '转换', '工具'],
+  'tools.text-workbench': ['文本', '转换', '格式化', 'JSON', '正则', '去重', '排序'],
 };
 
 export const toolCatalog: readonly ToolCatalogEntry[] = toolRegistry.list().map((manifest) => ({

@@ -43,6 +43,7 @@ export const primitiveTokens = {
   'dimension.workspace.tool-max-width': '880px',
   'duration.fast': '120ms',
   'duration.normal': '180ms',
+  'easing.standard': 'cubic-bezier(0.2, 0, 0, 1)',
   'z-index.content': '0',
   'z-index.menu': '100',
   'z-index.dialog': '200',
@@ -102,6 +103,9 @@ export const componentTokens = {
   'navigation.item.padding-y': primitiveTokens['space.2'],
   'focus.ring.width': primitiveTokens['focus.width.default'],
   'focus.ring.offset': primitiveTokens['space.1'],
+  'motion.fast.duration': primitiveTokens['duration.fast'],
+  'motion.normal.duration': primitiveTokens['duration.normal'],
+  'motion.easing.standard': primitiveTokens['easing.standard'],
 } as const;
 
 export type ResolvedThemeTokens = Readonly<{

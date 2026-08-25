@@ -18,4 +18,5 @@ export { StatusBadge, type StatusBadgeProps, type StatusBadgeTone } from './Stat
 export { StepperField, type StepperFieldProps } from './StepperField';
 export { Tabs, type TabsItem, type TabsProps } from './Tabs';
 export { TextField, type TextFieldProps } from './TextField';
+export { TextAreaField, type TextAreaFieldProps } from './TextAreaField';
 export { ToggleField, type ToggleFieldProps } from './ToggleField';

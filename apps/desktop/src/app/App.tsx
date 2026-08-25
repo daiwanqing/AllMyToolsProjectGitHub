@@ -15,6 +15,7 @@ import {
   type TabsItem,
 } from '@allmytools/ui';
 import {
+  ArrowLeft,
   Code2,
   Clock3,
   Grid2X2,
@@ -161,25 +162,29 @@ function readWorkspaceState(storage: Storage): PersistedWorkspaceState | undefin
   }
 }
 
-function ToolRow({
+function ToolTile({
   entry,
   favorite,
   onOpen,
   onToggleFavorite,
+  showCategory = false,
 }: Readonly<{
   entry: ToolCatalogEntry;
   favorite: boolean;
   onOpen: (entry: ToolCatalogEntry) => void;
   onToggleFavorite: (id: string) => void;
+  showCategory?: boolean;
 }>) {
   return (
-    <article className="tool-row">
-      <div className="tool-row-main">
-        <p className="tool-row-category">{categoryLabels[entry.category]}</p>
-        <h3>{entry.name}</h3>
+    <article className="tool-tile" aria-labelledby={`tool-${entry.id}`}>
+      <div className="tool-tile-content">
+        {showCategory ? (
+          <p className="tool-tile-category">{categoryLabels[entry.category]}</p>
+        ) : null}
+        <h3 id={`tool-${entry.id}`}>{entry.name}</h3>
         <p>{entry.description}</p>
       </div>
-      <div className="tool-row-actions">
+      <div className="tool-tile-actions">
         <IconButton
           label={favorite ? `取消收藏 ${entry.name}` : `收藏 ${entry.name}`}
           pressed={favorite}
@@ -264,6 +269,15 @@ export function App() {
   const recentTools = recentIds
     .map((id) => toolCatalog.find((entry) => entry.id === id))
     .filter((entry): entry is ToolCatalogEntry => entry !== undefined);
+  const frequentTools = [...recentTools, ...favorites].filter(
+    (entry, index, entries) =>
+      entries.findIndex((candidate) => candidate.id === entry.id) === index,
+  );
+  const isSearchActive = query.trim().length > 0;
+  const catalogTools =
+    category === 'all' && !isSearchActive
+      ? visibleTools.filter((entry) => !frequentTools.some((frequent) => frequent.id === entry.id))
+      : visibleTools;
 
   function toggleFavorite(id: string) {
     setFavoriteIds((current) =>
@@ -366,6 +380,45 @@ export function App() {
     panel: settingsPanels[id],
   }));
 
+  if (activeTool?.module) {
+    const activeToolName = toolCatalog.find((entry) => entry.id === activeTool.id)?.name;
+
+    return (
+      <main className="tool-focus-shell" aria-labelledby="application-title">
+        <header className="tool-focus-toolbar">
+          <div className="tool-focus-title">
+            <p className="eyebrow">AllMyTools</p>
+            <h1 id="application-title">{activeToolName}</h1>
+          </div>
+          <div className="tool-focus-actions">
+            <div className="theme-switcher" role="group" aria-label="界面主题">
+              {themes.map(({ id, label }) => (
+                <Button
+                  key={id}
+                  className="theme-option"
+                  variant="ghost"
+                  aria-pressed={theme === id}
+                  onClick={() => setTheme(id)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+            <Button variant="secondary" onClick={closeActiveTool}>
+              <ArrowLeft aria-hidden="true" />
+              返回工具台
+            </Button>
+          </div>
+        </header>
+        <section className="tool-focus-content" aria-label="工具工作区">
+          <ToolErrorBoundary onClose={closeActiveTool}>
+            <activeTool.module.ToolView />
+          </ToolErrorBoundary>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="desktop-shell" aria-labelledby="application-title">
       <aside className="navigation-rail">
@@ -443,22 +496,7 @@ export function App() {
             </div>
           </div>
         </header>
-        {activeTool?.module ? (
-          <section className="tool-workspace" aria-label="工具工作区">
-            <div className="tool-workspace-header">
-              <div>
-                <p className="eyebrow">已启动工具</p>
-                <h2>{toolCatalog.find((entry) => entry.id === activeTool.id)?.name}</h2>
-              </div>
-              <Button variant="secondary" onClick={closeActiveTool}>
-                关闭工具
-              </Button>
-            </div>
-            <ToolErrorBoundary onClose={closeActiveTool}>
-              <activeTool.module.ToolView />
-            </ToolErrorBoundary>
-          </section>
-        ) : view === 'settings' ? (
+        {view === 'settings' ? (
           <section className="settings-workspace" aria-labelledby="settings-heading">
             <div className="settings-heading">
               <div>
@@ -483,8 +521,13 @@ export function App() {
           <section className="catalog-workspace" aria-label="工具目录">
             <div className="catalog-heading">
               <div>
-                <p className="eyebrow">目录</p>
-                <h2>{category === 'all' ? '浏览工具' : categoryLabels[category]}</h2>
+                <h2>
+                  {isSearchActive
+                    ? '搜索结果'
+                    : category === 'all'
+                      ? '全部工具'
+                      : categoryLabels[category]}
+                </h2>
               </div>
               <div className="search-field">
                 <Search aria-hidden="true" />
@@ -502,68 +545,47 @@ export function App() {
                   {toolLoadMessage}
                 </InlineMessage>
               ) : null}
-              <section aria-labelledby="recent-heading">
-                <div className="section-heading">
-                  <Clock3 aria-hidden="true" />
-                  <h2 id="recent-heading">最近使用</h2>
-                </div>
-                {recentTools.length ? (
-                  <div className="tool-list">
-                    {recentTools.map((entry) => (
-                      <ToolRow
+              {category === 'all' && !isSearchActive && frequentTools.length ? (
+                <section aria-labelledby="frequent-heading">
+                  <div className="section-heading">
+                    <Clock3 aria-hidden="true" />
+                    <h2 id="frequent-heading">常用</h2>
+                  </div>
+                  <div className="tool-tile-grid">
+                    {frequentTools.map((entry) => (
+                      <ToolTile
                         key={entry.id}
                         entry={entry}
                         favorite={favoriteIds.includes(entry.id)}
                         onOpen={openTool}
                         onToggleFavorite={toggleFavorite}
+                        showCategory
                       />
                     ))}
                   </div>
-                ) : (
-                  <EmptyState
-                    title="尚无最近使用记录"
-                    description="打开一个工具后，它会显示在这里。"
-                  />
-                )}
-              </section>
-              <section aria-labelledby="favorites-heading">
-                <div className="section-heading">
-                  <Star aria-hidden="true" />
-                  <h2 id="favorites-heading">收藏</h2>
-                </div>
-                {favorites.length ? (
-                  <div className="tool-list">
-                    {favorites.map((entry) => (
-                      <ToolRow
-                        key={entry.id}
-                        entry={entry}
-                        favorite
-                        onOpen={openTool}
-                        onToggleFavorite={toggleFavorite}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    title="尚未收藏工具"
-                    description="使用工具行右侧的收藏按钮固定常用工具。"
-                  />
-                )}
-              </section>
+                </section>
+              ) : null}
               <section aria-labelledby="catalog-heading">
                 <div className="section-heading">
                   <Wrench aria-hidden="true" />
-                  <h2 id="catalog-heading">工具列表</h2>
+                  <h2 id="catalog-heading">
+                    {isSearchActive
+                      ? '匹配工具'
+                      : category === 'all'
+                        ? '其他工具'
+                        : `${categoryLabels[category]}工具`}
+                  </h2>
                 </div>
-                {visibleTools.length ? (
-                  <div className="tool-list">
-                    {visibleTools.map((entry) => (
-                      <ToolRow
+                {catalogTools.length ? (
+                  <div className="tool-tile-grid">
+                    {catalogTools.map((entry) => (
+                      <ToolTile
                         key={entry.id}
                         entry={entry}
                         favorite={favoriteIds.includes(entry.id)}
                         onOpen={openTool}
                         onToggleFavorite={toggleFavorite}
+                        showCategory={category === 'all'}
                       />
                     ))}
                   </div>

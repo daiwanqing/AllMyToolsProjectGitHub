@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { resolveThemeTokens, type ThemeName } from '@allmytools/design-tokens';
 import {
   Button,
@@ -20,10 +20,19 @@ import {
   uiGuidelineGroups,
   type TabsItem,
 } from '@allmytools/ui';
-import { BookOpen, Check, Code2, Copy, Palette, Settings2, type LucideIcon } from 'lucide-react';
+import {
+  BookOpen,
+  Check,
+  Code2,
+  Copy,
+  Gauge,
+  Palette,
+  Settings2,
+  type LucideIcon,
+} from 'lucide-react';
 
 type TokenLayer = 'primitive' | 'semantic' | 'component';
-type DeveloperView = 'tokens' | 'themes' | 'components' | 'guidelines';
+type DeveloperView = 'tokens' | 'themes' | 'components' | 'motion' | 'guidelines';
 
 type TokenRow = Readonly<{
   layer: TokenLayer;
@@ -43,6 +52,7 @@ const developerTabs: ReadonlyArray<
   { id: 'tokens', label: 'Token', icon: Code2 },
   { id: 'themes', label: '主题对比', icon: Palette },
   { id: 'components', label: '组件状态', icon: Settings2 },
+  { id: 'motion', label: '动效', icon: Gauge },
   { id: 'guidelines', label: 'UI规范', icon: BookOpen },
 ];
 
@@ -99,13 +109,64 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
   const [previewNotifications, setPreviewNotifications] = useState(false);
   const [previewMode, setPreviewMode] = useState('system');
   const [previewCount, setPreviewCount] = useState(3);
+  const [motionPreviewVersion, setMotionPreviewVersion] = useState(0);
+  const [motionPreviewProgress, setMotionPreviewProgress] = useState(0);
+  const [motionPreviewStep, setMotionPreviewStep] = useState(0);
+  const [isMotionPreviewRunning, setIsMotionPreviewRunning] = useState(false);
   const currentRows = useMemo(() => tokenRows(theme), [theme]);
   const lightSemantic = useMemo(() => resolveThemeTokens('light').semantic, []);
   const darkSemantic = useMemo(() => resolveThemeTokens('dark').semantic, []);
+  const motionTokens = useMemo(() => resolveThemeTokens(theme).component, [theme]);
+  const prefersReducedMotion =
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
   const normalizedFilter = filter.trim().toLocaleLowerCase('zh-CN');
   const filteredRows = currentRows.filter((row) =>
     `${row.layer} ${row.name} ${row.value}`.toLocaleLowerCase('zh-CN').includes(normalizedFilter),
   );
+
+  useEffect(() => {
+    if (motionPreviewVersion === 0) {
+      return;
+    }
+
+    setMotionPreviewProgress(0);
+    setMotionPreviewStep(0);
+
+    if (prefersReducedMotion) {
+      setMotionPreviewProgress(100);
+      setMotionPreviewStep(5);
+      setIsMotionPreviewRunning(false);
+      return;
+    }
+
+    setIsMotionPreviewRunning(true);
+    let timeoutId: number | undefined;
+    const playStep = (step: number) => {
+      timeoutId = window.setTimeout(
+        () => {
+          const nextStep = step + 1;
+          setMotionPreviewProgress(nextStep * 20);
+          setMotionPreviewStep(nextStep);
+
+          if (nextStep === 5) {
+            setIsMotionPreviewRunning(false);
+            return;
+          }
+
+          playStep(nextStep);
+        },
+        step === 0 ? 32 : 180,
+      );
+    };
+
+    playStep(0);
+
+    return () => {
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [motionPreviewVersion, prefersReducedMotion]);
 
   async function copyToken(name: string, value: string) {
     try {
@@ -366,6 +427,97 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
         </div>
       </div>
     ),
+    motion: (
+      <div className="motion-view" aria-labelledby="motion-view-heading">
+        <div className="motion-view-heading">
+          <h3 id="motion-view-heading">动效</h3>
+          <p>查看当前主题的实际动效 Token，以及共享组件在系统偏好下的反馈行为。</p>
+        </div>
+        <div className="motion-summary">
+          <section className="motion-summary-section" aria-labelledby="motion-token-heading">
+            <h4 id="motion-token-heading">动效 Token</h4>
+            <dl className="motion-token-list">
+              <div>
+                <dt>快速反馈</dt>
+                <dd>
+                  <code>{motionTokens['motion.fast.duration']}</code>
+                </dd>
+              </div>
+              <div>
+                <dt>内容切换</dt>
+                <dd>
+                  <code>{motionTokens['motion.normal.duration']}</code>
+                </dd>
+              </div>
+              <div>
+                <dt>标准缓动</dt>
+                <dd>
+                  <code>{motionTokens['motion.easing.standard']}</code>
+                </dd>
+              </div>
+            </dl>
+          </section>
+          <section className="motion-summary-section" aria-labelledby="motion-preference-heading">
+            <h4 id="motion-preference-heading">系统偏好</h4>
+            <StatusBadge tone={prefersReducedMotion ? 'warning' : 'success'}>
+              {prefersReducedMotion ? '已启用减少动效' : '使用标准动效'}
+            </StatusBadge>
+            <p>
+              {prefersReducedMotion
+                ? '当前界面会立即呈现状态，并停止内容进入和加载旋转动画。'
+                : '当前界面使用共享时长与标准缓动，不包含位移或装饰性循环。'}
+            </p>
+          </section>
+        </div>
+        <section className="motion-timeline" aria-labelledby="motion-timeline-heading">
+          <div className="motion-timeline-heading">
+            <h4 id="motion-timeline-heading">时长比例</h4>
+            <span>0ms - 180ms</span>
+          </div>
+          <div className="motion-timeline-row">
+            <span>快速反馈</span>
+            <div className="motion-timeline-track" aria-hidden="true">
+              <span className="motion-timeline-segment motion-timeline-segment-fast" />
+            </div>
+            <code>{motionTokens['motion.fast.duration']}</code>
+          </div>
+          <div className="motion-timeline-row">
+            <span>内容切换</span>
+            <div className="motion-timeline-track" aria-hidden="true">
+              <span className="motion-timeline-segment motion-timeline-segment-normal" />
+            </div>
+            <code>{motionTokens['motion.normal.duration']}</code>
+          </div>
+        </section>
+        <section className="motion-showcase" aria-labelledby="motion-showcase-heading">
+          <div className="motion-showcase-heading">
+            <div>
+              <h4 id="motion-showcase-heading">反馈预览</h4>
+              <p>一次处理完成时的原位消息、进度变化和结果呈现。</p>
+            </div>
+            <Button
+              variant="secondary"
+              onClick={() => setMotionPreviewVersion((value) => value + 1)}
+            >
+              播放动效示例
+            </Button>
+          </div>
+          <div className="motion-preview-surface" key={motionPreviewVersion}>
+            <InlineMessage title="处理状态">文本已完成处理，可继续保存或编辑。</InlineMessage>
+            <p className="motion-preview-status" aria-live="polite">
+              {prefersReducedMotion
+                ? '系统已启用减少动效，预览仅展示最终状态。'
+                : motionPreviewVersion === 0
+                  ? '点击播放；为便于观察，演示由五段 180ms 反馈组成。'
+                  : isMotionPreviewRunning
+                    ? `正在播放第 ${motionPreviewStep + 1} 段，共 5 段。`
+                    : '演示播放完成，可再次播放。'}
+            </p>
+            <ProgressBar label="动效预览进度" value={motionPreviewProgress} />
+          </div>
+        </section>
+      </div>
+    ),
     guidelines: (
       <div className="guidelines-view" aria-labelledby="guidelines-heading">
         <div className="guidelines-heading">
@@ -422,6 +574,7 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
             value === 'tokens' ||
             value === 'themes' ||
             value === 'components' ||
+            value === 'motion' ||
             value === 'guidelines'
           ) {
             setActiveView(value);

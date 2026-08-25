@@ -13,6 +13,11 @@ export type UiGuidelineGroup = Readonly<{
 export const uiComponentCatalog: readonly UiComponentDefinition[] = [
   { name: 'Button', category: '基础操作', contract: '主、次、无边框、加载和禁用状态。' },
   { name: 'TextField', category: '基础输入', contract: '可见标签、说明、错误关联和禁用状态。' },
+  {
+    name: 'TextAreaField',
+    category: '基础输入',
+    contract: '多行文本的可见标签、说明、错误关联和禁用状态。',
+  },
   { name: 'EmptyState', category: '内容状态', contract: '展示空内容，并以明确动作引导下一步。' },
   { name: 'InlineMessage', category: '内容状态', contract: '提供一般信息或可恢复错误反馈。' },
   {
@@ -78,6 +83,7 @@ export const uiGuidelineGroups: readonly UiGuidelineGroup[] = [
     rules: [
       '组件只读取语义样式变量，不在业务页面重新定义颜色或间距。',
       '浅色与深色由主题语义值切换，不修改组件代码。',
+      '动效只使用共享时长和标准缓动；系统请求减少动效时立即显示结果。',
     ],
   },
   {
@@ -99,6 +105,7 @@ export const uiGuidelineGroups: readonly UiGuidelineGroup[] = [
     rules: [
       '加载、空、错误和权限拒绝状态必须提供文字原因与可恢复的下一步。',
       '复合控件只负责布局与无业务行为，业务状态由页面控制。',
+      '动效只用于反馈操作、内容切换和进度变化，不使用装饰性循环或整页位移动画。',
     ],
   },
 ];

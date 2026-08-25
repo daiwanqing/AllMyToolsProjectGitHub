@@ -15,6 +15,7 @@ import { StatusBadge } from './StatusBadge';
 import { StepperField } from './StepperField';
 import { Tabs } from './Tabs';
 import { TextField } from './TextField';
+import { TextAreaField } from './TextAreaField';
 import { ToggleField } from './ToggleField';
 import { uiComponentCatalog, uiGuidelineGroups } from './designSystemCatalog';
 
@@ -104,6 +105,25 @@ describe('TextField', () => {
   });
 });
 
+describe('TextAreaField', () => {
+  it('connects its label, description, and error message', () => {
+    render(
+      <TextAreaField
+        label="输入文本"
+        description="处理前不会自动保存。"
+        error="请输入有效文本。"
+      />,
+    );
+
+    const textarea = screen.getByRole('textbox', { name: '输入文本' });
+    const alert = screen.getByRole('alert');
+
+    expect(textarea.tagName).toBe('TEXTAREA');
+    expect(textarea).toHaveAttribute('aria-invalid', 'true');
+    expect(textarea).toHaveAttribute('aria-describedby', expect.stringContaining(alert.id));
+  });
+});
+
 describe('content states', () => {
   it('renders an actionable empty state and a recoverable error message', () => {
     render(
@@ -185,6 +205,7 @@ describe('composite controls', () => {
     expect(uiComponentCatalog.map((component) => component.name)).toEqual([
       'Button',
       'TextField',
+      'TextAreaField',
       'EmptyState',
       'InlineMessage',
       'IconButton',

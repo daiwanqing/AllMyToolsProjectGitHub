@@ -39,6 +39,7 @@
   --amt-primitive-dimension-workspace-tool-max-width: 880px;
   --amt-primitive-duration-fast: 120ms;
   --amt-primitive-duration-normal: 180ms;
+  --amt-primitive-easing-standard: cubic-bezier(0.2, 0, 0, 1);
   --amt-primitive-z-index-content: 0;
   --amt-primitive-z-index-menu: 100;
   --amt-primitive-z-index-dialog: 200;
@@ -61,6 +62,7 @@
   --amt-dimension-workspace-tool-max-width: var(--amt-primitive-dimension-workspace-tool-max-width);
   --amt-motion-fast: var(--amt-primitive-duration-fast);
   --amt-motion-normal: var(--amt-primitive-duration-normal);
+  --amt-motion-easing-standard: var(--amt-primitive-easing-standard);
   --amt-border-width-default: var(--amt-primitive-border-width-default);
 }
 
@@ -116,6 +118,9 @@
   --amt-navigation-item-padding-y: var(--amt-space-2);
   --amt-focus-ring-width: var(--amt-primitive-focus-width-default);
   --amt-focus-ring-offset: var(--amt-space-1);
+  --amt-motion-fast-duration: var(--amt-motion-fast);
+  --amt-motion-normal-duration: var(--amt-motion-normal);
+  --amt-motion-standard-easing: var(--amt-motion-easing-standard);
 }
 
 @media (prefers-reduced-motion: reduce) {

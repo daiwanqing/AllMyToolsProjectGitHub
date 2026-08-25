@@ -12,9 +12,9 @@
   background: var(--amt-color-background-surface);
   cursor: pointer;
   transition:
-    color var(--amt-motion-fast) ease,
-    border-color var(--amt-motion-fast) ease,
-    background var(--amt-motion-fast) ease;
+    color var(--amt-motion-fast) var(--amt-motion-easing-standard),
+    border-color var(--amt-motion-fast) var(--amt-motion-easing-standard),
+    background var(--amt-motion-fast) var(--amt-motion-easing-standard);
 }
 
 .amt-button:hover:not(:disabled) {
@@ -48,7 +48,7 @@
 }
 
 .amt-button-label {
-  transition: opacity var(--amt-motion-fast) ease;
+  transition: opacity var(--amt-motion-fast) var(--amt-motion-easing-standard);
 }
 
 .amt-button[aria-busy='true'] .amt-button-label {
@@ -75,6 +75,10 @@
   color: var(--amt-color-text-secondary);
   background: var(--amt-color-background-surface);
   cursor: pointer;
+  transition:
+    color var(--amt-motion-fast) var(--amt-motion-easing-standard),
+    border-color var(--amt-motion-fast) var(--amt-motion-easing-standard),
+    background var(--amt-motion-fast) var(--amt-motion-easing-standard);
 }
 
 .amt-icon-button:hover:not(:disabled),
@@ -155,9 +159,9 @@
   background: transparent;
   cursor: pointer;
   transition:
-    color var(--amt-motion-fast) ease,
-    border-color var(--amt-motion-fast) ease,
-    background var(--amt-motion-fast) ease;
+    color var(--amt-motion-fast) var(--amt-motion-easing-standard),
+    border-color var(--amt-motion-fast) var(--amt-motion-easing-standard),
+    background var(--amt-motion-fast) var(--amt-motion-easing-standard);
 }
 
 .amt-tab svg {
@@ -183,6 +187,10 @@
 .amt-tabpanel {
   min-width: 0;
   outline: none;
+}
+
+.amt-tabpanel:not([hidden]) {
+  animation: amt-content-enter var(--amt-motion-normal) var(--amt-motion-easing-standard) both;
 }
 
 .amt-tabpanel:focus-visible {
@@ -320,6 +328,13 @@
   background: var(--amt-color-background-selected);
 }
 
+.amt-textarea-field-input {
+  min-height: calc(var(--amt-space-10) * 4);
+  padding: var(--amt-space-3);
+  resize: vertical;
+  line-height: var(--amt-space-5);
+}
+
 .amt-field-description {
   color: var(--amt-color-text-secondary);
 }
@@ -443,7 +458,7 @@
   height: 100%;
   border-radius: inherit;
   background: var(--amt-color-action-primary);
-  transition: width var(--amt-motion-normal) ease;
+  transition: width var(--amt-motion-normal) var(--amt-motion-easing-standard);
 }
 
 .amt-disclosure {
@@ -485,6 +500,10 @@
   line-height: var(--amt-space-6);
 }
 
+.amt-disclosure-panel:not([hidden]) {
+  animation: amt-content-enter var(--amt-motion-normal) var(--amt-motion-easing-standard) both;
+}
+
 .amt-empty-state {
   max-width: calc(var(--amt-space-10) * 13);
   padding: var(--amt-space-6) 0;
@@ -517,6 +536,7 @@
   padding: var(--amt-message-padding);
   color: var(--amt-color-text-primary);
   background: var(--amt-color-background-selected);
+  animation: amt-content-enter var(--amt-motion-normal) var(--amt-motion-easing-standard) both;
 }
 
 .amt-inline-message-error {
@@ -531,6 +551,25 @@
 @keyframes amt-spin {
   to {
     transform: rotate(1turn);
+  }
+}
+
+@keyframes amt-content-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .amt-button-spinner,
+  .amt-inline-message,
+  .amt-tabpanel:not([hidden]),
+  .amt-disclosure-panel:not([hidden]) {
+    animation: none;
   }
 }
 

@@ -40,4 +40,13 @@ describe('设计 Token', () => {
     expect(primitiveTokens['dimension.window.min-height']).toBe('640px');
     expect(primitiveTokens['dimension.workspace.tool-max-width']).toBe('880px');
   });
+
+  it('提供统一动效时长和标准缓动曲线', () => {
+    expect(primitiveTokens['duration.fast']).toBe('120ms');
+    expect(primitiveTokens['duration.normal']).toBe('180ms');
+    expect(primitiveTokens['easing.standard']).toBe('cubic-bezier(0.2, 0, 0, 1)');
+    expect(resolveThemeTokens('light').component['motion.easing.standard']).toBe(
+      primitiveTokens['easing.standard'],
+    );
+  });
 });

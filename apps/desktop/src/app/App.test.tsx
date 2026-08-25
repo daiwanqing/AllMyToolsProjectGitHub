@@ -9,14 +9,14 @@ afterEach(() => {
 });
 
 describe('desktop shell', () => {
-  it('renders category navigation, recent tools, favorites, and the catalog', () => {
+  it('renders category navigation, frequent tools, and the catalog tiles', () => {
     render(<App />);
 
     expect(screen.getByRole('navigation', { name: '主导航' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '学习' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '最近使用' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '收藏' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '工具列表' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '常用' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '其他工具' })).toBeInTheDocument();
+    expect(screen.getAllByRole('article')).toHaveLength(3);
   });
 
   it('filters tools by category and search query', () => {
@@ -36,40 +36,29 @@ describe('desktop shell', () => {
   it('updates favorites and recent tools through tool actions', async () => {
     render(<App />);
 
-    const catalog = screen.getByRole('heading', { name: '工具列表' }).closest('section');
-    expect(catalog).not.toBeNull();
-    const reviewTool = within(catalog as HTMLElement)
-      .getByRole('heading', { name: '复习笔记' })
-      .closest('article');
-    expect(reviewTool).not.toBeNull();
-
-    fireEvent.click(within(reviewTool as HTMLElement).getByRole('button', { name: '打开' }));
+    const reviewTool = screen.getByRole('article', { name: '复习笔记' });
+    fireEvent.click(within(reviewTool).getByRole('button', { name: '打开' }));
     await waitFor(() =>
       expect(screen.getByRole('heading', { name: '复习笔记工作区' })).toBeInTheDocument(),
     );
-    fireEvent.click(screen.getByRole('button', { name: '关闭工具' }));
-    expect(screen.getByRole('heading', { name: '最近使用' }).closest('section')).toHaveTextContent(
+    expect(screen.queryByRole('navigation', { name: '主导航' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '打开设置' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '返回工具台' }));
+    expect(screen.getByRole('navigation', { name: '主导航' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '常用' }).closest('section')).toHaveTextContent(
       '复习笔记',
     );
 
-    const updatedCatalog = screen.getByRole('heading', { name: '工具列表' }).closest('section');
-    const updatedReviewTool = within(updatedCatalog as HTMLElement)
-      .getByRole('heading', { name: '复习笔记' })
-      .closest('article');
-    fireEvent.click(
-      within(updatedReviewTool as HTMLElement).getByRole('button', { name: '收藏 复习笔记' }),
-    );
+    const updatedReviewTool = screen.getByRole('article', { name: '复习笔记' });
+    fireEvent.click(within(updatedReviewTool).getByRole('button', { name: '收藏 复习笔记' }));
     expect(screen.getAllByRole('button', { name: '取消收藏 复习笔记' }).length).toBeGreaterThan(0);
   });
 
   it('persists the learning tool draft inside its own storage namespace', async () => {
     render(<App />);
 
-    const catalog = screen.getByRole('heading', { name: '工具列表' }).closest('section');
-    const reviewTool = within(catalog as HTMLElement)
-      .getByRole('heading', { name: '复习笔记' })
-      .closest('article');
-    fireEvent.click(within(reviewTool as HTMLElement).getByRole('button', { name: '打开' }));
+    const reviewTool = screen.getByRole('article', { name: '复习笔记' });
+    fireEvent.click(within(reviewTool).getByRole('button', { name: '打开' }));
 
     await waitFor(() =>
       expect(screen.getByRole('heading', { name: '复习笔记工作区' })).toBeInTheDocument(),
@@ -86,11 +75,8 @@ describe('desktop shell', () => {
   it('persists the entertainment selection inside its own storage namespace', async () => {
     render(<App />);
 
-    const catalog = screen.getByRole('heading', { name: '工具列表' }).closest('section');
-    const sessionPicker = within(catalog as HTMLElement)
-      .getByRole('heading', { name: '活动选择器' })
-      .closest('article');
-    fireEvent.click(within(sessionPicker as HTMLElement).getByRole('button', { name: '打开' }));
+    const sessionPicker = screen.getByRole('article', { name: '活动选择器' });
+    fireEvent.click(within(sessionPicker).getByRole('button', { name: '打开' }));
 
     await waitFor(() =>
       expect(screen.getByRole('heading', { name: '活动选择器工作区' })).toBeInTheDocument(),
@@ -109,29 +95,59 @@ describe('desktop shell', () => {
     expect(window.localStorage.getItem('learning.note-review.draft')).toBeNull();
   });
 
-  it('cleans and saves the tools text inside its own storage namespace', async () => {
+  it('processes, saves, and restores the tools text inside its own storage namespace', async () => {
     render(<App />);
 
-    const catalog = screen.getByRole('heading', { name: '工具列表' }).closest('section');
-    const textTool = within(catalog as HTMLElement)
-      .getByRole('heading', { name: '文本工作台' })
-      .closest('article');
-    fireEvent.click(within(textTool as HTMLElement).getByRole('button', { name: '打开' }));
+    const textTool = screen.getByRole('article', { name: '文本工作台' });
+    fireEvent.click(within(textTool).getByRole('button', { name: '打开' }));
 
     await waitFor(() =>
-      expect(screen.getByRole('textbox', { name: '临时文本' })).toBeInTheDocument(),
+      expect(screen.getByRole('textbox', { name: '待处理文本' })).toBeInTheDocument(),
     );
-    fireEvent.change(screen.getByRole('textbox', { name: '临时文本' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: '待处理文本' }), {
       target: { value: '  待清理文本  ' },
     });
-    fireEvent.click(screen.getByRole('button', { name: '清理空白' }));
-    expect(screen.getByRole('textbox', { name: '临时文本' })).toHaveValue('待清理文本');
+    fireEvent.click(screen.getByRole('button', { name: '处理文本' }));
+    expect(screen.getByRole('textbox', { name: '待处理文本' })).toHaveValue('  待清理文本  ');
+    expect(screen.getByRole('textbox', { name: '处理结果' })).toHaveValue('待清理文本');
     expect(window.localStorage.getItem('tools.text-workbench.draft')).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: '保存文本' }));
+    fireEvent.click(screen.getByRole('button', { name: '保存工作区' }));
 
-    expect(screen.getByText('文本已保存')).toBeInTheDocument();
-    expect(window.localStorage.getItem('tools.text-workbench.draft')).toBe('待清理文本');
+    expect(screen.getByText('工作区已保存到本机。')).toBeInTheDocument();
+    expect(
+      JSON.parse(window.localStorage.getItem('tools.text-workbench.draft') ?? ''),
+    ).toMatchObject({
+      source: '  待清理文本  ',
+      result: '待清理文本',
+      history: [{ operation: 'trim', output: '待清理文本' }],
+    });
     expect(window.localStorage.getItem('entertainment.session-picker.selection')).toBeNull();
+  });
+
+  it('saves and applies a text-workbench preset without touching another tool namespace', async () => {
+    render(<App />);
+
+    const textTool = screen.getByRole('article', { name: '文本工作台' });
+    fireEvent.click(within(textTool).getByRole('button', { name: '打开' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: '预设名称' })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: /正则替换/ }));
+    fireEvent.change(screen.getByRole('textbox', { name: '查找（正则）' }), {
+      target: { value: '\\s+' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: '替换为' }), { target: { value: ' ' } });
+    fireEvent.change(screen.getByRole('textbox', { name: '预设名称' }), {
+      target: { value: '压缩空白' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存预设' }));
+
+    expect(screen.getByText('预设“压缩空白”已保存。')).toBeInTheDocument();
+    expect(
+      JSON.parse(window.localStorage.getItem('tools.text-workbench.presets') ?? ''),
+    ).toMatchObject([{ name: '压缩空白', operation: 'replace', find: '\\s+', replaceWith: ' ' }]);
+    expect(window.localStorage.getItem('learning.note-review.draft')).toBeNull();
   });
 
   it('opens settings, reports shortcut availability, and switches the active theme', async () => {
@@ -174,6 +190,20 @@ describe('desktop shell', () => {
     expect(screen.getByRole('checkbox', { name: '启用同步' })).toBeChecked();
     expect(screen.getByRole('button', { name: '创建视图' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '公共组件状态' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: '动效' }));
+    expect(screen.getByRole('heading', { name: '动效' })).toBeInTheDocument();
+    expect(screen.getAllByText('快速反馈')).toHaveLength(2);
+    expect(screen.getByRole('heading', { name: '时长比例' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '播放动效示例' }));
+    expect(screen.getByText('正在播放第 1 段，共 5 段。')).toBeInTheDocument();
+    await waitFor(
+      () =>
+        expect(screen.getByRole('progressbar', { name: '动效预览进度' })).toHaveAttribute(
+          'aria-valuenow',
+          '100',
+        ),
+      { timeout: 1_500 },
+    );
     fireEvent.click(screen.getByRole('tab', { name: 'UI规范' }));
     expect(screen.getByRole('heading', { name: 'UI 规范' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '可访问性与交互' })).toBeInTheDocument();
@@ -227,7 +257,8 @@ describe('desktop shell', () => {
 
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: '学习' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '学习' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('heading', { name: '搜索结果' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: '搜索工具' })).toHaveValue('笔记');
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
   });
