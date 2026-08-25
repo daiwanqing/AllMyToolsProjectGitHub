@@ -7,6 +7,7 @@ import {
   EmptyState,
   IconButton,
   InlineMessage,
+  NavigationItem,
   ProgressBar,
   SettingRow,
   SelectField,
@@ -92,6 +93,7 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
   const [copied, setCopied] = useState<string>();
   const [activeView, setActiveView] = useState<DeveloperView>('tokens');
   const [previewTab, setPreviewTab] = useState('overview');
+  const [previewNavigation, setPreviewNavigation] = useState('home');
   const [previewDensity, setPreviewDensity] = useState('comfortable');
   const [previewEnabled, setPreviewEnabled] = useState(false);
   const [previewNotifications, setPreviewNotifications] = useState(false);
@@ -234,6 +236,26 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
                   { id: 'details', label: '详情', panel: <p>在同一工作区查看补充信息。</p> },
                 ]}
               />
+            </section>
+            <section
+              className="component-showcase-group"
+              aria-labelledby="showcase-navigation-heading"
+            >
+              <h4 id="showcase-navigation-heading">NavigationItem 导航项</h4>
+              <div className="showcase-navigation-list">
+                <NavigationItem
+                  active={previewNavigation === 'home'}
+                  icon={<Code2 aria-hidden="true" />}
+                  label="工具首页"
+                  onClick={() => setPreviewNavigation('home')}
+                />
+                <NavigationItem
+                  active={previewNavigation === 'settings'}
+                  icon={<Settings2 aria-hidden="true" />}
+                  label="设置"
+                  onClick={() => setPreviewNavigation('settings')}
+                />
+              </div>
             </section>
             <section className="component-showcase-group" aria-labelledby="showcase-choice-heading">
               <h4 id="showcase-choice-heading">ChoiceGroup 选项组</h4>

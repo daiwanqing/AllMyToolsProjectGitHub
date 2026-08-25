@@ -21,6 +21,11 @@ export const uiComponentCatalog: readonly UiComponentDefinition[] = [
     contract: '统一图标按钮尺寸、提示、可访问名称和按下状态。',
   },
   {
+    name: 'NavigationItem',
+    category: '导航控件',
+    contract: '统一紧凑导航项的图标标签布局、当前页面语义和焦点状态。',
+  },
+  {
     name: 'Tabs',
     category: '复合控件',
     contract: '统一 tablist/tab/tabpanel ARIA 关联与键盘导航。',

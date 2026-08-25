@@ -7,6 +7,7 @@ import { Disclosure } from './Disclosure';
 import { EmptyState } from './EmptyState';
 import { IconButton } from './IconButton';
 import { InlineMessage } from './InlineMessage';
+import { NavigationItem } from './NavigationItem';
 import { ProgressBar } from './ProgressBar';
 import { SelectField } from './SelectField';
 import { SettingRow } from './SettingRow';
@@ -60,6 +61,27 @@ describe('IconButton', () => {
     const button = screen.getByRole('button', { name: '收藏工具' });
     expect(button).toHaveAttribute('title', '收藏工具');
     expect(button).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
+describe('NavigationItem', () => {
+  it('exposes the current page state and forwards commands', () => {
+    const onClick = vi.fn();
+
+    render(
+      <NavigationItem
+        active
+        aria-label="打开工具首页"
+        icon={<span aria-hidden="true">*</span>}
+        label="工具首页"
+        onClick={onClick}
+      />,
+    );
+
+    const item = screen.getByRole('button', { name: '打开工具首页' });
+    expect(item).toHaveAttribute('aria-current', 'page');
+    fireEvent.click(item);
+    expect(onClick).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -166,6 +188,7 @@ describe('composite controls', () => {
       'EmptyState',
       'InlineMessage',
       'IconButton',
+      'NavigationItem',
       'Tabs',
       'ChoiceGroup',
       'ToggleField',

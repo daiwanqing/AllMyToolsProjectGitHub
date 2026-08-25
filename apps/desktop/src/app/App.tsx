@@ -7,6 +7,7 @@ import {
   EmptyState,
   IconButton,
   InlineMessage,
+  NavigationItem,
   SettingRow,
   Tabs,
   TextField,
@@ -373,44 +374,38 @@ export function App() {
         </div>
         <nav aria-label="主导航" className="navigation-groups">
           <div className="navigation-group">
-            <button
-              className={`navigation-item ${view === 'home' && category === 'all' ? 'navigation-item-current' : ''}`}
-              type="button"
+            <NavigationItem
+              active={view === 'home' && category === 'all'}
+              icon={<Grid2X2 aria-hidden="true" />}
+              label="全部工具"
               onClick={() => {
                 setView('home');
                 setCategory('all');
               }}
-            >
-              <Grid2X2 aria-hidden="true" />
-              <span>全部工具</span>
-            </button>
+            />
             {categoryNavigation.map(({ category: itemCategory, icon: Icon }) => (
-              <button
+              <NavigationItem
                 key={itemCategory}
-                className={`navigation-item ${view === 'home' && category === itemCategory ? 'navigation-item-current' : ''}`}
-                type="button"
+                active={view === 'home' && category === itemCategory}
+                icon={<Icon aria-hidden="true" />}
+                label={categoryLabels[itemCategory]}
                 onClick={() => {
                   setView('home');
                   setCategory(itemCategory);
                 }}
-              >
-                <Icon aria-hidden="true" />
-                <span>{categoryLabels[itemCategory]}</span>
-              </button>
+              />
             ))}
           </div>
           <div className="navigation-group navigation-group-bottom">
-            <button
-              className={`navigation-item ${view === 'settings' ? 'navigation-item-current' : ''}`}
-              type="button"
+            <NavigationItem
+              active={view === 'settings'}
+              icon={<Settings aria-hidden="true" />}
+              label="设置"
               onClick={() => {
                 closeActiveTool();
                 setView('settings');
               }}
-            >
-              <Settings aria-hidden="true" />
-              <span>设置</span>
-            </button>
+            />
           </div>
         </nav>
       </aside>

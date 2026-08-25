@@ -67,9 +67,9 @@
   --amt-color-text-secondary: var(--amt-primitive-color-neutral-500);
   --amt-color-border-default: var(--amt-primitive-color-neutral-300);
   --amt-color-border-strong: var(--amt-primitive-color-neutral-600);
-  --amt-color-action-primary: var(--amt-primitive-color-cyan-700);
+  --amt-color-action-primary: var(--amt-primitive-color-neutral-950);
   --amt-color-action-primary-text: var(--amt-primitive-color-neutral-0);
-  --amt-color-focus-ring: var(--amt-primitive-color-cyan-700);
+  --amt-color-focus-ring: var(--amt-primitive-color-neutral-600);
   --amt-color-status-success: var(--amt-primitive-color-green-700);
   --amt-color-status-warning: var(--amt-primitive-color-amber-700);
   --amt-color-status-error: var(--amt-primitive-color-red-700);
@@ -84,9 +84,9 @@
   --amt-color-text-secondary: var(--amt-primitive-color-neutral-300);
   --amt-color-border-default: var(--amt-primitive-color-neutral-600);
   --amt-color-border-strong: var(--amt-primitive-color-neutral-300);
-  --amt-color-action-primary: var(--amt-primitive-color-cyan-300);
+  --amt-color-action-primary: var(--amt-primitive-color-neutral-50);
   --amt-color-action-primary-text: var(--amt-primitive-color-neutral-950);
-  --amt-color-focus-ring: var(--amt-primitive-color-cyan-300);
+  --amt-color-focus-ring: var(--amt-primitive-color-neutral-300);
   --amt-color-status-success: var(--amt-primitive-color-green-300);
   --amt-color-status-warning: var(--amt-primitive-color-amber-300);
   --amt-color-status-error: var(--amt-primitive-color-red-300);

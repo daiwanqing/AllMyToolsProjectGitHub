@@ -10,6 +10,7 @@ export {
 export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { IconButton, type IconButtonProps } from './IconButton';
 export { InlineMessage, type InlineMessageProps, type InlineMessageTone } from './InlineMessage';
+export { NavigationItem, type NavigationItemProps } from './NavigationItem';
 export { ProgressBar, type ProgressBarProps } from './ProgressBar';
 export { SettingRow, type SettingRowProps } from './SettingRow';
 export { SelectField, type SelectFieldProps, type SelectOption } from './SelectField';

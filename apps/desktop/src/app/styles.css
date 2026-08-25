@@ -75,34 +75,6 @@ a:focus-visible {
   gap: var(--amt-space-1);
 }
 
-.navigation-item {
-  display: flex;
-  min-height: var(--amt-button-compact-height);
-  align-items: center;
-  gap: var(--amt-space-2);
-  padding: 0 var(--amt-navigation-item-padding-x);
-  border: 0;
-  border-radius: var(--amt-navigation-item-radius);
-  color: var(--amt-color-text-secondary);
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  transition:
-    color var(--amt-motion-fast) ease,
-    background var(--amt-motion-fast) ease;
-}
-
-.navigation-item svg {
-  width: var(--amt-primitive-dimension-icon-default);
-  height: var(--amt-primitive-dimension-icon-default);
-}
-
-.navigation-item:hover,
-.navigation-item-current {
-  color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-selected);
-}
-
 .workspace {
   min-width: 0;
 }
@@ -524,6 +496,13 @@ h2 {
   min-height: var(--amt-space-8);
   padding-top: var(--amt-space-2);
   color: var(--amt-color-text-secondary);
+}
+
+.showcase-navigation-list {
+  display: grid;
+  max-width: calc(var(--amt-space-10) * 7);
+  gap: var(--amt-space-1);
+  margin-top: var(--amt-space-3);
 }
 
 .component-showcase-group .amt-setting-row {

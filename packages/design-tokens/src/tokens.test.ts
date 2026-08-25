@@ -24,4 +24,14 @@ describe('设计 Token', () => {
     );
     expect(light.semantic['color.text.primary']).not.toBe(dark.semantic['color.text.primary']);
   });
+
+  it('让两套主题的交互控件使用黑白灰语义色', () => {
+    const light = resolveThemeTokens('light');
+    const dark = resolveThemeTokens('dark');
+
+    expect(light.semantic['color.action.primary']).toBe(primitiveTokens['color.neutral.950']);
+    expect(light.semantic['color.focus.ring']).toBe(primitiveTokens['color.neutral.600']);
+    expect(dark.semantic['color.action.primary']).toBe(primitiveTokens['color.neutral.50']);
+    expect(dark.semantic['color.focus.ring']).toBe(primitiveTokens['color.neutral.300']);
+  });
 });
