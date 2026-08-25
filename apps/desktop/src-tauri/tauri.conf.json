@@ -16,8 +16,8 @@
         "title": "AllMyTools",
         "width": 1100,
         "height": 720,
-        "minWidth": 800,
-        "minHeight": 560,
+        "minWidth": 960,
+        "minHeight": 640,
         "resizable": true
       }
     ],

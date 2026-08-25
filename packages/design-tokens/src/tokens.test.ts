@@ -34,4 +34,10 @@ describe('设计 Token', () => {
     expect(dark.semantic['color.action.primary']).toBe(primitiveTokens['color.neutral.50']);
     expect(dark.semantic['color.focus.ring']).toBe(primitiveTokens['color.neutral.300']);
   });
+
+  it('提供桌面窗口和工作区的稳定尺寸 Token', () => {
+    expect(primitiveTokens['dimension.window.min-width']).toBe('960px');
+    expect(primitiveTokens['dimension.window.min-height']).toBe('640px');
+    expect(primitiveTokens['dimension.workspace.tool-max-width']).toBe('880px');
+  });
 });
