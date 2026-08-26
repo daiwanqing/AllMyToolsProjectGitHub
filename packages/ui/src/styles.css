@@ -548,6 +548,41 @@
   color: var(--amt-color-text-secondary);
 }
 
+.amt-floating-notice {
+  position: fixed;
+  z-index: var(--amt-primitive-z-index-notification);
+  top: 50%;
+  left: 50%;
+  display: flex;
+  width: min(calc(var(--amt-space-10) * 16), calc(100vw - var(--amt-space-8)));
+  align-items: center;
+  gap: var(--amt-space-1);
+  padding: var(--amt-space-4);
+  border: var(--amt-border-width-default) solid var(--amt-color-border-strong);
+  border-radius: var(--amt-radius-control);
+  color: var(--amt-color-text-primary);
+  background: var(--amt-color-background-surface);
+  box-shadow: 0 var(--amt-space-1) var(--amt-space-3)
+    color-mix(in srgb, var(--amt-color-text-primary) 14%, transparent);
+  animation: amt-floating-notice-enter var(--amt-motion-normal) var(--amt-motion-easing-standard)
+    both;
+}
+
+.amt-floating-notice-success {
+  border-color: var(--amt-color-status-success);
+}
+
+.amt-floating-notice-error {
+  border-color: var(--amt-color-status-error);
+}
+
+.amt-floating-notice p {
+  margin: 0;
+  min-width: 0;
+  color: var(--amt-color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
 @keyframes amt-spin {
   to {
     transform: rotate(1turn);
@@ -564,9 +599,22 @@
   }
 }
 
+@keyframes amt-floating-notice-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - var(--amt-space-2)));
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .amt-button-spinner,
   .amt-inline-message,
+  .amt-floating-notice,
   .amt-tabpanel:not([hidden]),
   .amt-disclosure-panel:not([hidden]) {
     animation: none;

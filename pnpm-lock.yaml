@@ -47,6 +47,9 @@ importers:
       '@allmytools/platform-services':
         specifier: workspace:*
         version: link:../../packages/platform-services
+      '@allmytools/tools-calendar-todos':
+        specifier: workspace:*
+        version: link:../../modules/tools/calendar-todos
       '@allmytools/tools-text-workbench':
         specifier: workspace:*
         version: link:../../modules/tools/text-workbench
@@ -117,6 +120,25 @@ importers:
         version: 3.2.7(jsdom@26.1.0)
 
   modules/learning/note-review:
+    dependencies:
+      '@allmytools/platform-contracts':
+        specifier: workspace:*
+        version: link:../../../packages/platform-contracts
+      '@allmytools/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
+    devDependencies:
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.18
+      react:
+        specifier: ^19.1.0
+        version: 19.2.8
+      vitest:
+        specifier: ^3.1.2
+        version: 3.2.7(jsdom@26.1.0)
+
+  modules/tools/calendar-todos:
     dependencies:
       '@allmytools/platform-contracts':
         specifier: workspace:*
@@ -1141,6 +1163,7 @@ packages:
   eslint@9.39.5:
     resolution: {integrity: sha512-DgZS62aPLXKlnxILS/AYCoRvHaZeXceIzlXPkkGGzJWSow1aEk0lbTlxUSlyjC8jcaKxAdOnTDz+o1JFSBsyjw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'

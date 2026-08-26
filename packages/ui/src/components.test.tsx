@@ -5,6 +5,7 @@ import { Button } from './Button';
 import { ChoiceGroup } from './ChoiceGroup';
 import { Disclosure } from './Disclosure';
 import { EmptyState } from './EmptyState';
+import { FloatingNotice } from './FloatingNotice';
 import { IconButton } from './IconButton';
 import { InlineMessage } from './InlineMessage';
 import { NavigationItem } from './NavigationItem';
@@ -20,6 +21,7 @@ import { ToggleField } from './ToggleField';
 import { uiComponentCatalog, uiGuidelineGroups } from './designSystemCatalog';
 
 afterEach(() => {
+  vi.useRealTimers();
   document.body.replaceChildren();
 });
 
@@ -160,6 +162,26 @@ describe('content states', () => {
     expect(new Set(headingIds).size).toBe(2);
     expect(labelledBy).toEqual(headingIds);
   });
+
+  it('announces and automatically dismisses a floating confirmation', () => {
+    vi.useFakeTimers();
+    const onDismiss = vi.fn();
+
+    render(
+      <FloatingNotice
+        title="待办状态已更新"
+        tone="success"
+        autoDismissMs={180}
+        onDismiss={onDismiss}
+      >
+        已完成：整理今天的计划
+      </FloatingNotice>,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('已完成：整理今天的计划');
+    vi.advanceTimersByTime(180);
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('Tabs', () => {
@@ -208,6 +230,7 @@ describe('composite controls', () => {
       'TextAreaField',
       'EmptyState',
       'InlineMessage',
+      'FloatingNotice',
       'IconButton',
       'NavigationItem',
       'Tabs',

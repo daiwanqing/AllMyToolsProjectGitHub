@@ -5,6 +5,7 @@ import {
   ChoiceGroup,
   Disclosure,
   EmptyState,
+  FloatingNotice,
   IconButton,
   InlineMessage,
   NavigationItem,
@@ -113,6 +114,7 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
   const [motionPreviewProgress, setMotionPreviewProgress] = useState(0);
   const [motionPreviewStep, setMotionPreviewStep] = useState(0);
   const [isMotionPreviewRunning, setIsMotionPreviewRunning] = useState(false);
+  const [floatingNoticePreviewVersion, setFloatingNoticePreviewVersion] = useState(0);
   const currentRows = useMemo(() => tokenRows(theme), [theme]);
   const lightSemantic = useMemo(() => resolveThemeTokens('light').semantic, []);
   const darkSemantic = useMemo(() => resolveThemeTokens('dark').semantic, []);
@@ -515,6 +517,30 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
             </p>
             <ProgressBar label="动效预览进度" value={motionPreviewProgress} />
           </div>
+        </section>
+        <section className="motion-showcase" aria-labelledby="floating-notice-preview-heading">
+          <div className="motion-showcase-heading">
+            <div>
+              <h4 id="floating-notice-preview-heading">悬浮提示预览</h4>
+              <p>用于确认已完成或可逆操作，不占用工作区的内容位置。</p>
+            </div>
+            <Button
+              variant="secondary"
+              onClick={() => setFloatingNoticePreviewVersion((value) => value + 1)}
+            >
+              播放悬浮提示
+            </Button>
+          </div>
+          {floatingNoticePreviewVersion ? (
+            <FloatingNotice
+              key={floatingNoticePreviewVersion}
+              title="待办状态已更新"
+              tone="success"
+              onDismiss={() => setFloatingNoticePreviewVersion(0)}
+            >
+              已完成：整理今天的计划
+            </FloatingNotice>
+          ) : null}
         </section>
       </div>
     ),

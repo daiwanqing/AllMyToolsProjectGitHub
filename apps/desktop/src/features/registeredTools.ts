@@ -3,6 +3,7 @@ import { ToolRegistry, type ToolSession } from '@allmytools/platform-services';
 import { manifest as noteReviewManifest } from '@allmytools/learning-note-review/manifest';
 import { manifest as sessionPickerManifest } from '@allmytools/entertainment-session-picker/manifest';
 import { manifest as textWorkbenchManifest } from '@allmytools/tools-text-workbench/manifest';
+import { manifest as calendarTodosManifest } from '@allmytools/tools-calendar-todos/manifest';
 
 export type LoadedToolModule = Readonly<{
   ToolView: ComponentType;
@@ -25,4 +26,9 @@ toolRegistry.register({
 toolRegistry.register({
   manifest: textWorkbenchManifest,
   load: () => import('@allmytools/tools-text-workbench'),
+});
+
+toolRegistry.register({
+  manifest: calendarTodosManifest,
+  load: () => import('@allmytools/tools-calendar-todos'),
 });

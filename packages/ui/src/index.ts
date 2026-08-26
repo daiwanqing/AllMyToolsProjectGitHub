@@ -8,6 +8,12 @@ export {
   type UiGuidelineGroup,
 } from './designSystemCatalog';
 export { EmptyState, type EmptyStateProps } from './EmptyState';
+export {
+  FloatingNotice,
+  floatingNoticeAutoDismissMs,
+  type FloatingNoticeProps,
+  type FloatingNoticeTone,
+} from './FloatingNotice';
 export { IconButton, type IconButtonProps } from './IconButton';
 export { InlineMessage, type InlineMessageProps, type InlineMessageTone } from './InlineMessage';
 export { NavigationItem, type NavigationItemProps } from './NavigationItem';

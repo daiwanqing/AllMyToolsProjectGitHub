@@ -21,6 +21,11 @@ export const uiComponentCatalog: readonly UiComponentDefinition[] = [
   { name: 'EmptyState', category: '内容状态', contract: '展示空内容，并以明确动作引导下一步。' },
   { name: 'InlineMessage', category: '内容状态', contract: '提供一般信息或可恢复错误反馈。' },
   {
+    name: 'FloatingNotice',
+    category: '状态反馈',
+    contract: '以自动消失的悬浮消息确认已完成或可逆操作，并通过实时区域表达结果。',
+  },
+  {
     name: 'IconButton',
     category: '基础操作',
     contract: '统一图标按钮尺寸、提示、可访问名称和按下状态。',

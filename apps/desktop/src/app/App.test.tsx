@@ -16,7 +16,8 @@ describe('desktop shell', () => {
     expect(screen.getByRole('button', { name: '学习' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '常用' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '其他工具' })).toBeInTheDocument();
-    expect(screen.getAllByRole('article')).toHaveLength(3);
+    expect(screen.getByRole('article', { name: '日历待办' })).toBeInTheDocument();
+    expect(screen.getAllByRole('article')).toHaveLength(4);
   });
 
   it('filters tools by category and search query', () => {
@@ -93,6 +94,104 @@ describe('desktop shell', () => {
       '玩一局游戏',
     );
     expect(window.localStorage.getItem('learning.note-review.draft')).toBeNull();
+  });
+
+  it('manages dated todos in the calendar tool namespace', async () => {
+    render(<App />);
+
+    const calendarTool = screen.getByRole('article', { name: '日历待办' });
+    fireEvent.click(within(calendarTool).getByRole('button', { name: '打开' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: '新增待办' })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: '全年' }));
+    expect(screen.getByLabelText(/年日历概览/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /年8月/ }));
+    expect(screen.getByRole('grid', { name: /日历/ })).toBeInTheDocument();
+
+    const newTodoField = screen.getByRole('textbox', { name: '新增待办' });
+    const newTodoForm = newTodoField.closest('form');
+    if (!newTodoForm) {
+      throw new Error('Expected the new todo field to be inside a form.');
+    }
+
+    fireEvent.submit(newTodoForm);
+    expect(screen.queryByText('请输入待办内容后再添加。')).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    fireEvent.change(newTodoField, {
+      target: { value: '整理今天的计划' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '添加' }));
+
+    expect(screen.getByRole('status')).toHaveTextContent('待办已添加。');
+    expect(screen.getByRole('combobox', { name: '整理今天的计划 状态' })).toHaveValue(
+      'not-started',
+    );
+    expect(
+      JSON.parse(window.localStorage.getItem('tools.calendar-todos.items') ?? ''),
+    ).toMatchObject({
+      version: 2,
+      todos: [{ title: '整理今天的计划', status: 'not-started' }],
+      checkIns: [],
+    });
+    expect(window.localStorage.getItem('tools.text-workbench.draft')).toBeNull();
+    const selectedDateCell = () => {
+      const cell = screen
+        .getAllByRole('gridcell')
+        .find((candidate) => candidate.getAttribute('aria-selected') === 'true');
+      if (!cell) {
+        throw new Error('Expected the selected calendar day to be present.');
+      }
+
+      return cell;
+    };
+    expect(selectedDateCell()).toHaveAccessibleName(expect.stringContaining('1 项未开始'));
+
+    const todoCard = screen.getByText('整理今天的计划').closest('li');
+    if (!todoCard) {
+      throw new Error('Expected the todo card to be present.');
+    }
+    const dataTransfer = {
+      effectAllowed: '',
+      setData: () => undefined,
+      getData: () => 'todo-id',
+    };
+    fireEvent.dragStart(todoCard, { dataTransfer });
+    fireEvent.dragOver(screen.getByRole('region', { name: '进行中' }), { dataTransfer });
+    fireEvent.drop(screen.getByRole('region', { name: '进行中' }), { dataTransfer });
+    expect(screen.getByRole('combobox', { name: '整理今天的计划 状态' })).toHaveValue(
+      'in-progress',
+    );
+    expect(selectedDateCell()).toHaveAccessibleName(expect.stringContaining('1 项进行中'));
+
+    fireEvent.change(screen.getByRole('combobox', { name: '整理今天的计划 状态' }), {
+      target: { value: 'completed' },
+    });
+    expect(screen.getByRole('status')).toHaveTextContent('已完成：整理今天的计划');
+    expect(selectedDateCell()).toHaveAccessibleName(expect.stringContaining('1 项已完成'));
+
+    fireEvent.change(screen.getByRole('textbox', { name: '新增打卡项目' }), {
+      target: { value: '阅读 30 分钟' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '添加项目' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: '阅读 30 分钟' }));
+    expect(screen.getByRole('checkbox', { name: '阅读 30 分钟' })).toBeChecked();
+    const checkInItem = screen.getByText('阅读 30 分钟').closest('li');
+    if (!checkInItem) {
+      throw new Error('Expected the check-in item to be present.');
+    }
+    fireEvent.click(within(checkInItem).getByRole('button', { name: '删除' }));
+    expect(screen.getByRole('heading', { name: '还没有打卡项目' })).toBeInTheDocument();
+    const completedTodoCard = screen.getByText('整理今天的计划').closest('li');
+    if (!completedTodoCard) {
+      throw new Error('Expected the completed todo card to be present.');
+    }
+    fireEvent.click(within(completedTodoCard).getByRole('button', { name: '删除' }));
+    expect(screen.getByText('暂无待办')).toBeInTheDocument();
+    expect(selectedDateCell()).not.toHaveAccessibleName(
+      expect.stringMatching(/项(?:未开始|进行中|已完成)/),
+    );
   });
 
   it('processes, saves, and restores the tools text inside its own storage namespace', async () => {
@@ -243,6 +342,17 @@ describe('desktop shell', () => {
     render(<App />);
     expect(screen.getByRole('tab', { name: '开发者' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('heading', { name: '设计系统查看器' })).toBeInTheDocument();
+  });
+
+  it('previews the floating notice in settings', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: '打开设置' }));
+    fireEvent.click(screen.getByRole('tab', { name: '开发者' }));
+    fireEvent.click(screen.getByRole('tab', { name: '动效' }));
+    fireEvent.click(screen.getByRole('button', { name: '播放悬浮提示' }));
+
+    expect(screen.getByText('已完成：整理今天的计划')).toBeInTheDocument();
   });
 
   it('restores the shell workspace after remounting', () => {
