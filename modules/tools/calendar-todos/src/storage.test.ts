@@ -22,7 +22,7 @@ const data: CalendarTodosData = {
       id: 'todo-1',
       date: '2026-08-26',
       title: '整理本周计划',
-      status: 'in-progress',
+      status: 'not-started',
       createdAt: '2026-08-26T09:00:00.000Z',
     },
   ],
@@ -85,6 +85,21 @@ describe('calendar todo storage', () => {
     );
 
     expect(loadCalendarTodos(storage)).toEqual({ todos: [], checkIns: [] });
+  });
+
+  it('migrates the removed in-progress status to not-started', () => {
+    const storage = createStorage();
+    const legacyTodo = { ...data.todos[0], status: 'in-progress' as const };
+    storage.setItem(
+      calendarTodosStorageKey,
+      JSON.stringify({
+        version: calendarTodosStorageVersion,
+        todos: [legacyTodo],
+        checkIns: [],
+      }),
+    );
+
+    expect(loadCalendarTodos(storage).todos[0]).toMatchObject({ status: 'not-started' });
   });
 
   it('migrates version two check-ins to daily schedules', () => {

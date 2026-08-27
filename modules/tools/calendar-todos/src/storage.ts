@@ -223,7 +223,13 @@ function dateKeyFromTimestamp(timestamp: string): string {
 }
 
 function sanitizeTodos(items: readonly unknown[]): readonly TodoItem[] {
-  return items.filter(isTodoItem).slice(0, maxTodoItems);
+  return items
+    .filter(isTodoItem)
+    .slice(0, maxTodoItems)
+    .map((item) => ({
+      ...item,
+      status: item.status === 'in-progress' ? 'not-started' : item.status,
+    }));
 }
 
 export function loadCalendarTodos(storage: CalendarTodosStorage): CalendarTodosData {

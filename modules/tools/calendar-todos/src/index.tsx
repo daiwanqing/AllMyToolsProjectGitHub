@@ -1,4 +1,12 @@
-import { useMemo, useState, type DragEvent, type FormEvent } from 'react';
+import {
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+  type FormEvent,
+  type MouseEvent,
+  type PointerEvent,
+} from 'react';
 import {
   Button,
   ChoiceGroup,
@@ -32,7 +40,7 @@ import {
 export { manifest };
 
 const weekDays = ['一', '二', '三', '四', '五', '六', '日'];
-const taskStatuses: readonly TodoStatus[] = ['not-started', 'in-progress', 'completed'];
+const taskStatuses: readonly TodoStatus[] = ['not-started', 'completed'];
 const taskStatusLabels: Readonly<Record<TodoStatus, string>> = {
   'not-started': '未开始',
   'in-progress': '进行中',
@@ -151,6 +159,7 @@ export function ToolView() {
   const [draggedTodoId, setDraggedTodoId] = useState<string>();
   const [dragOverStatus, setDragOverStatus] = useState<TodoStatus>();
   const [notice, setNotice] = useState<TodoNotice>();
+  const mouseDragCleanup = useRef<(() => void) | undefined>(undefined);
 
   const days = useMemo(() => calendarDays(visibleMonth), [visibleMonth]);
   const checkInTodos = useMemo<readonly DisplayTodo[]>(
@@ -263,29 +272,133 @@ export function ToolView() {
 
   function setTodoStatus(id: string, status: TodoStatus) {
     const todo = data.todos.find((item) => item.id === id);
-    if (!todo || todo.status === status) {
+    if (todo) {
+      if (todo.status === status) {
+        return;
+      }
+
+      commit({
+        ...data,
+        todos: data.todos.map((item) => (item.id === id ? { ...item, status } : item)),
+      });
+      showNotice(
+        `${taskStatusLabels[status]}：${todo.title}`,
+        status === 'completed' ? 'success' : 'info',
+      );
       return;
     }
 
+    const checkInTodo = checkInTodos.find((item) => item.id === id);
+    if (!checkInTodo?.checkInId) {
+      return;
+    }
+    const checkIn = data.checkIns.find((item) => item.id === checkInTodo.checkInId);
+    if (!checkIn) {
+      return;
+    }
+    const completed = status === 'completed';
+    const checkInDate = checkInTodo.date;
+    const alreadyCompleted = checkIn.dates.includes(checkInDate);
+    if (completed === alreadyCompleted) {
+      return;
+    }
     commit({
       ...data,
-      todos: data.todos.map((item) => (item.id === id ? { ...item, status } : item)),
+      checkIns: data.checkIns.map((item) =>
+        item.id === checkIn.id
+          ? {
+              ...item,
+              dates: completed
+                ? [...item.dates, checkInDate]
+                : item.dates.filter((itemDate) => itemDate !== checkInDate),
+            }
+          : item,
+      ),
     });
     showNotice(
-      `${taskStatusLabels[status]}：${todo.title}`,
-      status === 'completed' ? 'success' : 'info',
+      `${completed ? '已完成打卡' : '已取消打卡'}：${checkIn.title}`,
+      completed ? 'success' : 'info',
     );
   }
 
-  function deleteTodo(id: string) {
-    commit({ ...data, todos: data.todos.filter((item) => item.id !== id) });
-    showNotice('待办已删除。');
+  function toggleTodoCompletion(todo: DisplayTodo) {
+    setTodoStatus(todo.id, todo.status === 'completed' ? 'not-started' : 'completed');
   }
 
   function startDragging(event: DragEvent<HTMLLIElement>, id: string) {
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', id);
     setDraggedTodoId(id);
+  }
+
+  function startPointerDragging(event: PointerEvent<HTMLLIElement>, todo: DisplayTodo) {
+    if (typeof event.currentTarget.setPointerCapture === 'function') {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+    setDraggedTodoId(todo.id);
+  }
+
+  function finishPointerDragging(event: PointerEvent<HTMLLIElement>, todo: DisplayTodo) {
+    const target = document
+      .elementFromPoint(event.clientX, event.clientY)
+      ?.closest<HTMLElement>('[data-todo-status]');
+    const status = target?.dataset.todoStatus as TodoStatus | undefined;
+    if (status) {
+      setTodoStatus(todo.id, status);
+    }
+    if (
+      typeof event.currentTarget.hasPointerCapture === 'function' &&
+      event.currentTarget.hasPointerCapture(event.pointerId)
+    ) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setDraggedTodoId(undefined);
+    setDragOverStatus(undefined);
+  }
+
+  function movePointerDragging(event: PointerEvent<HTMLLIElement>) {
+    if (!draggedTodoId) {
+      return;
+    }
+    const target = document
+      .elementFromPoint(event.clientX, event.clientY)
+      ?.closest<HTMLElement>('[data-todo-status]');
+    setDragOverStatus((target?.dataset.todoStatus as TodoStatus | undefined) ?? undefined);
+  }
+
+  function startMouseDragging(event: MouseEvent<HTMLLIElement>, todo: DisplayTodo) {
+    mouseDragCleanup.current?.();
+    setDraggedTodoId(todo.id);
+
+    const updateTarget = (clientX: number, clientY: number) => {
+      const target = document
+        .elementFromPoint(clientX, clientY)
+        ?.closest<HTMLElement>('[data-todo-status]');
+      setDragOverStatus((target?.dataset.todoStatus as TodoStatus | undefined) ?? undefined);
+    };
+    const handleMove = (moveEvent: globalThis.MouseEvent) => {
+      updateTarget(moveEvent.clientX, moveEvent.clientY);
+    };
+    const handleUp = (upEvent: globalThis.MouseEvent) => {
+      const target = document
+        .elementFromPoint(upEvent.clientX, upEvent.clientY)
+        ?.closest<HTMLElement>('[data-todo-status]');
+      const status = target?.dataset.todoStatus as TodoStatus | undefined;
+      if (status) {
+        setTodoStatus(todo.id, status);
+      }
+      mouseDragCleanup.current?.();
+      setDraggedTodoId(undefined);
+      setDragOverStatus(undefined);
+    };
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+    mouseDragCleanup.current = () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+      mouseDragCleanup.current = undefined;
+    };
+    event.preventDefault();
   }
 
   function dropTodo(event: DragEvent<HTMLElement>, status: TodoStatus) {
@@ -296,6 +409,14 @@ export function ToolView() {
     }
     setDraggedTodoId(undefined);
     setDragOverStatus(undefined);
+  }
+
+  function moveTodoByKeyboard(todo: DisplayTodo, offset: number) {
+    const currentIndex = taskStatuses.indexOf(todo.status);
+    const nextStatus = taskStatuses[currentIndex + offset];
+    if (nextStatus) {
+      setTodoStatus(todo.id, nextStatus);
+    }
   }
 
   function openCreateCheckIn() {
@@ -561,8 +682,7 @@ export function ToolView() {
               <StatusBadge
                 tone={
                   selectedTodos.length &&
-                  !todosByStatus['not-started'].length &&
-                  !todosByStatus['in-progress'].length
+                  !todosByStatus['not-started'].length
                     ? 'success'
                     : 'info'
                 }
@@ -591,6 +711,7 @@ export function ToolView() {
                   key={status}
                   className="todo-column"
                   aria-label={taskStatusLabels[status]}
+                  data-todo-status={status}
                   data-drag-over={dragOverStatus === status || undefined}
                   onDragOver={(event) => {
                     event.preventDefault();
@@ -603,11 +724,7 @@ export function ToolView() {
                     <h4>{taskStatusLabels[status]}</h4>
                     <StatusBadge
                       tone={
-                        status === 'completed'
-                          ? 'success'
-                          : status === 'in-progress'
-                            ? 'warning'
-                            : 'neutral'
+                        status === 'completed' ? 'success' : 'neutral'
                       }
                     >
                       {todosByStatus[status].length}
@@ -618,46 +735,45 @@ export function ToolView() {
                       <li
                         key={todo.id}
                         className="todo-item"
-                        draggable={!todo.checkInId}
+                        tabIndex={0}
+                        aria-label={`${todo.title}，${taskStatusLabels[todo.status]}`}
+                        data-dragging={draggedTodoId === todo.id || undefined}
+                        draggable={false}
+                        onMouseDown={(event) => startMouseDragging(event, todo)}
+                        onPointerDown={(event) => startPointerDragging(event, todo)}
+                        onPointerMove={movePointerDragging}
+                        onPointerUp={(event) => finishPointerDragging(event, todo)}
+                        onPointerCancel={() => {
+                          setDraggedTodoId(undefined);
+                          setDragOverStatus(undefined);
+                        }}
                         onDragStart={(event) => startDragging(event, todo.id)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                            event.preventDefault();
+                            moveTodoByKeyboard(todo, 1);
+                          }
+                          if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                            event.preventDefault();
+                            moveTodoByKeyboard(todo, -1);
+                          }
+                        }}
                         onDragEnd={() => {
                           setDraggedTodoId(undefined);
                           setDragOverStatus(undefined);
                         }}
                       >
-                        <span className="todo-item-title">{todo.title}</span>
-                        {todo.checkInId ? (
-                          <>
-                            <StatusBadge tone={todo.status === 'completed' ? 'success' : 'info'}>
-                              打卡同步
-                            </StatusBadge>
-                            <Button variant="ghost" onClick={() => toggleCheckIn(todo.checkInId!)}>
-                              {todo.status === 'completed' ? '取消打卡' : '完成打卡'}
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <label className="todo-status-field">
-                              <span>状态</span>
-                              <select
-                                value={todo.status}
-                                aria-label={`${todo.title} 状态`}
-                                onChange={(event) =>
-                                  setTodoStatus(todo.id, event.target.value as TodoStatus)
-                                }
-                              >
-                                {taskStatuses.map((option) => (
-                                  <option key={option} value={option}>
-                                    {taskStatusLabels[option]}
-                                  </option>
-                                ))}
-                              </select>
-                            </label>
-                            <Button variant="ghost" onClick={() => deleteTodo(todo.id)}>
-                              删除
-                            </Button>
-                          </>
-                        )}
+                        <label className="todo-item-content">
+                          <input
+                            type="checkbox"
+                            checked={todo.status === 'completed'}
+                            aria-label={`完成 ${todo.title}`}
+                            onMouseDown={(event) => event.stopPropagation()}
+                            onPointerDown={(event) => event.stopPropagation()}
+                            onChange={() => toggleTodoCompletion(todo)}
+                          />
+                          <span className="todo-item-title">{todo.title}</span>
+                        </label>
                       </li>
                     ))}
                   </ul>
@@ -687,17 +803,19 @@ export function ToolView() {
                   data-checked={checked || undefined}
                   data-scheduled={scheduled || undefined}
                 >
-                  <button
-                    type="button"
-                    className="check-in-card-main"
-                    onClick={() => openEditCheckIn(item.id)}
-                    aria-label={`编辑 ${item.title}`}
-                  >
-                    <strong>{item.title}</strong>
-                    <small>
-                      {checkInScheduleDescription(item)} · 开始于 {item.startDate}
-                    </small>
-                  </button>
+                  <div className="check-in-card-header">
+                    <button
+                      type="button"
+                      className="check-in-card-main"
+                      onClick={() => openEditCheckIn(item.id)}
+                      aria-label={`编辑 ${item.title}`}
+                    >
+                      <strong>{item.title}</strong>
+                      <small>
+                        {checkInScheduleDescription(item)} · 开始于 {item.startDate}
+                      </small>
+                    </button>
+                  </div>
                   <div className="check-in-card-actions">
                     <label className="check-in-card-check">
                       <input
@@ -709,7 +827,11 @@ export function ToolView() {
                       />
                       <span>{checked ? '今日已打卡' : scheduled ? '完成打卡' : '今日不打卡'}</span>
                     </label>
-                    <Button variant="ghost" onClick={() => deleteCheckIn(item.id)}>
+                    <Button
+                      variant="ghost"
+                      className="check-in-delete-button"
+                      onClick={() => deleteCheckIn(item.id)}
+                    >
                       删除
                     </Button>
                   </div>
@@ -723,6 +845,11 @@ export function ToolView() {
               className="check-in-dialog"
               aria-labelledby="check-in-dialog-heading"
               aria-modal="true"
+              onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                  closeCheckInDialog();
+                }
+              }}
               onCancel={(event) => {
                 event.preventDefault();
                 closeCheckInDialog();

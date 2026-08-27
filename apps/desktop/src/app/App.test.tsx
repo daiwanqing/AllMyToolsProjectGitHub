@@ -125,9 +125,7 @@ describe('desktop shell', () => {
     fireEvent.click(screen.getByRole('button', { name: '添加' }));
 
     expect(screen.getByRole('status')).toHaveTextContent('待办已添加。');
-    expect(screen.getByRole('combobox', { name: '整理今天的计划 状态' })).toHaveValue(
-      'not-started',
-    );
+    expect(screen.getByText('整理今天的计划')).toBeInTheDocument();
     expect(
       JSON.parse(window.localStorage.getItem('tools.calendar-todos.items') ?? ''),
     ).toMatchObject({
@@ -158,24 +156,37 @@ describe('desktop shell', () => {
       getData: () => 'todo-id',
     };
     fireEvent.dragStart(todoCard, { dataTransfer });
-    fireEvent.dragOver(screen.getByRole('region', { name: '进行中' }), { dataTransfer });
-    fireEvent.drop(screen.getByRole('region', { name: '进行中' }), { dataTransfer });
-    expect(screen.getByRole('combobox', { name: '整理今天的计划 状态' })).toHaveValue(
-      'in-progress',
-    );
-    expect(selectedDateCell()).toHaveAccessibleName(expect.stringContaining('1 项进行中'));
-
-    fireEvent.change(screen.getByRole('combobox', { name: '整理今天的计划 状态' }), {
-      target: { value: 'completed' },
-    });
-    expect(screen.getByRole('status')).toHaveTextContent('已完成：整理今天的计划');
+    fireEvent.dragOver(screen.getByRole('region', { name: '已完成' }), { dataTransfer });
+    fireEvent.drop(screen.getByRole('region', { name: '已完成' }), { dataTransfer });
     expect(selectedDateCell()).toHaveAccessibleName(expect.stringContaining('1 项已完成'));
+
+    const completedTodoCard = screen.getByText('整理今天的计划').closest('li');
+    if (!completedTodoCard) {
+      throw new Error('Expected the completed todo card to be present.');
+    }
+    const elementFromPoint = document.elementFromPoint;
+    Object.defineProperty(document, 'elementFromPoint', {
+      configurable: true,
+      value: () => screen.getByRole('region', { name: '未开始' }),
+    });
+    fireEvent.mouseDown(completedTodoCard, { clientX: 10, clientY: 10 });
+    fireEvent.mouseMove(window, { clientX: 10, clientY: 10 });
+    fireEvent.mouseUp(window, { clientX: 10, clientY: 10 });
+    Object.defineProperty(document, 'elementFromPoint', {
+      configurable: true,
+      value: elementFromPoint,
+    });
+    expect(screen.getByRole('status')).toHaveTextContent('未开始：整理今天的计划');
+    expect(selectedDateCell()).toHaveAccessibleName(expect.stringContaining('1 项未开始'));
 
     fireEvent.click(screen.getByRole('button', { name: '周期打卡' }));
     expect(screen.getByRole('heading', { name: '周期打卡' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '添加打卡' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '添加打卡' }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('dialog'));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '添加打卡' }));
     fireEvent.change(screen.getByRole('textbox', { name: '打卡名称' }), {
       target: { value: '阅读 30 分钟' },
     });
@@ -190,23 +201,25 @@ describe('desktop shell', () => {
     expect(screen.getByRole('button', { name: '编辑 阅读 45 分钟' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '返回日历待办' }));
     expect(screen.getByText('阅读 45 分钟（打卡）')).toBeInTheDocument();
+    const syncedCheckInCard = screen.getByText('阅读 45 分钟（打卡）').closest('li');
+    if (!syncedCheckInCard) {
+      throw new Error('Expected the synced check-in card to be present.');
+    }
+    fireEvent.dragStart(syncedCheckInCard, { dataTransfer });
+    fireEvent.dragOver(screen.getByRole('region', { name: '未开始' }), { dataTransfer });
+    fireEvent.drop(screen.getByRole('region', { name: '未开始' }), { dataTransfer });
+    expect(screen.getByRole('checkbox', { name: '完成 阅读 45 分钟（打卡）' })).not.toBeChecked();
+    fireEvent.click(screen.getByRole('checkbox', { name: '完成 阅读 45 分钟（打卡）' }));
+    expect(screen.getByRole('checkbox', { name: '完成 阅读 45 分钟（打卡）' })).toBeChecked();
     fireEvent.click(screen.getByRole('button', { name: '周期打卡' }));
     const managerCheckInItem = screen.getByText('阅读 45 分钟').closest('li');
     if (!managerCheckInItem) {
       throw new Error('Expected the check-in item to be present in the manager.');
     }
-    fireEvent.click(within(managerCheckInItem).getByRole('button', { name: '删除' }));
+    const deleteCheckInButton = within(managerCheckInItem).getByRole('button', { name: '删除' });
+    expect(deleteCheckInButton).toHaveClass('check-in-delete-button');
+    fireEvent.click(deleteCheckInButton);
     expect(screen.getByRole('button', { name: '添加打卡' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '返回日历待办' }));
-    const completedTodoCard = screen.getByText('整理今天的计划').closest('li');
-    if (!completedTodoCard) {
-      throw new Error('Expected the completed todo card to be present.');
-    }
-    fireEvent.click(within(completedTodoCard).getByRole('button', { name: '删除' }));
-    expect(screen.getByText('暂无待办')).toBeInTheDocument();
-    expect(selectedDateCell()).not.toHaveAccessibleName(
-      expect.stringMatching(/项(?:未开始|进行中|已完成)/),
-    );
   });
 
   it('processes, saves, and restores the tools text inside its own storage namespace', async () => {

@@ -524,7 +524,7 @@ h2 {
 
 .calendar-day:focus-visible,
 .calendar-mini-day:focus-visible,
-.todo-status-field select:focus-visible,
+.todo-item:focus-visible,
 .check-in-item input:focus-visible {
   z-index: 1;
   outline: var(--amt-focus-ring-width) solid var(--amt-color-focus-ring);
@@ -667,7 +667,7 @@ h2 {
 
 .todo-column {
   min-width: 0;
-  min-height: calc(var(--amt-space-10) * 5);
+  min-height: calc(var(--amt-space-10) * 10);
   padding-top: var(--amt-space-3);
   border-top: var(--amt-border-width-default) solid var(--amt-color-border-default);
   transition:
@@ -695,16 +695,23 @@ h2 {
 
 .todo-item {
   display: grid;
-  gap: var(--amt-space-2);
+  min-height: var(--amt-button-default-height);
+  align-items: center;
   padding: var(--amt-space-3);
   border: var(--amt-border-width-default) solid var(--amt-color-border-default);
   border-radius: var(--amt-radius-control);
   background: var(--amt-color-background-surface);
   cursor: grab;
+  touch-action: none;
 }
 
 .todo-item:active {
   cursor: grabbing;
+}
+
+.todo-item[data-dragging='true'] {
+  border-color: var(--amt-color-action-primary);
+  background: var(--amt-color-background-selected);
 }
 
 .todo-item-title {
@@ -713,21 +720,20 @@ h2 {
   font-weight: 600;
 }
 
-.todo-status-field {
-  display: grid;
-  gap: var(--amt-space-1);
-  color: var(--amt-color-text-secondary);
-  font-size: var(--amt-space-2);
+.todo-item-content {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--amt-space-2);
+  cursor: grab;
 }
 
-.todo-status-field select {
-  width: 100%;
-  min-height: var(--amt-button-compact-height);
-  padding: 0 var(--amt-space-2);
-  border: var(--amt-border-width-default) solid var(--amt-color-border-default);
-  border-radius: var(--amt-radius-control);
-  color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-surface);
+.todo-item-content input {
+  width: var(--amt-space-4);
+  height: var(--amt-space-4);
+  margin: 0;
+  flex: none;
+  accent-color: var(--amt-color-action-primary);
 }
 
 .check-in-panel {
@@ -779,7 +785,7 @@ h2 {
 }
 
 .check-in-gallery {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--amt-space-10) * 6), 1fr));
   gap: var(--amt-space-4);
 }
 
@@ -845,6 +851,23 @@ h2 {
   border: var(--amt-border-width-default) solid var(--amt-color-border-default);
   border-radius: var(--amt-radius-control);
   background: var(--amt-color-background-surface);
+}
+
+.check-in-card-header {
+  display: grid;
+  align-items: start;
+  gap: var(--amt-space-2);
+}
+
+.check-in-delete-button {
+  color: var(--amt-color-status-warning);
+  margin-left: auto;
+}
+
+.check-in-delete-button:hover:not(:disabled) {
+  border-color: var(--amt-color-status-warning);
+  color: var(--amt-color-status-warning);
+  background: var(--amt-color-background-selected);
 }
 
 .check-in-card-main {
@@ -914,16 +937,18 @@ h2 {
 
 .check-in-dialog {
   position: fixed;
-  inset: 50% auto auto 50%;
-  width: min(calc(100vw - var(--amt-space-8)), calc(var(--amt-space-10) * 18));
-  max-height: calc(100vh - var(--amt-space-8));
+  inset: 0;
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  max-height: none;
+  place-items: center;
   margin: 0;
   padding: 0;
-  transform: translate(-50%, -50%);
-  border: var(--amt-border-width-default) solid var(--amt-color-border-default);
-  border-radius: var(--amt-radius-control);
-  color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-surface);
+  border: 0;
+  color: inherit;
+  background: transparent;
 }
 
 .check-in-dialog::backdrop {
@@ -932,10 +957,15 @@ h2 {
 
 .check-in-dialog-form {
   display: grid;
+  width: min(calc(100vw - var(--amt-space-8)), calc(var(--amt-space-10) * 18));
   max-height: calc(100vh - var(--amt-space-8));
   gap: var(--amt-space-4);
   overflow-y: auto;
   padding: var(--amt-space-6);
+  border: var(--amt-border-width-default) solid var(--amt-color-border-default);
+  border-radius: var(--amt-radius-control);
+  color: var(--amt-color-text-primary);
+  background: var(--amt-color-background-surface);
 }
 
 .check-in-dialog-heading h3 {
