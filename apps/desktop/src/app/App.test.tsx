@@ -131,7 +131,7 @@ describe('desktop shell', () => {
     expect(
       JSON.parse(window.localStorage.getItem('tools.calendar-todos.items') ?? ''),
     ).toMatchObject({
-      version: 2,
+      version: 3,
       todos: [{ title: '整理今天的计划', status: 'not-started' }],
       checkIns: [],
     });
@@ -171,18 +171,33 @@ describe('desktop shell', () => {
     expect(screen.getByRole('status')).toHaveTextContent('已完成：整理今天的计划');
     expect(selectedDateCell()).toHaveAccessibleName(expect.stringContaining('1 项已完成'));
 
-    fireEvent.change(screen.getByRole('textbox', { name: '新增打卡项目' }), {
+    fireEvent.click(screen.getByRole('button', { name: '周期打卡' }));
+    expect(screen.getByRole('heading', { name: '周期打卡' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '添加打卡' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '添加打卡' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('textbox', { name: '打卡名称' }), {
       target: { value: '阅读 30 分钟' },
     });
     fireEvent.click(screen.getByRole('button', { name: '添加项目' }));
     fireEvent.click(screen.getByRole('checkbox', { name: '阅读 30 分钟' }));
     expect(screen.getByRole('checkbox', { name: '阅读 30 分钟' })).toBeChecked();
-    const checkInItem = screen.getByText('阅读 30 分钟').closest('li');
-    if (!checkInItem) {
-      throw new Error('Expected the check-in item to be present.');
+    fireEvent.click(screen.getByRole('button', { name: '编辑 阅读 30 分钟' }));
+    fireEvent.change(screen.getByRole('textbox', { name: '打卡名称' }), {
+      target: { value: '阅读 45 分钟' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存修改' }));
+    expect(screen.getByRole('button', { name: '编辑 阅读 45 分钟' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '返回日历待办' }));
+    expect(screen.getByText('阅读 45 分钟（打卡）')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '周期打卡' }));
+    const managerCheckInItem = screen.getByText('阅读 45 分钟').closest('li');
+    if (!managerCheckInItem) {
+      throw new Error('Expected the check-in item to be present in the manager.');
     }
-    fireEvent.click(within(checkInItem).getByRole('button', { name: '删除' }));
-    expect(screen.getByRole('heading', { name: '还没有打卡项目' })).toBeInTheDocument();
+    fireEvent.click(within(managerCheckInItem).getByRole('button', { name: '删除' }));
+    expect(screen.getByRole('button', { name: '添加打卡' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '返回日历待办' }));
     const completedTodoCard = screen.getByText('整理今天的计划').closest('li');
     if (!completedTodoCard) {
       throw new Error('Expected the completed todo card to be present.');

@@ -30,6 +30,8 @@ const data: CalendarTodosData = {
     {
       id: 'check-in-1',
       title: '阅读 30 分钟',
+      frequency: 'daily',
+      startDate: '2026-08-26',
       dates: ['2026-08-26'],
       createdAt: '2026-08-26T09:00:00.000Z',
     },
@@ -83,5 +85,21 @@ describe('calendar todo storage', () => {
     );
 
     expect(loadCalendarTodos(storage)).toEqual({ todos: [], checkIns: [] });
+  });
+
+  it('migrates version two check-ins to daily schedules', () => {
+    const storage = createStorage();
+    storage.setItem(
+      calendarTodosStorageKey,
+      JSON.stringify({
+        version: 2,
+        todos: [],
+        checkIns: [{ ...data.checkIns[0], frequency: undefined, startDate: undefined }],
+      }),
+    );
+
+    expect(loadCalendarTodos(storage).checkIns).toEqual([
+      { ...data.checkIns[0], frequency: 'daily', startDate: '2026-08-26' },
+    ]);
   });
 });

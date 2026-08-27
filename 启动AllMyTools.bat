@@ -44,6 +44,21 @@ if not exist "node_modules" (
   )
 )
 
+rem 工作区新增工具后可能只剩不完整的 node_modules 链接。
+if not exist "apps\desktop\node_modules\@allmytools\tools-calendar-todos\package.json" (
+  echo Refreshing workspace dependencies...
+  if "%PNPM_MODE%"=="direct" (
+    call pnpm.cmd install --frozen-lockfile
+  ) else if "%PNPM_MODE%"=="npm" (
+    call npm.cmd exec --yes --package=pnpm@9.15.5 -- pnpm install --frozen-lockfile
+  )
+  if errorlevel 1 (
+    echo Dependency refresh failed. The desktop app was not started.
+    pause
+    exit /b 1
+  )
+)
+
 netstat -ano | findstr /r /c:":1420 .*LISTENING" >nul
 if not errorlevel 1 (
   echo Port 1420 is already in use. Stop the existing AllMyTools development server, then start again.

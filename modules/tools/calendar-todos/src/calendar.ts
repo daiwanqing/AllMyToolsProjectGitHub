@@ -1,3 +1,5 @@
+import type { CheckInItem } from './storage';
+
 export type CalendarDay = Readonly<{
   date: Date;
   key: string;
@@ -46,4 +48,28 @@ export function calendarDays(month: Date): readonly CalendarDay[] {
       inCurrentMonth: date.getMonth() === month.getMonth(),
     };
   });
+}
+
+export function isCheckInScheduledOnDate(item: CheckInItem, key: string): boolean {
+  const date = dateFromKey(key);
+  const start = dateFromKey(item.startDate);
+  if (!date || !start || date < start) {
+    return false;
+  }
+
+  if (item.frequency === 'daily') {
+    return true;
+  }
+
+  if (item.frequency === 'weekly') {
+    const weekdays = item.weekdays ?? [item.weekday ?? start.getDay()];
+    return weekdays.includes(date.getDay());
+  }
+
+  const monthDays = item.monthDays ?? [item.dayOfMonth ?? start.getDate()];
+  return monthDays.includes(date.getDate());
+}
+
+export function checkInFrequencyLabel(frequency: CheckInItem['frequency']): string {
+  return frequency === 'daily' ? '每日' : frequency === 'weekly' ? '每周' : '每月';
 }
