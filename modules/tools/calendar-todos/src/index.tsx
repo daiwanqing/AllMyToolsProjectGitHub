@@ -463,9 +463,7 @@ export function ToolView() {
     commit({
       ...data,
       checkIns: isEditing
-        ? data.checkIns.map((item) =>
-            item.id === checkInDialog ? { ...item, ...fields } : item,
-          )
+        ? data.checkIns.map((item) => (item.id === checkInDialog ? { ...item, ...fields } : item))
         : [
             ...data.checkIns,
             {
@@ -681,10 +679,7 @@ export function ToolView() {
               </div>
               <StatusBadge
                 tone={
-                  selectedTodos.length &&
-                  !todosByStatus['not-started'].length
-                    ? 'success'
-                    : 'info'
+                  selectedTodos.length && !todosByStatus['not-started'].length ? 'success' : 'info'
                 }
               >
                 {selectedTodos.length
@@ -722,11 +717,7 @@ export function ToolView() {
                 >
                   <div className="todo-column-heading">
                     <h4>{taskStatusLabels[status]}</h4>
-                    <StatusBadge
-                      tone={
-                        status === 'completed' ? 'success' : 'neutral'
-                      }
-                    >
+                    <StatusBadge tone={status === 'completed' ? 'success' : 'neutral'}>
                       {todosByStatus[status].length}
                     </StatusBadge>
                   </div>
@@ -827,11 +818,7 @@ export function ToolView() {
                       />
                       <span>{checked ? '今日已打卡' : scheduled ? '完成打卡' : '今日不打卡'}</span>
                     </label>
-                    <Button
-                      variant="ghost"
-                      className="check-in-delete-button"
-                      onClick={() => deleteCheckIn(item.id)}
-                    >
+                    <Button variant="danger" onClick={() => deleteCheckIn(item.id)}>
                       删除
                     </Button>
                   </div>

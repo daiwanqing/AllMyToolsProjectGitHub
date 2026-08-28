@@ -51,6 +51,12 @@ describe('Button', () => {
 
     expect(button).toHaveFocus();
   });
+
+  it('supports the shared destructive variant', () => {
+    render(<Button variant="danger">删除</Button>);
+
+    expect(screen.getByRole('button', { name: '删除' })).toHaveClass('amt-button-danger');
+  });
 });
 
 describe('IconButton', () => {

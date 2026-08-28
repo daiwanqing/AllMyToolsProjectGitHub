@@ -859,17 +859,6 @@ h2 {
   gap: var(--amt-space-2);
 }
 
-.check-in-delete-button {
-  color: var(--amt-color-status-warning);
-  margin-left: auto;
-}
-
-.check-in-delete-button:hover:not(:disabled) {
-  border-color: var(--amt-color-status-warning);
-  color: var(--amt-color-status-warning);
-  background: var(--amt-color-background-selected);
-}
-
 .check-in-card-main {
   min-height: 0;
   padding: 0;

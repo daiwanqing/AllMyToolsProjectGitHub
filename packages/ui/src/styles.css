@@ -42,6 +42,17 @@
   background: var(--amt-color-action-primary);
 }
 
+.amt-button-danger {
+  border-color: var(--amt-color-status-error);
+  color: var(--amt-color-action-primary-text);
+  background: var(--amt-color-status-error);
+}
+
+.amt-button-danger:hover:not(:disabled) {
+  border-color: var(--amt-color-status-error);
+  background: var(--amt-color-status-error);
+}
+
 .amt-button-ghost {
   border-color: transparent;
   background: transparent;

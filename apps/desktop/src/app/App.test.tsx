@@ -217,7 +217,7 @@ describe('desktop shell', () => {
       throw new Error('Expected the check-in item to be present in the manager.');
     }
     const deleteCheckInButton = within(managerCheckInItem).getByRole('button', { name: '删除' });
-    expect(deleteCheckInButton).toHaveClass('check-in-delete-button');
+    expect(deleteCheckInButton).toHaveClass('amt-button-danger');
     fireEvent.click(deleteCheckInButton);
     expect(screen.getByRole('button', { name: '添加打卡' })).toBeInTheDocument();
   });

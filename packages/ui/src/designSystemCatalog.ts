@@ -11,7 +11,11 @@ export type UiGuidelineGroup = Readonly<{
 
 /** 公共组件与 UI 规范查看器使用的共享元数据，避免桌面查看器维护脱离组件包的副本。 */
 export const uiComponentCatalog: readonly UiComponentDefinition[] = [
-  { name: 'Button', category: '基础操作', contract: '主、次、无边框、加载和禁用状态。' },
+  {
+    name: 'Button',
+    category: '基础操作',
+    contract: '主、次、无边框、危险红色、加载和禁用状态。',
+  },
   { name: 'TextField', category: '基础输入', contract: '可见标签、说明、错误关联和禁用状态。' },
   {
     name: 'TextAreaField',

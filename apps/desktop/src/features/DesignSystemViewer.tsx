@@ -414,6 +414,7 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
             <Button variant="primary">主要操作</Button>
             <Button variant="secondary">次要操作</Button>
             <Button variant="ghost">无边框操作</Button>
+            <Button variant="danger">危险操作</Button>
             <Button loading>加载中</Button>
             <Button disabled>不可用</Button>
           </div>
