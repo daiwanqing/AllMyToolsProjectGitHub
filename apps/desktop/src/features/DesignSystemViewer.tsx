@@ -678,14 +678,7 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
   }));
 
   return (
-    <section
-      className="settings-section design-system-viewer"
-      aria-labelledby="design-system-heading"
-    >
-      <p className="eyebrow">开发者</p>
-      <h2 id="design-system-heading">设计系统查看器</h2>
-      <p>当前主题为{theme === 'light' ? '浅色' : '深色'}，下方数据直接来自设计 Token 包。</p>
-
+    <section className="settings-section design-system-viewer" aria-label="设计系统查看器">
       <Tabs
         ariaLabel="开发者查看器页签"
         className="developer-tabs"

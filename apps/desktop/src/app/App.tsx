@@ -335,9 +335,7 @@ export function App() {
   const settingsPanels: Readonly<Record<SettingsTab, ReactNode>> = {
     appearance: (
       <div className="settings-section">
-        <p className="eyebrow">界面</p>
-        <h3>主题</h3>
-        <SettingRow label="界面主题" description="选择适合当前工作环境的界面主题。">
+        <SettingRow label="主题">
           <ChoiceGroup
             ariaLabel="主题设置"
             options={themes.map(({ id, label }) => ({ id, label: `使用${label}主题` }))}
@@ -352,13 +350,8 @@ export function App() {
       </div>
     ),
     shortcuts: (
-      <div className="settings-section" aria-labelledby="shortcut-heading">
-        <p className="eyebrow">桌面</p>
-        <h3 id="shortcut-heading">全局快捷键</h3>
-        <SettingRow
-          label="全局快捷键"
-          description={`启用后可使用 ${quickToggleShortcut} 显示或隐藏主窗口。`}
-        >
+      <div className="settings-section">
+        <SettingRow label="全局快捷键">
           <ToggleField
             label="启用全局快捷键"
             checked={shortcutEnabled}
@@ -497,14 +490,7 @@ export function App() {
           </div>
         </header>
         {view === 'settings' ? (
-          <section className="settings-workspace" aria-labelledby="settings-heading">
-            <div className="settings-heading">
-              <div>
-                <p className="eyebrow">工作区</p>
-                <h2 id="settings-heading">设置</h2>
-              </div>
-              <p className="settings-heading-description">按功能整理偏好设置，切换后立即生效。</p>
-            </div>
+          <section className="settings-workspace" aria-labelledby="application-title">
             <Tabs
               ariaLabel="设置页签"
               idPrefix="settings"
@@ -520,15 +506,6 @@ export function App() {
         ) : (
           <section className="catalog-workspace" aria-label="工具目录">
             <div className="catalog-heading">
-              <div>
-                <h2>
-                  {isSearchActive
-                    ? '搜索结果'
-                    : category === 'all'
-                      ? '全部工具'
-                      : categoryLabels[category]}
-                </h2>
-              </div>
               <div className="search-field">
                 <Search aria-hidden="true" />
                 <TextField

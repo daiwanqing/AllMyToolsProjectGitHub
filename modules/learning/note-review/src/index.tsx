@@ -10,10 +10,7 @@ export function ToolView() {
   const [saved, setSaved] = useState(false);
 
   return (
-    <section aria-labelledby="note-review-heading">
-      <p className="eyebrow">学习工具</p>
-      <h2 id="note-review-heading">复习笔记工作区</h2>
-      <p className="tool-workspace-description">记录下一次复习前需要整理的内容。</p>
+    <section aria-label="复习笔记工具">
       <TextField
         label="待复习内容"
         value={note}

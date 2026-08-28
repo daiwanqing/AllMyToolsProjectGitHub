@@ -12,10 +12,7 @@ export function ToolView() {
   const [saved, setSaved] = useState(() => Boolean(loadSelectedSession(window.localStorage)));
 
   return (
-    <section aria-labelledby="session-picker-heading">
-      <p className="eyebrow">娱乐工具</p>
-      <h2 id="session-picker-heading">活动选择器工作区</h2>
-      <p className="tool-workspace-description">从当前候选活动中选择一项，再确认保存本次安排。</p>
+    <section aria-label="活动选择器工具">
       <ChoiceGroup
         ariaLabel="候选活动"
         options={sessionOptions.map((option) => ({ id: option, label: option }))}

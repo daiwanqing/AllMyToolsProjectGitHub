@@ -9,7 +9,6 @@ import {
 } from 'react';
 import {
   Button,
-  ChoiceGroup,
   FloatingNotice,
   SelectField,
   StatusBadge,
@@ -26,6 +25,7 @@ import {
   monthTitle,
   moveMonth,
   yearMonths,
+  type CalendarDay,
 } from './calendar';
 import { manifest } from './manifest';
 import {
@@ -147,8 +147,10 @@ export function ToolView() {
   const today = dateKey(new Date());
   const todayDate = dateFromKey(today);
   const [data, setData] = useState<CalendarTodosData>(() => loadCalendarTodos(window.localStorage));
-  const [calendarView, setCalendarView] = useState<CalendarView>('month');
+  const [calendarView, setCalendarView] = useState<CalendarView>('year');
   const [selectedDate, setSelectedDate] = useState(today);
+  const [hasUserSelectedDate, setHasUserSelectedDate] = useState(false);
+  const [showDateDetail, setShowDateDetail] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState(() => {
     const date = dateFromKey(today) ?? new Date();
     return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -165,18 +167,26 @@ export function ToolView() {
   const [notice, setNotice] = useState<TodoNotice>();
   const mouseDragCleanup = useRef<(() => void) | undefined>(undefined);
 
-  const days = useMemo(() => calendarDays(visibleMonth), [visibleMonth]);
+  const monthRange = useMemo(
+    () => Array.from({ length: 13 }, (_, index) => moveMonth(visibleMonth, index - 6)),
+    [visibleMonth],
+  );
+  const yearRange = useMemo(
+    () => Array.from({ length: 5 }, (_, index) => visibleMonth.getFullYear() + index - 2),
+    [visibleMonth],
+  );
+  const displayedCalendarDays = useMemo(
+    () =>
+      (calendarView === 'month'
+        ? monthRange
+        : yearRange.flatMap((year) => yearMonths(year))
+      ).flatMap((month) => calendarDays(month)),
+    [calendarView, monthRange, yearRange],
+  );
   const checkInTodos = useMemo<readonly DisplayTodo[]>(
     () =>
       data.checkIns.flatMap((item) =>
-        Array.from(
-          new Set(
-            (calendarView === 'year'
-              ? yearMonths(visibleMonth.getFullYear()).flatMap((month) => calendarDays(month))
-              : calendarDays(visibleMonth)
-            ).map((day) => day.key),
-          ),
-        )
+        Array.from(new Set(displayedCalendarDays.map((day) => day.key)))
           .filter((key) => isCheckInScheduledOnDate(item, key))
           .map((key) => ({
             id: `check-in:${item.id}:${key}`,
@@ -187,7 +197,7 @@ export function ToolView() {
             checkInId: item.id,
           })),
       ),
-    [calendarView, data.checkIns, visibleMonth],
+    [data.checkIns, displayedCalendarDays],
   );
   const allTodos = useMemo<readonly DisplayTodo[]>(
     () => [...data.todos, ...checkInTodos],
@@ -235,6 +245,8 @@ export function ToolView() {
     }
 
     setSelectedDate(key);
+    setHasUserSelectedDate(true);
+    setShowDateDetail(true);
     setVisibleMonth(new Date(date.getFullYear(), date.getMonth(), 1));
     if (zoomToMonth) {
       setCalendarView('month');
@@ -573,10 +585,10 @@ export function ToolView() {
     showNotice('打卡项目已删除。');
   }
 
-  function renderMonthDay(day: (typeof days)[number]) {
+  function renderMonthDay(day: CalendarDay) {
     const counts = todoCountsByDate.get(day.key) ?? emptyCounts();
     const isToday = day.key === today;
-    const isSelected = day.key === selectedDate;
+    const isSelected = hasUserSelectedDate && day.key === selectedDate;
     const hasNote = notedDates.has(day.key);
     const statuses = statusLabel(counts);
     const label = `${day.key}${!day.inCurrentMonth ? '，非当月' : ''}${isToday ? '，今天' : ''}${hasNote ? '，有笔记' : ''}${statuses ? `，${statuses}` : ''}`;
@@ -611,26 +623,37 @@ export function ToolView() {
   }
 
   return (
-    <section className="calendar-todo-workspace" aria-labelledby="calendar-todo-heading">
-      <div className="calendar-todo-heading">
-        <div>
-          <p className="eyebrow">日程</p>
-          <h2 id="calendar-todo-heading">{showCheckInManager ? '周期打卡' : '日历待办'}</h2>
-        </div>
-        <div className="calendar-todo-heading-actions">
-          <Button
-            variant={showCheckInManager ? 'secondary' : 'ghost'}
-            onClick={() => setShowCheckInManager((visible) => !visible)}
-            aria-pressed={showCheckInManager}
-          >
-            {showCheckInManager ? '返回日历待办' : '周期打卡'}
+    <section
+      className="calendar-todo-workspace"
+      aria-label={showCheckInManager ? '周期打卡' : '日历待办'}
+    >
+      <div className="calendar-todo-heading-actions">
+        <Button
+          variant={showCheckInManager ? 'secondary' : 'ghost'}
+          onClick={() => {
+            if (showCheckInManager) {
+              setShowCheckInManager(false);
+              setShowDateDetail(false);
+            } else if (showDateDetail) {
+              setShowDateDetail(false);
+            } else {
+              setShowCheckInManager(true);
+            }
+          }}
+          aria-pressed={showCheckInManager}
+        >
+          {showCheckInManager ? '返回日历待办' : showDateDetail ? '返回日历' : '周期打卡'}
+        </Button>
+        {!showCheckInManager && !showDateDetail && calendarView === 'month' ? (
+          <Button variant="ghost" aria-label="返回年历" onClick={() => setCalendarView('year')}>
+            返回年历
           </Button>
-          {!showCheckInManager ? (
-            <Button variant="ghost" onClick={() => chooseDate(today)} aria-label="回到今天">
-              今天
-            </Button>
-          ) : null}
-        </div>
+        ) : null}
+        {!showCheckInManager && !showDateDetail ? (
+          <Button variant="ghost" onClick={() => chooseDate(today)} aria-label="回到今天">
+            今天
+          </Button>
+        ) : null}
       </div>
       {notice ? (
         <FloatingNotice
@@ -644,246 +667,255 @@ export function ToolView() {
       ) : null}
       {!showCheckInManager ? (
         <div className="calendar-todo-layout">
-          <section className="calendar-panel" aria-label="日历">
-            <div className="calendar-view-controls">
-              <ChoiceGroup
-                ariaLabel="日历视图"
-                value={calendarView}
-                onChange={(value) => setCalendarView(value as CalendarView)}
-                options={[
-                  { id: 'year', label: '全年' },
-                  { id: 'month', label: '月历' },
-                ]}
-              />
-              <div className="calendar-month-heading">
-                <Button variant="ghost" aria-label="上一个周期" onClick={() => moveCalendar(-1)}>
-                  上一个
-                </Button>
-                <h3>
-                  {calendarView === 'year'
-                    ? `${visibleMonth.getFullYear()} 年`
-                    : monthTitle(visibleMonth)}
-                </h3>
-                <Button variant="ghost" aria-label="下一个周期" onClick={() => moveCalendar(1)}>
-                  下一个
-                </Button>
+          {!showDateDetail ? (
+            <section className="calendar-panel" aria-label="日历">
+              <div className="calendar-view-controls">
+                {calendarView === 'month' ? (
+                  <div className="calendar-month-heading">
+                    <Button
+                      variant="ghost"
+                      aria-label="上一个周期"
+                      onClick={() => moveCalendar(-1)}
+                    >
+                      上一个
+                    </Button>
+                    <h3>{monthTitle(visibleMonth)}</h3>
+                    <Button variant="ghost" aria-label="下一个周期" onClick={() => moveCalendar(1)}>
+                      下一个
+                    </Button>
+                  </div>
+                ) : null}
               </div>
-            </div>
-            <div
-              className="calendar-view-stage"
-              key={`${calendarView}-${visibleMonth.getFullYear()}-${visibleMonth.getMonth()}`}
-            >
-              {calendarView === 'month' ? (
-                <>
-                  <div className="calendar-weekdays" aria-hidden="true">
-                    {weekDays.map((weekday) => (
-                      <span key={weekday}>{weekday}</span>
-                    ))}
-                  </div>
-                  <div
-                    className="calendar-grid"
-                    role="grid"
-                    aria-label={`${monthTitle(visibleMonth)}日历`}
-                  >
-                    {days.map(renderMonthDay)}
-                  </div>
-                </>
-              ) : (
-                <div
-                  className="calendar-year-grid"
-                  aria-label={`${visibleMonth.getFullYear()} 年日历概览`}
-                >
-                  {yearMonths(visibleMonth.getFullYear()).map((month) => {
-                    const miniDays = calendarDays(month);
-                    return (
-                      <section
-                        className="calendar-year-month"
-                        key={month.getMonth()}
-                        aria-label={monthTitle(month)}
-                      >
-                        <Button variant="ghost" onClick={() => chooseMonth(month)}>
-                          {monthTitle(month)}
-                        </Button>
-                        <div className="calendar-mini-weekdays" aria-hidden="true">
+              <div className="calendar-view-stage">
+                {calendarView === 'month' ? (
+                  <div className="calendar-scroll-list" aria-label="连续月历">
+                    {monthRange.map((month) => (
+                      <section className="calendar-month-block" key={monthTitle(month)}>
+                        <h3>{monthTitle(month)}</h3>
+                        <div className="calendar-weekdays" aria-hidden="true">
                           {weekDays.map((weekday) => (
                             <span key={weekday}>{weekday}</span>
                           ))}
                         </div>
-                        <div className="calendar-mini-grid">
-                          {miniDays.map((day) => {
-                            const counts = todoCountsByDate.get(day.key) ?? emptyCounts();
-                            const statuses = statusLabel(counts);
+                        <div
+                          className="calendar-grid"
+                          role="grid"
+                          aria-label={`${monthTitle(month)}日历`}
+                        >
+                          {calendarDays(month).map(renderMonthDay)}
+                        </div>
+                      </section>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="calendar-scroll-list" aria-label="连续年历">
+                    {yearRange.map((year) => (
+                      <section
+                        className="calendar-year-block"
+                        key={year}
+                        aria-label={`${year} 年日历概览`}
+                      >
+                        <h3>{year} 年</h3>
+                        <div className="calendar-year-grid">
+                          {yearMonths(year).map((month) => {
+                            const miniDays = calendarDays(month);
                             const isCurrentMonth =
                               todayDate !== undefined &&
-                              day.date.getFullYear() === todayDate.getFullYear() &&
-                              day.date.getMonth() === todayDate.getMonth();
+                              month.getFullYear() === todayDate.getFullYear() &&
+                              month.getMonth() === todayDate.getMonth();
                             return (
-                              <button
-                                key={day.key}
-                                type="button"
-                                className="calendar-mini-day"
-                                aria-label={`${day.key}${statuses ? `，${statuses}` : ''}`}
-                                aria-current={day.key === today ? 'date' : undefined}
-                                aria-pressed={day.key === selectedDate}
+                              <section
+                                className="calendar-year-month"
+                                key={month.getMonth()}
+                                aria-label={monthTitle(month)}
                                 data-current-month={isCurrentMonth || undefined}
-                                data-outside-month={!day.inCurrentMonth || undefined}
-                                onClick={() => chooseDate(day.key, true)}
                               >
-                                <span>{day.date.getDate()}</span>
-                                {statuses ? <i aria-hidden="true" /> : null}
-                              </button>
+                                <Button
+                                  variant="ghost"
+                                  onClick={() => chooseMonth(month)}
+                                  aria-label={`进入${monthTitle(month)}`}
+                                >
+                                  {month.getMonth() + 1}月
+                                </Button>
+                                <div className="calendar-mini-weekdays" aria-hidden="true">
+                                  {weekDays.map((weekday) => (
+                                    <span key={weekday}>{weekday}</span>
+                                  ))}
+                                </div>
+                                <div className="calendar-mini-grid">
+                                  {miniDays.map((day) => {
+                                    const counts = todoCountsByDate.get(day.key) ?? emptyCounts();
+                                    const statuses = statusLabel(counts);
+                                    return (
+                                      <button
+                                        key={day.key}
+                                        type="button"
+                                        className="calendar-mini-day"
+                                        aria-label={`${day.key}${statuses ? `，${statuses}` : ''}`}
+                                        aria-current={day.key === today ? 'date' : undefined}
+                                        aria-pressed={
+                                          hasUserSelectedDate && day.key === selectedDate
+                                        }
+                                        data-outside-month={!day.inCurrentMonth || undefined}
+                                        onClick={() => chooseDate(day.key, true)}
+                                      >
+                                        <span>{day.date.getDate()}</span>
+                                        {statuses ? <i aria-hidden="true" /> : null}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </section>
                             );
                           })}
                         </div>
                       </section>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </section>
-          <section className="todo-panel" aria-labelledby="selected-date-heading">
-            <div className="todo-panel-heading">
-              <div>
-                <p className="eyebrow">所选日期</p>
-                <h3 id="selected-date-heading">{selectedDateTitle(selectedDate)}</h3>
-              </div>
-              <StatusBadge
-                tone={
-                  selectedTodos.length && !todosByStatus['not-started'].length ? 'success' : 'info'
-                }
-              >
-                {selectedTodos.length
-                  ? `${todosByStatus.completed.length}/${selectedTodos.length} 已完成`
-                  : '暂无待办'}
-              </StatusBadge>
-            </div>
-            <form className="todo-create-form" onSubmit={addTodo}>
-              <TextField
-                label="新增待办"
-                placeholder="写下要完成的事"
-                value={newTodoTitle}
-                maxLength={120}
-                required
-                onChange={(event) => setNewTodoTitle(event.target.value)}
-              />
-              <Button variant="primary" type="submit">
-                添加
-              </Button>
-            </form>
-            <div className="todo-board" aria-label={`${selectedDateTitle(selectedDate)}任务看板`}>
-              {taskStatuses.map((status) => (
-                <section
-                  key={status}
-                  className="todo-column"
-                  aria-label={taskStatusLabels[status]}
-                  data-todo-status={status}
-                  data-drag-over={dragOverStatus === status || undefined}
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                    setDragOverStatus(status);
-                  }}
-                  onDragLeave={() => setDragOverStatus(undefined)}
-                  onDrop={(event) => dropTodo(event, status)}
-                >
-                  <div className="todo-column-heading">
-                    <h4>{taskStatusLabels[status]}</h4>
-                    <StatusBadge tone={status === 'completed' ? 'success' : 'neutral'}>
-                      {todosByStatus[status].length}
-                    </StatusBadge>
-                  </div>
-                  <ul className="todo-list" aria-label={`${taskStatusLabels[status]}任务`}>
-                    {todosByStatus[status].map((todo) => (
-                      <li
-                        key={todo.id}
-                        className="todo-item"
-                        tabIndex={0}
-                        aria-label={`${todo.title}，${taskStatusLabels[todo.status]}`}
-                        data-dragging={draggedTodoId === todo.id || undefined}
-                        draggable={false}
-                        onMouseDown={(event) => startMouseDragging(event, todo)}
-                        onPointerDown={(event) => startPointerDragging(event, todo)}
-                        onPointerMove={movePointerDragging}
-                        onPointerUp={(event) => finishPointerDragging(event, todo)}
-                        onPointerCancel={() => {
-                          setDraggedTodoId(undefined);
-                          setDragOverStatus(undefined);
-                        }}
-                        onDragStart={(event) => startDragging(event, todo.id)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-                            event.preventDefault();
-                            moveTodoByKeyboard(todo, 1);
-                          }
-                          if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-                            event.preventDefault();
-                            moveTodoByKeyboard(todo, -1);
-                          }
-                        }}
-                        onDragEnd={() => {
-                          setDraggedTodoId(undefined);
-                          setDragOverStatus(undefined);
-                        }}
-                      >
-                        <div className="todo-item-actions">
-                          <label className="todo-item-content">
-                            <input
-                              type="checkbox"
-                              checked={todo.status === 'completed'}
-                              aria-label={`完成 ${todo.title}`}
-                              onMouseDown={(event) => event.stopPropagation()}
-                              onPointerDown={(event) => event.stopPropagation()}
-                              onChange={() => toggleTodoCompletion(todo)}
-                            />
-                            <span className="todo-item-title">{todo.title}</span>
-                          </label>
-                          {!todo.checkInId ? (
-                            <Button
-                              variant="danger"
-                              aria-label={`删除 ${todo.title}`}
-                              onMouseDown={(event) => event.stopPropagation()}
-                              onPointerDown={(event) => event.stopPropagation()}
-                              onClick={() => deleteTodo(todo.id)}
-                            >
-                              删除
-                            </Button>
-                          ) : null}
-                        </div>
-                      </li>
                     ))}
-                  </ul>
-                </section>
-              ))}
-            </div>
-            <section className="daily-note" aria-labelledby="daily-note-heading">
-              <div className="todo-panel-heading">
-                <div>
-                  <p className="eyebrow">记录</p>
-                  <h4 id="daily-note-heading">当日笔记</h4>
-                </div>
-              </div>
-              <TextAreaField
-                label={`${selectedDateTitle(selectedDate)}笔记`}
-                description="记录当天想法、进展或补充信息。"
-                rows={6}
-                maxLength={5000}
-                value={noteDraft}
-                onChange={(event) => updateNoteDraft(event.target.value)}
-              />
-              <div className="daily-note-actions">
-                <Button
-                  variant="secondary"
-                  onClick={saveDailyNote}
-                  disabled={noteDraft.trim() === selectedNoteContent}
-                >
-                  保存笔记
-                </Button>
-                <Button variant="danger" onClick={deleteDailyNote} disabled={!selectedNote}>
-                  删除笔记
-                </Button>
+                  </div>
+                )}
               </div>
             </section>
-          </section>
+          ) : null}
+          {showDateDetail ? (
+            <section className="todo-panel" aria-labelledby="selected-date-heading">
+              <div className="todo-panel-heading">
+                <h3 id="selected-date-heading">{selectedDateTitle(selectedDate)}</h3>
+                <StatusBadge
+                  tone={
+                    selectedTodos.length && !todosByStatus['not-started'].length
+                      ? 'success'
+                      : 'info'
+                  }
+                >
+                  {selectedTodos.length
+                    ? `${todosByStatus.completed.length}/${selectedTodos.length} 已完成`
+                    : '暂无待办'}
+                </StatusBadge>
+              </div>
+              <form className="todo-create-form" onSubmit={addTodo}>
+                <TextField
+                  label="新增待办"
+                  placeholder="写下要完成的事"
+                  value={newTodoTitle}
+                  maxLength={120}
+                  required
+                  onChange={(event) => setNewTodoTitle(event.target.value)}
+                />
+                <Button variant="primary" type="submit">
+                  添加
+                </Button>
+              </form>
+              <div className="todo-board" aria-label={`${selectedDateTitle(selectedDate)}任务看板`}>
+                {taskStatuses.map((status) => (
+                  <section
+                    key={status}
+                    className="todo-column"
+                    aria-label={taskStatusLabels[status]}
+                    data-todo-status={status}
+                    data-drag-over={dragOverStatus === status || undefined}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      setDragOverStatus(status);
+                    }}
+                    onDragLeave={() => setDragOverStatus(undefined)}
+                    onDrop={(event) => dropTodo(event, status)}
+                  >
+                    <div className="todo-column-heading">
+                      <h4>{taskStatusLabels[status]}</h4>
+                      <StatusBadge tone={status === 'completed' ? 'success' : 'neutral'}>
+                        {todosByStatus[status].length}
+                      </StatusBadge>
+                    </div>
+                    <ul className="todo-list" aria-label={`${taskStatusLabels[status]}任务`}>
+                      {todosByStatus[status].map((todo) => (
+                        <li
+                          key={todo.id}
+                          className="todo-item"
+                          tabIndex={0}
+                          aria-label={`${todo.title}，${taskStatusLabels[todo.status]}`}
+                          data-dragging={draggedTodoId === todo.id || undefined}
+                          draggable={false}
+                          onMouseDown={(event) => startMouseDragging(event, todo)}
+                          onPointerDown={(event) => startPointerDragging(event, todo)}
+                          onPointerMove={movePointerDragging}
+                          onPointerUp={(event) => finishPointerDragging(event, todo)}
+                          onPointerCancel={() => {
+                            setDraggedTodoId(undefined);
+                            setDragOverStatus(undefined);
+                          }}
+                          onDragStart={(event) => startDragging(event, todo.id)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                              event.preventDefault();
+                              moveTodoByKeyboard(todo, 1);
+                            }
+                            if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                              event.preventDefault();
+                              moveTodoByKeyboard(todo, -1);
+                            }
+                          }}
+                          onDragEnd={() => {
+                            setDraggedTodoId(undefined);
+                            setDragOverStatus(undefined);
+                          }}
+                        >
+                          <div className="todo-item-actions">
+                            <label className="todo-item-content">
+                              <input
+                                type="checkbox"
+                                checked={todo.status === 'completed'}
+                                aria-label={`完成 ${todo.title}`}
+                                onMouseDown={(event) => event.stopPropagation()}
+                                onPointerDown={(event) => event.stopPropagation()}
+                                onChange={() => toggleTodoCompletion(todo)}
+                              />
+                              <span className="todo-item-title">{todo.title}</span>
+                            </label>
+                            {!todo.checkInId ? (
+                              <Button
+                                variant="danger"
+                                aria-label={`删除 ${todo.title}`}
+                                onMouseDown={(event) => event.stopPropagation()}
+                                onPointerDown={(event) => event.stopPropagation()}
+                                onClick={() => deleteTodo(todo.id)}
+                              >
+                                删除
+                              </Button>
+                            ) : null}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+              <section className="daily-note" aria-labelledby="daily-note-heading">
+                <div className="todo-panel-heading">
+                  <h4 id="daily-note-heading">当日笔记</h4>
+                </div>
+                <TextAreaField
+                  label={`${selectedDateTitle(selectedDate)}笔记`}
+                  description="记录当天想法、进展或补充信息。"
+                  rows={6}
+                  maxLength={5000}
+                  value={noteDraft}
+                  onChange={(event) => updateNoteDraft(event.target.value)}
+                />
+                <div className="daily-note-actions">
+                  <Button
+                    variant="secondary"
+                    onClick={saveDailyNote}
+                    disabled={noteDraft.trim() === selectedNoteContent}
+                  >
+                    保存笔记
+                  </Button>
+                  <Button variant="danger" onClick={deleteDailyNote} disabled={!selectedNote}>
+                    删除笔记
+                  </Button>
+                </div>
+              </section>
+            </section>
+          ) : null}
         </div>
       ) : (
         <section className="check-in-manager" aria-label="周期打卡项目">
@@ -956,7 +988,6 @@ export function ToolView() {
             >
               <form className="check-in-dialog-form" onSubmit={saveCheckIn}>
                 <div className="check-in-dialog-heading">
-                  <p className="eyebrow">{checkInDialog === 'create' ? '新项目' : '编辑项目'}</p>
                   <h3 id="check-in-dialog-heading">
                     {checkInDialog === 'create' ? '添加打卡' : '修改打卡'}
                   </h3>
