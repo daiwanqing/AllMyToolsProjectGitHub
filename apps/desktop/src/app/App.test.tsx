@@ -17,7 +17,8 @@ describe('desktop shell', () => {
     expect(screen.getByRole('heading', { name: '常用' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '其他工具' })).toBeInTheDocument();
     expect(screen.getByRole('article', { name: '日历待办' })).toBeInTheDocument();
-    expect(screen.getAllByRole('article')).toHaveLength(4);
+    expect(screen.queryByRole('article', { name: '文本工作台' })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('article')).toHaveLength(3);
   });
 
   it('filters tools by category and search query', () => {
@@ -70,7 +71,6 @@ describe('desktop shell', () => {
     fireEvent.click(screen.getByRole('button', { name: '保存草稿' }));
     expect(screen.getByRole('status')).toHaveTextContent('草稿已保存');
     expect(window.localStorage.getItem('learning.note-review.draft')).toBe('下一次复习重点');
-    expect(window.localStorage.getItem('tools.text-workbench.draft')).toBeNull();
   });
 
   it('persists the entertainment selection inside its own storage namespace', async () => {
@@ -107,8 +107,12 @@ describe('desktop shell', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: '全年' }));
     expect(screen.getByLabelText(/年日历概览/)).toBeInTheDocument();
+    expect(
+      document.querySelectorAll('.calendar-mini-day[data-current-month="true"]').length,
+    ).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole('button', { name: /年8月/ }));
     expect(screen.getByRole('grid', { name: /日历/ })).toBeInTheDocument();
+    expect(document.querySelectorAll('.calendar-day[data-current-month="true"]')).toHaveLength(0);
 
     const newTodoField = screen.getByRole('textbox', { name: '新增待办' });
     const newTodoForm = newTodoField.closest('form');
@@ -126,14 +130,37 @@ describe('desktop shell', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('待办已添加。');
     expect(screen.getByText('整理今天的计划')).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('textbox', { name: /笔记$/ }), {
+      target: { value: '今天先整理本周的重点事项。' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存笔记' }));
+    expect(screen.getByRole('status')).toHaveTextContent('当日笔记已保存。');
+    const selectedCellWithNote = screen
+      .getAllByRole('gridcell')
+      .find((cell) => cell.getAttribute('aria-selected') === 'true');
+    if (!selectedCellWithNote) {
+      throw new Error('Expected the selected calendar day to be present.');
+    }
+
+    expect(selectedCellWithNote).toHaveAccessibleName(expect.stringContaining('有笔记'));
+    expect(selectedCellWithNote.querySelector('.calendar-day-note-indicator')).toBeInTheDocument();
     expect(
       JSON.parse(window.localStorage.getItem('tools.calendar-todos.items') ?? ''),
     ).toMatchObject({
-      version: 3,
+      version: 4,
       todos: [{ title: '整理今天的计划', status: 'not-started' }],
       checkIns: [],
+      notes: [{ content: '今天先整理本周的重点事项。' }],
     });
-    expect(window.localStorage.getItem('tools.text-workbench.draft')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: '删除笔记' }));
+    expect(screen.getByRole('status')).toHaveTextContent('当日笔记已删除。');
+    expect(selectedCellWithNote).not.toHaveAccessibleName(expect.stringContaining('有笔记'));
+    expect(
+      selectedCellWithNote.querySelector('.calendar-day-note-indicator'),
+    ).not.toBeInTheDocument();
+    expect(
+      JSON.parse(window.localStorage.getItem('tools.calendar-todos.items') ?? ''),
+    ).toMatchObject({ notes: [] });
     const selectedDateCell = () => {
       const cell = screen
         .getAllByRole('gridcell')
@@ -220,67 +247,18 @@ describe('desktop shell', () => {
     expect(deleteCheckInButton).toHaveClass('amt-button-danger');
     fireEvent.click(deleteCheckInButton);
     expect(screen.getByRole('button', { name: '添加打卡' })).toBeInTheDocument();
-  });
-
-  it('processes, saves, and restores the tools text inside its own storage namespace', async () => {
-    render(<App />);
-
-    const textTool = screen.getByRole('article', { name: '文本工作台' });
-    fireEvent.click(within(textTool).getByRole('button', { name: '打开' }));
-
-    await waitFor(() =>
-      expect(screen.getByRole('textbox', { name: '待处理文本' })).toBeInTheDocument(),
-    );
-    fireEvent.change(screen.getByRole('textbox', { name: '待处理文本' }), {
-      target: { value: '  待清理文本  ' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: '处理文本' }));
-    expect(screen.getByRole('textbox', { name: '待处理文本' })).toHaveValue('  待清理文本  ');
-    expect(screen.getByRole('textbox', { name: '处理结果' })).toHaveValue('待清理文本');
-    expect(window.localStorage.getItem('tools.text-workbench.draft')).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: '保存工作区' }));
-
-    expect(screen.getByText('工作区已保存到本机。')).toBeInTheDocument();
-    expect(
-      JSON.parse(window.localStorage.getItem('tools.text-workbench.draft') ?? ''),
-    ).toMatchObject({
-      source: '  待清理文本  ',
-      result: '待清理文本',
-      history: [{ operation: 'trim', output: '待清理文本' }],
-    });
-    expect(window.localStorage.getItem('entertainment.session-picker.selection')).toBeNull();
-  });
-
-  it('saves and applies a text-workbench preset without touching another tool namespace', async () => {
-    render(<App />);
-
-    const textTool = screen.getByRole('article', { name: '文本工作台' });
-    fireEvent.click(within(textTool).getByRole('button', { name: '打开' }));
-
-    await waitFor(() =>
-      expect(screen.getByRole('textbox', { name: '预设名称' })).toBeInTheDocument(),
-    );
-    fireEvent.click(screen.getByRole('button', { name: /正则替换/ }));
-    fireEvent.change(screen.getByRole('textbox', { name: '查找（正则）' }), {
-      target: { value: '\\s+' },
-    });
-    fireEvent.change(screen.getByRole('textbox', { name: '替换为' }), { target: { value: ' ' } });
-    fireEvent.change(screen.getByRole('textbox', { name: '预设名称' }), {
-      target: { value: '压缩空白' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: '保存预设' }));
-
-    expect(screen.getByText('预设“压缩空白”已保存。')).toBeInTheDocument();
-    expect(
-      JSON.parse(window.localStorage.getItem('tools.text-workbench.presets') ?? ''),
-    ).toMatchObject([{ name: '压缩空白', operation: 'replace', find: '\\s+', replaceWith: ' ' }]);
-    expect(window.localStorage.getItem('learning.note-review.draft')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: '返回日历待办' }));
+    fireEvent.click(screen.getByRole('button', { name: '删除 整理今天的计划' }));
+    expect(screen.queryByText('整理今天的计划')).not.toBeInTheDocument();
   });
 
   it('opens settings, reports shortcut availability, and switches the active theme', async () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole('button', { name: '打开设置' }));
+    expect(screen.getByRole('heading', { level: 2, name: '设置' }).closest('section')).toHaveClass(
+      'settings-workspace',
+    );
     expect(screen.getByRole('tablist', { name: '设置页签' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '外观' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('heading', { name: '主题' })).toBeInTheDocument();

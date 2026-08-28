@@ -211,8 +211,8 @@ export function App() {
   const [settingsTab, setSettingsTab] = useState<SettingsTab>(
     initialWorkspaceState?.settingsTab ?? 'appearance',
   );
-  const [favoriteIds, setFavoriteIds] = useState<readonly string[]>(['tools.text-workbench']);
-  const [recentIds, setRecentIds] = useState<readonly string[]>(['tools.text-workbench']);
+  const [favoriteIds, setFavoriteIds] = useState<readonly string[]>(['tools.calendar-todos']);
+  const [recentIds, setRecentIds] = useState<readonly string[]>(['tools.calendar-todos']);
   const [shortcutEnabled, setShortcutEnabled] = useState(
     () => window.localStorage.getItem('shell.quick-toggle-shortcut') === 'enabled',
   );

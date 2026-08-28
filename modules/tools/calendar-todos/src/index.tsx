@@ -13,6 +13,7 @@ import {
   FloatingNotice,
   SelectField,
   StatusBadge,
+  TextAreaField,
   TextField,
   ToggleField,
   type FloatingNoticeTone,
@@ -33,6 +34,7 @@ import {
   type CalendarTodosData,
   type CheckInItem,
   type CheckInFrequency,
+  type DailyNote,
   type TodoItem,
   type TodoStatus,
 } from './storage';
@@ -143,6 +145,7 @@ function checkInDraftFromItem(item: CheckInItem): CheckInDraft {
 
 export function ToolView() {
   const today = dateKey(new Date());
+  const todayDate = dateFromKey(today);
   const [data, setData] = useState<CalendarTodosData>(() => loadCalendarTodos(window.localStorage));
   const [calendarView, setCalendarView] = useState<CalendarView>('month');
   const [selectedDate, setSelectedDate] = useState(today);
@@ -151,6 +154,7 @@ export function ToolView() {
     return new Date(date.getFullYear(), date.getMonth(), 1);
   });
   const [newTodoTitle, setNewTodoTitle] = useState('');
+  const [noteDrafts, setNoteDrafts] = useState<Readonly<Record<string, string>>>({});
   const [checkInDraft, setCheckInDraft] = useState<CheckInDraft>(() =>
     createCheckInDraft(selectedDate),
   );
@@ -199,7 +203,11 @@ export function ToolView() {
       }, new Map()),
     [allTodos],
   );
+  const notedDates = useMemo(() => new Set(data.notes.map((note) => note.date)), [data.notes]);
   const selectedTodos = allTodos.filter((todo) => todo.date === selectedDate);
+  const selectedNote = data.notes.find((note) => note.date === selectedDate);
+  const selectedNoteContent = selectedNote?.content ?? '';
+  const noteDraft = noteDrafts[selectedDate] ?? selectedNoteContent;
   const todosByStatus = useMemo(
     () =>
       taskStatuses.reduce<Readonly<Record<TodoStatus, readonly DisplayTodo[]>>>(
@@ -268,6 +276,62 @@ export function ToolView() {
     });
     setNewTodoTitle('');
     showNotice('待办已添加。');
+  }
+
+  function deleteTodo(id: string) {
+    const todo = data.todos.find((item) => item.id === id);
+    if (!todo) {
+      return;
+    }
+
+    commit({ ...data, todos: data.todos.filter((item) => item.id !== id) });
+    showNotice(`待办已删除：${todo.title}`);
+  }
+
+  function updateNoteDraft(content: string) {
+    setNoteDrafts((drafts) => ({ ...drafts, [selectedDate]: content }));
+  }
+
+  function saveDailyNote() {
+    const content = noteDraft.trim();
+    if (content === selectedNoteContent) {
+      return;
+    }
+
+    const notes = content
+      ? [
+          ...data.notes.filter((note) => note.date !== selectedDate),
+          {
+            date: selectedDate,
+            content,
+            updatedAt: new Date().toISOString(),
+          } satisfies DailyNote,
+        ]
+      : data.notes.filter((note) => note.date !== selectedDate);
+    commit({ ...data, notes });
+    setNoteDrafts((drafts) => {
+      const remainingDrafts = { ...drafts };
+      delete remainingDrafts[selectedDate];
+      return remainingDrafts;
+    });
+    showNotice(content ? '当日笔记已保存。' : '当日笔记已清空。');
+  }
+
+  function deleteDailyNote() {
+    if (!selectedNote) {
+      return;
+    }
+
+    commit({
+      ...data,
+      notes: data.notes.filter((note) => note.date !== selectedDate),
+    });
+    setNoteDrafts((drafts) => {
+      const remainingDrafts = { ...drafts };
+      delete remainingDrafts[selectedDate];
+      return remainingDrafts;
+    });
+    showNotice('当日笔记已删除。');
   }
 
   function setTodoStatus(id: string, status: TodoStatus) {
@@ -513,8 +577,9 @@ export function ToolView() {
     const counts = todoCountsByDate.get(day.key) ?? emptyCounts();
     const isToday = day.key === today;
     const isSelected = day.key === selectedDate;
+    const hasNote = notedDates.has(day.key);
     const statuses = statusLabel(counts);
-    const label = `${day.key}${isToday ? '，今天' : ''}${statuses ? `，${statuses}` : ''}`;
+    const label = `${day.key}${!day.inCurrentMonth ? '，非当月' : ''}${isToday ? '，今天' : ''}${hasNote ? '，有笔记' : ''}${statuses ? `，${statuses}` : ''}`;
 
     return (
       <button
@@ -529,6 +594,7 @@ export function ToolView() {
         onClick={() => chooseDate(day.key)}
       >
         <span>{day.date.getDate()}</span>
+        {hasNote ? <span className="calendar-day-note-indicator" aria-hidden="true" /> : null}
         {statuses ? (
           <span className="calendar-day-status" aria-hidden="true">
             {taskStatuses.map((status) =>
@@ -647,6 +713,10 @@ export function ToolView() {
                           {miniDays.map((day) => {
                             const counts = todoCountsByDate.get(day.key) ?? emptyCounts();
                             const statuses = statusLabel(counts);
+                            const isCurrentMonth =
+                              todayDate !== undefined &&
+                              day.date.getFullYear() === todayDate.getFullYear() &&
+                              day.date.getMonth() === todayDate.getMonth();
                             return (
                               <button
                                 key={day.key}
@@ -655,6 +725,7 @@ export function ToolView() {
                                 aria-label={`${day.key}${statuses ? `，${statuses}` : ''}`}
                                 aria-current={day.key === today ? 'date' : undefined}
                                 aria-pressed={day.key === selectedDate}
+                                data-current-month={isCurrentMonth || undefined}
                                 data-outside-month={!day.inCurrentMonth || undefined}
                                 onClick={() => chooseDate(day.key, true)}
                               >
@@ -754,23 +825,64 @@ export function ToolView() {
                           setDragOverStatus(undefined);
                         }}
                       >
-                        <label className="todo-item-content">
-                          <input
-                            type="checkbox"
-                            checked={todo.status === 'completed'}
-                            aria-label={`完成 ${todo.title}`}
-                            onMouseDown={(event) => event.stopPropagation()}
-                            onPointerDown={(event) => event.stopPropagation()}
-                            onChange={() => toggleTodoCompletion(todo)}
-                          />
-                          <span className="todo-item-title">{todo.title}</span>
-                        </label>
+                        <div className="todo-item-actions">
+                          <label className="todo-item-content">
+                            <input
+                              type="checkbox"
+                              checked={todo.status === 'completed'}
+                              aria-label={`完成 ${todo.title}`}
+                              onMouseDown={(event) => event.stopPropagation()}
+                              onPointerDown={(event) => event.stopPropagation()}
+                              onChange={() => toggleTodoCompletion(todo)}
+                            />
+                            <span className="todo-item-title">{todo.title}</span>
+                          </label>
+                          {!todo.checkInId ? (
+                            <Button
+                              variant="danger"
+                              aria-label={`删除 ${todo.title}`}
+                              onMouseDown={(event) => event.stopPropagation()}
+                              onPointerDown={(event) => event.stopPropagation()}
+                              onClick={() => deleteTodo(todo.id)}
+                            >
+                              删除
+                            </Button>
+                          ) : null}
+                        </div>
                       </li>
                     ))}
                   </ul>
                 </section>
               ))}
             </div>
+            <section className="daily-note" aria-labelledby="daily-note-heading">
+              <div className="todo-panel-heading">
+                <div>
+                  <p className="eyebrow">记录</p>
+                  <h4 id="daily-note-heading">当日笔记</h4>
+                </div>
+              </div>
+              <TextAreaField
+                label={`${selectedDateTitle(selectedDate)}笔记`}
+                description="记录当天想法、进展或补充信息。"
+                rows={6}
+                maxLength={5000}
+                value={noteDraft}
+                onChange={(event) => updateNoteDraft(event.target.value)}
+              />
+              <div className="daily-note-actions">
+                <Button
+                  variant="secondary"
+                  onClick={saveDailyNote}
+                  disabled={noteDraft.trim() === selectedNoteContent}
+                >
+                  保存笔记
+                </Button>
+                <Button variant="danger" onClick={deleteDailyNote} disabled={!selectedNote}>
+                  删除笔记
+                </Button>
+              </div>
+            </section>
           </section>
         </div>
       ) : (

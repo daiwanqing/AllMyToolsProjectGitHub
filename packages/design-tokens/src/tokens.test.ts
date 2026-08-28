@@ -35,6 +35,14 @@ describe('设计 Token', () => {
     expect(dark.semantic['color.focus.ring']).toBe(primitiveTokens['color.neutral.300']);
   });
 
+  it('为日历提供按主题色温变化的共享强调色', () => {
+    const light = resolveThemeTokens('light');
+    const dark = resolveThemeTokens('dark');
+
+    expect(light.semantic['color.accent.calendar']).toBe(primitiveTokens['color.red.700']);
+    expect(dark.semantic['color.accent.calendar']).toBe(primitiveTokens['color.cyan.300']);
+  });
+
   it('提供桌面窗口和工作区的稳定尺寸 Token', () => {
     expect(primitiveTokens['dimension.window.min-width']).toBe('960px');
     expect(primitiveTokens['dimension.window.min-height']).toBe('640px');

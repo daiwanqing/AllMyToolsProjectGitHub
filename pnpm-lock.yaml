@@ -50,9 +50,6 @@ importers:
       '@allmytools/tools-calendar-todos':
         specifier: workspace:*
         version: link:../../modules/tools/calendar-todos
-      '@allmytools/tools-text-workbench':
-        specifier: workspace:*
-        version: link:../../modules/tools/text-workbench
       '@allmytools/ui':
         specifier: workspace:*
         version: link:../../packages/ui

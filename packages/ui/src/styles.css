@@ -425,8 +425,8 @@
 }
 
 .amt-status-badge-info {
-  border-color: var(--amt-color-action-primary);
-  color: var(--amt-color-action-primary);
+  border-color: var(--amt-color-status-info);
+  color: var(--amt-color-status-info);
 }
 
 .amt-status-badge-success {

@@ -1,7 +1,9 @@
 export const calendarTodosStorageKey = 'tools.calendar-todos.items';
-export const calendarTodosStorageVersion = 3;
+export const calendarTodosStorageVersion = 4;
 const maxCheckInDates = 3660;
 const maxCheckIns = 100;
+const maxDailyNoteLength = 5000;
+const maxDailyNotes = 3660;
 const maxTodoItems = 500;
 const maxTodoTitleLength = 120;
 
@@ -32,9 +34,16 @@ export type CheckInItem = Readonly<{
   createdAt: string;
 }>;
 
+export type DailyNote = Readonly<{
+  date: string;
+  content: string;
+  updatedAt: string;
+}>;
+
 export type CalendarTodosData = Readonly<{
   todos: readonly TodoItem[];
   checkIns: readonly CheckInItem[];
+  notes: readonly DailyNote[];
 }>;
 
 type LegacyTodoItem = Readonly<{
@@ -49,6 +58,7 @@ type CalendarTodosDocument = Readonly<{
   version: typeof calendarTodosStorageVersion;
   todos: readonly TodoItem[];
   checkIns: readonly CheckInItem[];
+  notes: readonly DailyNote[];
 }>;
 
 function isDateKey(value: string): boolean {
@@ -145,6 +155,18 @@ function isCheckInItem(value: unknown): value is CheckInItem {
   );
 }
 
+function isDailyNote(value: unknown): value is DailyNote {
+  return (
+    isRecordBase(value) &&
+    typeof value.date === 'string' &&
+    isDateKey(value.date) &&
+    typeof value.content === 'string' &&
+    value.content.trim().length > 0 &&
+    value.content.length <= maxDailyNoteLength &&
+    isRecordTimestamp(value.updatedAt)
+  );
+}
+
 function isCalendarTodosDocument(value: unknown): value is CalendarTodosDocument {
   if (!isRecordBase(value)) {
     return false;
@@ -153,7 +175,8 @@ function isCalendarTodosDocument(value: unknown): value is CalendarTodosDocument
   return (
     value.version === calendarTodosStorageVersion &&
     Array.isArray(value.todos) &&
-    Array.isArray(value.checkIns)
+    Array.isArray(value.checkIns) &&
+    Array.isArray(value.notes)
   );
 }
 
@@ -232,22 +255,44 @@ function sanitizeTodos(items: readonly unknown[]): readonly TodoItem[] {
     }));
 }
 
+function sanitizeNotes(items: readonly unknown[]): readonly DailyNote[] {
+  const notesByDate = new Map<string, DailyNote>();
+  for (const item of items.filter(isDailyNote).slice(0, maxDailyNotes)) {
+    notesByDate.set(item.date, { ...item, content: item.content.trim() });
+  }
+  return [...notesByDate.values()];
+}
+
 export function loadCalendarTodos(storage: CalendarTodosStorage): CalendarTodosData {
   const stored = storage.getItem(calendarTodosStorageKey);
   if (!stored) {
-    return { todos: [], checkIns: [] };
+    return { todos: [], checkIns: [], notes: [] };
   }
 
   try {
     const parsed: unknown = JSON.parse(stored);
     if (Array.isArray(parsed)) {
-      return { todos: legacyTodos(parsed).slice(0, maxTodoItems), checkIns: [] };
+      return { todos: legacyTodos(parsed).slice(0, maxTodoItems), checkIns: [], notes: [] };
     }
 
     if (isCalendarTodosDocument(parsed)) {
       return {
         todos: sanitizeTodos(parsed.todos),
         checkIns: sanitizeCheckIns(parsed.checkIns),
+        notes: sanitizeNotes(parsed.notes),
+      };
+    }
+
+    if (
+      isRecordBase(parsed) &&
+      parsed.version === 3 &&
+      Array.isArray(parsed.todos) &&
+      Array.isArray(parsed.checkIns)
+    ) {
+      return {
+        todos: sanitizeTodos(parsed.todos),
+        checkIns: sanitizeCheckIns(parsed.checkIns),
+        notes: [],
       };
     }
 
@@ -260,17 +305,18 @@ export function loadCalendarTodos(storage: CalendarTodosStorage): CalendarTodosD
       return {
         todos: sanitizeTodos(parsed.todos),
         checkIns: migrateLegacyCheckIns(parsed.checkIns),
+        notes: [],
       };
     }
 
     if (isRecordBase(parsed) && parsed.version === 1 && Array.isArray(parsed.items)) {
-      return { todos: legacyTodos(parsed.items).slice(0, maxTodoItems), checkIns: [] };
+      return { todos: legacyTodos(parsed.items).slice(0, maxTodoItems), checkIns: [], notes: [] };
     }
   } catch {
-    return { todos: [], checkIns: [] };
+    return { todos: [], checkIns: [], notes: [] };
   }
 
-  return { todos: [], checkIns: [] };
+  return { todos: [], checkIns: [], notes: [] };
 }
 
 export function saveCalendarTodos(storage: CalendarTodosStorage, data: CalendarTodosData): void {
@@ -280,6 +326,7 @@ export function saveCalendarTodos(storage: CalendarTodosStorage, data: CalendarT
       version: calendarTodosStorageVersion,
       todos: sanitizeTodos(data.todos),
       checkIns: sanitizeCheckIns(data.checkIns),
+      notes: sanitizeNotes(data.notes),
     }),
   );
 }

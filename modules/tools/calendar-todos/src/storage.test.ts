@@ -36,6 +36,13 @@ const data: CalendarTodosData = {
       createdAt: '2026-08-26T09:00:00.000Z',
     },
   ],
+  notes: [
+    {
+      date: '2026-08-26',
+      content: '完成周计划初稿。',
+      updatedAt: '2026-08-26T09:30:00.000Z',
+    },
+  ],
 };
 
 describe('calendar todo storage', () => {
@@ -67,6 +74,7 @@ describe('calendar todo storage', () => {
     expect(loadCalendarTodos(storage)).toEqual({
       todos: [{ ...data.todos[0], status: 'completed' }],
       checkIns: [],
+      notes: [],
     });
 
     storage.setItem(calendarTodosStorageKey, JSON.stringify({ version: 1, items: [legacyTodo] }));
@@ -84,7 +92,7 @@ describe('calendar todo storage', () => {
       }),
     );
 
-    expect(loadCalendarTodos(storage)).toEqual({ todos: [], checkIns: [] });
+    expect(loadCalendarTodos(storage)).toEqual({ todos: [], checkIns: [], notes: [] });
   });
 
   it('migrates the removed in-progress status to not-started', () => {
@@ -96,6 +104,7 @@ describe('calendar todo storage', () => {
         version: calendarTodosStorageVersion,
         todos: [legacyTodo],
         checkIns: [],
+        notes: [],
       }),
     );
 
@@ -116,5 +125,23 @@ describe('calendar todo storage', () => {
     expect(loadCalendarTodos(storage).checkIns).toEqual([
       { ...data.checkIns[0], frequency: 'daily', startDate: '2026-08-26' },
     ]);
+  });
+
+  it('migrates version three records without daily notes', () => {
+    const storage = createStorage();
+    storage.setItem(
+      calendarTodosStorageKey,
+      JSON.stringify({
+        version: 3,
+        todos: data.todos,
+        checkIns: data.checkIns,
+      }),
+    );
+
+    expect(loadCalendarTodos(storage)).toEqual({
+      todos: data.todos,
+      checkIns: data.checkIns,
+      notes: [],
+    });
   });
 });
