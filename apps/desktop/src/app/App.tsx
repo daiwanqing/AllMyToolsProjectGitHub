@@ -3,11 +3,11 @@ import type { ToolCategory } from '@allmytools/platform-contracts';
 import type { ThemeName } from '@allmytools/design-tokens';
 import {
   Button,
-  ChoiceGroup,
+  HorizontalTabs,
+  VerticalTabs,
   EmptyState,
   IconButton,
   InlineMessage,
-  NavigationItem,
   SettingRow,
   Tabs,
   TextField,
@@ -83,10 +83,16 @@ class ToolErrorBoundary extends Component<ToolErrorBoundaryProps, ToolErrorBound
   }
 }
 
-const categoryNavigation: ReadonlyArray<Readonly<{ category: ToolCategory; icon: LucideIcon }>> = [
-  { category: 'learning', icon: Sparkles },
-  { category: 'entertainment', icon: Grid2X2 },
-  { category: 'tools', icon: Wrench },
+type WorkspaceNavigationId = ToolCategory | 'all' | 'settings';
+
+const workspaceNavigation: ReadonlyArray<
+  Readonly<{ id: WorkspaceNavigationId; label: string; icon: LucideIcon }>
+> = [
+  { id: 'all', label: '全部工具', icon: Grid2X2 },
+  { id: 'learning', label: categoryLabels.learning, icon: Sparkles },
+  { id: 'entertainment', label: categoryLabels.entertainment, icon: Grid2X2 },
+  { id: 'tools', label: categoryLabels.tools, icon: Wrench },
+  { id: 'settings', label: '设置', icon: Settings },
 ];
 
 const themes: ReadonlyArray<Readonly<{ id: ThemeName; label: string }>> = [
@@ -336,9 +342,9 @@ export function App() {
     appearance: (
       <div className="settings-section">
         <SettingRow label="主题">
-          <ChoiceGroup
+          <HorizontalTabs
             ariaLabel="主题设置"
-            options={themes.map(({ id, label }) => ({ id, label: `使用${label}主题` }))}
+            items={themes.map(({ id, label }) => ({ id, label: `使用${label}主题` }))}
             value={theme}
             onChange={(value) => {
               if (value === 'light' || value === 'dark') {
@@ -389,7 +395,7 @@ export function App() {
                 <Button
                   key={id}
                   className="theme-option"
-                  variant="ghost"
+                  variant="secondary"
                   aria-pressed={theme === id}
                   onClick={() => setTheme(id)}
                 >
@@ -419,40 +425,28 @@ export function App() {
           AT
         </div>
         <nav aria-label="主导航" className="navigation-groups">
-          <div className="navigation-group">
-            <NavigationItem
-              active={view === 'home' && category === 'all'}
-              icon={<Grid2X2 aria-hidden="true" />}
-              label="全部工具"
-              onClick={() => {
-                setView('home');
-                setCategory('all');
-              }}
-            />
-            {categoryNavigation.map(({ category: itemCategory, icon: Icon }) => (
-              <NavigationItem
-                key={itemCategory}
-                active={view === 'home' && category === itemCategory}
-                icon={<Icon aria-hidden="true" />}
-                label={categoryLabels[itemCategory]}
-                onClick={() => {
-                  setView('home');
-                  setCategory(itemCategory);
-                }}
-              />
-            ))}
-          </div>
-          <div className="navigation-group navigation-group-bottom">
-            <NavigationItem
-              active={view === 'settings'}
-              icon={<Settings aria-hidden="true" />}
-              label="设置"
-              onClick={() => {
+          <VerticalTabs
+            ariaLabel="工作区导航"
+            className="workspace-navigation-tabs"
+            items={workspaceNavigation.map(({ id, label, icon: Icon }) => ({
+              id,
+              label,
+              icon: <Icon />,
+            }))}
+            value={view === 'settings' ? 'settings' : category}
+            onChange={(value) => {
+              if (value === 'settings') {
                 closeActiveTool();
                 setView('settings');
-              }}
-            />
-          </div>
+                return;
+              }
+
+              if (isToolCategory(value)) {
+                setView('home');
+                setCategory(value);
+              }
+            }}
+          />
         </nav>
       </aside>
       <section className="workspace">
@@ -464,7 +458,7 @@ export function App() {
           <div className="toolbar-actions">
             <Button
               className="toolbar-settings-button"
-              variant="ghost"
+              variant="secondary"
               aria-label="打开设置"
               onClick={() => {
                 closeActiveTool();
@@ -479,7 +473,7 @@ export function App() {
                 <Button
                   key={id}
                   className="theme-option"
-                  variant="ghost"
+                  variant="secondary"
                   aria-pressed={theme === id}
                   onClick={() => setTheme(id)}
                 >

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Button,
-  ChoiceGroup,
+  HorizontalTabs,
   Disclosure,
   EmptyState,
   InlineMessage,
@@ -162,9 +162,9 @@ export function ToolView() {
             {textOperationDefinitions.find((item) => item.id === operation)?.label}
           </StatusBadge>
         </div>
-        <ChoiceGroup
+        <HorizontalTabs
           ariaLabel="文本处理方式"
-          options={textOperationDefinitions.map((item) => ({
+          items={textOperationDefinitions.map((item) => ({
             id: item.id,
             label: item.label,
             description: item.description,
@@ -276,7 +276,7 @@ export function ToolView() {
               value={selectedPresetId}
               onChange={(event) => applyPreset(event.target.value)}
             />
-            <Button variant="ghost" disabled={!selectedPresetId} onClick={removeSelectedPreset}>
+            <Button variant="danger" disabled={!selectedPresetId} onClick={removeSelectedPreset}>
               删除预设
             </Button>
           </div>
@@ -303,7 +303,7 @@ export function ToolView() {
                     第 {history.length - index} 次结果，{entry.output.length} 个字符。
                   </p>
                 </div>
-                <Button variant="ghost" onClick={() => restoreHistoryEntry(entry)}>
+                <Button variant="secondary" onClick={() => restoreHistoryEntry(entry)}>
                   恢复
                 </Button>
               </div>

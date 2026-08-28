@@ -180,7 +180,7 @@ h2 {
   min-width: calc(var(--amt-space-10) + var(--amt-space-4));
   min-height: calc(var(--amt-button-compact-height) - var(--amt-space-2));
   padding: 0 var(--amt-space-2);
-  border: 0;
+  border: var(--amt-border-width-default) solid var(--amt-color-border-default);
   border-radius: var(--amt-button-compact-radius);
   color: var(--amt-color-text-secondary);
 }
@@ -434,6 +434,11 @@ h2 {
 
 .calendar-todo-heading-actions {
   flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.calendar-cycle-action {
+  margin-left: auto;
 }
 
 .calendar-todo-layout {

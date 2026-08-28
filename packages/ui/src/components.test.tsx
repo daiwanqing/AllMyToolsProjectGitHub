@@ -15,6 +15,7 @@ import { SettingRow } from './SettingRow';
 import { StatusBadge } from './StatusBadge';
 import { StepperField } from './StepperField';
 import { Tabs } from './Tabs';
+import { HorizontalTabs, VerticalTabs } from './TabControl';
 import { TextField } from './TextField';
 import { TextAreaField } from './TextAreaField';
 import { ToggleField } from './ToggleField';
@@ -240,6 +241,8 @@ describe('composite controls', () => {
       'IconButton',
       'NavigationItem',
       'Tabs',
+      'HorizontalTabs',
+      'VerticalTabs',
       'ChoiceGroup',
       'ToggleField',
       'SettingRow',
@@ -276,6 +279,43 @@ describe('composite controls', () => {
     expect(screen.getByRole('button', { name: '浅色' })).toHaveAttribute('aria-pressed', 'true');
     fireEvent.click(screen.getByRole('button', { name: '深色' }));
     expect(onChange).toHaveBeenCalledWith('dark');
+  });
+
+  it('provides horizontal and vertical tab semantics with keyboard navigation', () => {
+    const onChange = vi.fn();
+    render(
+      <>
+        <HorizontalTabs
+          ariaLabel="横向页签"
+          items={[
+            { id: 'one', label: '一' },
+            { id: 'two', label: '二' },
+          ]}
+          value="one"
+          onChange={onChange}
+        />
+        <VerticalTabs
+          ariaLabel="竖向页签"
+          items={[
+            { id: 'one', label: '一' },
+            { id: 'two', label: '二' },
+          ]}
+          value="one"
+          onChange={onChange}
+        />
+      </>,
+    );
+
+    expect(screen.getByRole('tablist', { name: '横向页签' })).toHaveAttribute(
+      'aria-orientation',
+      'horizontal',
+    );
+    expect(screen.getByRole('tablist', { name: '竖向页签' })).toHaveAttribute(
+      'aria-orientation',
+      'vertical',
+    );
+    fireEvent.keyDown(screen.getAllByRole('tab', { name: '一' })[0], { key: 'ArrowRight' });
+    expect(onChange).toHaveBeenCalledWith('two');
   });
 
   it('associates a toggle description and keeps the native checkbox contract', () => {

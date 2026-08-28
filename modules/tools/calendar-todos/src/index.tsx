@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -166,6 +167,8 @@ export function ToolView() {
   const [dragOverStatus, setDragOverStatus] = useState<TodoStatus>();
   const [notice, setNotice] = useState<TodoNotice>();
   const mouseDragCleanup = useRef<(() => void) | undefined>(undefined);
+  const todayAnchorRef = useRef<HTMLButtonElement>(null);
+  const shouldFocusToday = useRef(false);
 
   const monthRange = useMemo(
     () => Array.from({ length: 13 }, (_, index) => moveMonth(visibleMonth, index - 6)),
@@ -229,6 +232,24 @@ export function ToolView() {
       ),
     [selectedTodos],
   );
+
+  useEffect(() => {
+    if (!shouldFocusToday.current || showDateDetail || showCheckInManager) {
+      return;
+    }
+
+    shouldFocusToday.current = false;
+    todayAnchorRef.current?.scrollIntoView?.({ block: 'center' });
+  }, [calendarView, showDateDetail, showCheckInManager, visibleMonth]);
+
+  function goToToday() {
+    const date = todayDate ?? new Date();
+    setVisibleMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+    setShowDateDetail(false);
+    setShowCheckInManager(false);
+    shouldFocusToday.current = true;
+  }
+
   function commit(nextData: CalendarTodosData) {
     setData(nextData);
     saveCalendarTodos(window.localStorage, nextData);
@@ -599,6 +620,7 @@ export function ToolView() {
         type="button"
         role="gridcell"
         className="calendar-day"
+        ref={day.key === today ? todayAnchorRef : undefined}
         aria-label={label}
         aria-current={isToday ? 'date' : undefined}
         aria-selected={isSelected}
@@ -628,8 +650,19 @@ export function ToolView() {
       aria-label={showCheckInManager ? '周期打卡' : '日历待办'}
     >
       <div className="calendar-todo-heading-actions">
+        {!showCheckInManager && !showDateDetail && calendarView === 'month' ? (
+          <Button variant="secondary" aria-label="返回年历" onClick={() => setCalendarView('year')}>
+            返回年历
+          </Button>
+        ) : null}
+        {!showCheckInManager && !showDateDetail ? (
+          <Button variant="secondary" onClick={goToToday} aria-label="回到今天">
+            今天
+          </Button>
+        ) : null}
         <Button
-          variant={showCheckInManager ? 'secondary' : 'ghost'}
+          variant="secondary"
+          className={!showCheckInManager && !showDateDetail ? 'calendar-cycle-action' : undefined}
           onClick={() => {
             if (showCheckInManager) {
               setShowCheckInManager(false);
@@ -644,16 +677,6 @@ export function ToolView() {
         >
           {showCheckInManager ? '返回日历待办' : showDateDetail ? '返回日历' : '周期打卡'}
         </Button>
-        {!showCheckInManager && !showDateDetail && calendarView === 'month' ? (
-          <Button variant="ghost" aria-label="返回年历" onClick={() => setCalendarView('year')}>
-            返回年历
-          </Button>
-        ) : null}
-        {!showCheckInManager && !showDateDetail ? (
-          <Button variant="ghost" onClick={() => chooseDate(today)} aria-label="回到今天">
-            今天
-          </Button>
-        ) : null}
       </div>
       {notice ? (
         <FloatingNotice
@@ -673,14 +696,18 @@ export function ToolView() {
                 {calendarView === 'month' ? (
                   <div className="calendar-month-heading">
                     <Button
-                      variant="ghost"
+                      variant="secondary"
                       aria-label="上一个周期"
                       onClick={() => moveCalendar(-1)}
                     >
                       上一个
                     </Button>
                     <h3>{monthTitle(visibleMonth)}</h3>
-                    <Button variant="ghost" aria-label="下一个周期" onClick={() => moveCalendar(1)}>
+                    <Button
+                      variant="secondary"
+                      aria-label="下一个周期"
+                      onClick={() => moveCalendar(1)}
+                    >
                       下一个
                     </Button>
                   </div>
@@ -731,7 +758,7 @@ export function ToolView() {
                                 data-current-month={isCurrentMonth || undefined}
                               >
                                 <Button
-                                  variant="ghost"
+                                  variant="secondary"
                                   onClick={() => chooseMonth(month)}
                                   aria-label={`进入${monthTitle(month)}`}
                                 >
@@ -751,6 +778,7 @@ export function ToolView() {
                                         key={day.key}
                                         type="button"
                                         className="calendar-mini-day"
+                                        ref={day.key === today ? todayAnchorRef : undefined}
                                         aria-label={`${day.key}${statuses ? `，${statuses}` : ''}`}
                                         aria-current={day.key === today ? 'date' : undefined}
                                         aria-pressed={
@@ -1074,7 +1102,7 @@ export function ToolView() {
                   }
                 />
                 <div className="check-in-dialog-actions">
-                  <Button variant="ghost" type="button" onClick={closeCheckInDialog}>
+                  <Button variant="secondary" type="button" onClick={closeCheckInDialog}>
                     取消
                   </Button>
                   <Button variant="primary" type="submit">

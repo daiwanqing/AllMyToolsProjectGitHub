@@ -53,11 +53,6 @@
   background: var(--amt-color-status-error);
 }
 
-.amt-button-ghost {
-  border-color: transparent;
-  background: transparent;
-}
-
 .amt-button-label {
   transition: opacity var(--amt-motion-fast) var(--amt-motion-easing-standard);
 }
@@ -121,10 +116,10 @@
   align-items: center;
   justify-content: flex-start;
   padding: 0 var(--amt-navigation-item-padding-x);
-  border: 0;
+  border: var(--amt-border-width-default) solid var(--amt-color-border-default);
   border-radius: var(--amt-navigation-item-radius);
   color: var(--amt-color-text-secondary);
-  background: transparent;
+  background: var(--amt-color-background-surface);
   text-align: left;
 }
 
@@ -155,6 +150,68 @@
   gap: var(--amt-space-1);
   overflow-x: auto;
   border-bottom: var(--amt-border-width-default) solid var(--amt-color-border-default);
+}
+
+.amt-tab-control {
+  display: flex;
+  gap: var(--amt-space-1);
+  padding: var(--amt-space-1);
+  border: var(--amt-border-width-default) solid var(--amt-color-border-default);
+  border-radius: var(--amt-radius-control);
+  background: var(--amt-color-background-surface);
+}
+
+.amt-tab-control-horizontal {
+  flex-direction: row;
+  width: fit-content;
+}
+
+.amt-tab-control-vertical {
+  flex-direction: column;
+  width: 100%;
+  max-width: calc(var(--amt-space-10) * 5);
+}
+
+.amt-tab-control-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--amt-space-2);
+  min-height: var(--amt-button-compact-height);
+  padding: 0 var(--amt-space-3);
+  border: var(--amt-border-width-default) solid transparent;
+  border-radius: var(--amt-radius-control);
+  color: var(--amt-color-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.amt-tab-control-item-icon {
+  display: inline-flex;
+  flex: none;
+}
+
+.amt-tab-control-item-icon svg {
+  width: var(--amt-primitive-dimension-icon-default);
+  height: var(--amt-primitive-dimension-icon-default);
+}
+
+.amt-tab-control-item[aria-selected='true'] {
+  border-color: var(--amt-color-border-strong);
+  color: var(--amt-color-text-primary);
+  background: var(--amt-color-background-selected);
+  font-weight: 700;
+}
+
+.amt-tab-control-item:hover:not(:disabled) {
+  border-color: var(--amt-color-border-default);
+  color: var(--amt-color-text-primary);
+}
+
+.amt-tab-control-item:focus-visible {
+  outline: var(--amt-focus-ring-width) solid var(--amt-color-focus-ring);
+  outline-offset: calc(var(--amt-focus-ring-offset) * -1);
 }
 
 .amt-tab {

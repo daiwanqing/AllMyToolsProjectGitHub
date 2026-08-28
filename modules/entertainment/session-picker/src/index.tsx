@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, ChoiceGroup, InlineMessage, StatusBadge } from '@allmytools/ui';
+import { Button, HorizontalTabs, InlineMessage, StatusBadge } from '@allmytools/ui';
 import { manifest } from './manifest';
 import { loadSelectedSession, saveSelectedSession } from './storage';
 
@@ -13,9 +13,9 @@ export function ToolView() {
 
   return (
     <section aria-label="活动选择器工具">
-      <ChoiceGroup
+      <HorizontalTabs
         ariaLabel="候选活动"
-        options={sessionOptions.map((option) => ({ id: option, label: option }))}
+        items={sessionOptions.map((option) => ({ id: option, label: option }))}
         value={selected}
         onChange={(option) => {
           setSelected(option);

@@ -23,6 +23,12 @@ export { SelectField, type SelectFieldProps, type SelectOption } from './SelectF
 export { StatusBadge, type StatusBadgeProps, type StatusBadgeTone } from './StatusBadge';
 export { StepperField, type StepperFieldProps } from './StepperField';
 export { Tabs, type TabsItem, type TabsProps } from './Tabs';
+export {
+  HorizontalTabs,
+  VerticalTabs,
+  type TabControlItem,
+  type TabControlProps,
+} from './TabControl';
 export { TextField, type TextFieldProps } from './TextField';
 export { TextAreaField, type TextAreaFieldProps } from './TextAreaField';
 export { ToggleField, type ToggleFieldProps } from './ToggleField';

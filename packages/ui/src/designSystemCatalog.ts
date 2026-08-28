@@ -14,7 +14,7 @@ export const uiComponentCatalog: readonly UiComponentDefinition[] = [
   {
     name: 'Button',
     category: '基础操作',
-    contract: '主、次、无边框、危险红色、加载和禁用状态。',
+    contract: '主、次、危险红色、加载和禁用状态。',
   },
   { name: 'TextField', category: '基础输入', contract: '可见标签、说明、错误关联和禁用状态。' },
   {
@@ -43,6 +43,16 @@ export const uiComponentCatalog: readonly UiComponentDefinition[] = [
     name: 'Tabs',
     category: '复合控件',
     contract: '统一 tablist/tab/tabpanel ARIA 关联与键盘导航。',
+  },
+  {
+    name: 'HorizontalTabs',
+    category: '导航控件',
+    contract: '横向 tablist、选中状态、方向键和 Home/End 导航。',
+  },
+  {
+    name: 'VerticalTabs',
+    category: '导航控件',
+    contract: '竖向 tablist、选中状态、方向键和 Home/End 导航。',
   },
   {
     name: 'ChoiceGroup',

@@ -2,7 +2,8 @@ import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { resolveThemeTokens, type ThemeName } from '@allmytools/design-tokens';
 import {
   Button,
-  ChoiceGroup,
+  HorizontalTabs,
+  VerticalTabs,
   Disclosure,
   EmptyState,
   FloatingNotice,
@@ -192,6 +193,7 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
   const [copied, setCopied] = useState<string>();
   const [activeView, setActiveView] = useState<DeveloperView>('tokens');
   const [previewTab, setPreviewTab] = useState('overview');
+  const [previewDirection, setPreviewDirection] = useState('overview');
   const [previewNavigation, setPreviewNavigation] = useState('home');
   const [previewDensity, setPreviewDensity] = useState('comfortable');
   const [previewEnabled, setPreviewEnabled] = useState(false);
@@ -417,16 +419,31 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
               </div>
             </section>
             <section className="component-showcase-group" aria-labelledby="showcase-choice-heading">
-              <h4 id="showcase-choice-heading">ChoiceGroup 选项组</h4>
-              <ChoiceGroup
+              <h4 id="showcase-choice-heading">横向页签</h4>
+              <HorizontalTabs
                 ariaLabel="密度选择"
-                options={[
+                items={[
                   { id: 'compact', label: '紧凑' },
                   { id: 'comfortable', label: '舒适' },
                   { id: 'auto', label: '自动' },
                 ]}
                 value={previewDensity}
                 onChange={setPreviewDensity}
+              />
+            </section>
+            <section
+              className="component-showcase-group"
+              aria-labelledby="showcase-vertical-tabs-heading"
+            >
+              <h4 id="showcase-vertical-tabs-heading">竖向页签</h4>
+              <VerticalTabs
+                ariaLabel="查看方向"
+                items={[
+                  { id: 'overview', label: '概览' },
+                  { id: 'details', label: '详情' },
+                ]}
+                value={previewDirection}
+                onChange={setPreviewDirection}
               />
             </section>
             <section className="component-showcase-group" aria-labelledby="showcase-toggle-heading">
@@ -509,7 +526,6 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
           <div className="component-preview-row">
             <Button variant="primary">主要操作</Button>
             <Button variant="secondary">次要操作</Button>
-            <Button variant="ghost">无边框操作</Button>
             <Button variant="danger">危险操作</Button>
             <Button loading>加载中</Button>
             <Button disabled>不可用</Button>

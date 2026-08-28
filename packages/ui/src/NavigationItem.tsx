@@ -21,7 +21,7 @@ export function NavigationItem({
     <Button
       {...props}
       className={['amt-navigation-item', className].filter(Boolean).join(' ')}
-      variant="ghost"
+      variant="secondary"
       aria-current={active ? 'page' : undefined}
     >
       <span className="amt-navigation-item-icon">{icon}</span>
