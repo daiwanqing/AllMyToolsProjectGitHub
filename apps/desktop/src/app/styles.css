@@ -1174,6 +1174,13 @@ h2 {
   font-size: var(--amt-space-3);
 }
 
+.token-description {
+  display: inline-block;
+  min-width: calc(var(--amt-space-10) * 8);
+  color: var(--amt-color-text-secondary);
+  line-height: var(--amt-space-5);
+}
+
 .token-value {
   display: inline-flex;
   align-items: center;

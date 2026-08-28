@@ -278,6 +278,10 @@ describe('desktop shell', () => {
     }
     expect(screen.getByRole('tab', { name: 'Token' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('columnheader', { name: '当前解析值' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '用途说明' })).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('tabpanel', { name: 'Token' })).getByText('页面最底层画布背景。'),
+    ).toBeInTheDocument();
 
     fireEvent.keyDown(screen.getByRole('tab', { name: 'Token' }), { key: 'ArrowRight' });
     expect(screen.getByRole('tab', { name: '主题对比' })).toHaveAttribute('aria-selected', 'true');

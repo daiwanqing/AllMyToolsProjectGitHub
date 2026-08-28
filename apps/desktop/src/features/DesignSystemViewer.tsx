@@ -41,6 +41,94 @@ type TokenRow = Readonly<{
   value: string;
 }>;
 
+const semanticTokenDescriptions: Readonly<Record<string, string>> = {
+  'color.background.canvas': '页面最底层画布背景。',
+  'color.background.surface': '卡片、面板和输入区域的表面背景。',
+  'color.background.selected': '悬停、选中和轻量强调状态的背景。',
+  'color.text.primary': '标题、正文和主要内容文字。',
+  'color.text.secondary': '辅助说明、元数据和次要文字。',
+  'color.border.default': '普通分隔线、边框和网格线。',
+  'color.border.strong': '需要更高对比度的边界和分隔线。',
+  'color.action.primary': '主要操作控件的前景或填充颜色。',
+  'color.action.primary-text': '主要操作控件上的反色文字。',
+  'color.focus.ring': '键盘焦点可见环。',
+  'color.accent.calendar': '日历今天、当月和笔记圆点的主题强调色。',
+  'color.status.info': '信息提示和中性进展状态。',
+  'color.status.success': '成功、完成和正向结果状态。',
+  'color.status.warning': '需要留意但可以继续的状态。',
+  'color.status.error': '错误、失败和破坏性操作状态。',
+};
+
+function describeToken(name: string): string {
+  const semanticDescription = semanticTokenDescriptions[name];
+  if (semanticDescription) {
+    return semanticDescription;
+  }
+
+  if (name.startsWith('color.neutral.')) {
+    return '黑白灰基础色阶，供主题语义颜色引用。';
+  }
+  if (name.startsWith('color.cyan.')) {
+    return '青色多巴胺色阶，用于信息和冷色主题强调。';
+  }
+  if (name.startsWith('color.green.')) {
+    return '绿色多巴胺色阶，用于成功和完成状态。';
+  }
+  if (name.startsWith('color.amber.')) {
+    return '橙色多巴胺色阶，用于警告和待留意状态。';
+  }
+  if (name.startsWith('color.red.')) {
+    return '玫红色多巴胺色阶，用于错误和危险操作。';
+  }
+  if (name.startsWith('space.')) {
+    return '全局间距刻度，用于组件间隙和内边距。';
+  }
+  if (name.startsWith('radius.')) {
+    return '受控圆角刻度，用于表面和控件边界。';
+  }
+  if (name.startsWith('border.')) {
+    return '全局边框宽度，保持边界视觉一致。';
+  }
+  if (name.startsWith('focus.')) {
+    return '焦点环尺寸，保证键盘导航可见。';
+  }
+  if (name.startsWith('opacity.')) {
+    return '状态透明度刻度，用于禁用控件的统一弱化。';
+  }
+  if (name.startsWith('dimension.')) {
+    return '稳定尺寸刻度，用于控件、图标或工作区布局。';
+  }
+  if (name.startsWith('duration.')) {
+    return '动效时长刻度，用于统一反馈和内容切换速度。';
+  }
+  if (name.startsWith('easing.')) {
+    return '动效缓动曲线，用于统一过渡节奏。';
+  }
+  if (name.startsWith('z-index.')) {
+    return '界面层级刻度，用于内容、菜单、对话框和提示的叠放顺序。';
+  }
+  if (name.startsWith('button.')) {
+    return '按钮尺寸和内边距，保证操作控件稳定。';
+  }
+  if (name.startsWith('field.')) {
+    return '输入控件尺寸和内边距，保持表单布局一致。';
+  }
+  if (name.startsWith('message.')) {
+    return '消息组件的圆角和内边距。';
+  }
+  if (name.startsWith('control.')) {
+    return '控件状态参数，用于统一禁用表现。';
+  }
+  if (name.startsWith('navigation.')) {
+    return '导航项尺寸和内边距，保持导航密度一致。';
+  }
+  if (name.startsWith('motion.')) {
+    return '组件动效参数，统一过渡时长和缓动。';
+  }
+
+  return '共享设计系统值，用于保持界面表现一致。';
+}
+
 const layerLabels: Readonly<Record<TokenLayer, string>> = {
   primitive: '原始',
   semantic: '语义',
@@ -198,6 +286,7 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
               <tr>
                 <th scope="col">层级</th>
                 <th scope="col">Token</th>
+                <th scope="col">用途说明</th>
                 <th scope="col">当前解析值</th>
                 <th scope="col">操作</th>
               </tr>
@@ -208,6 +297,9 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
                   <td>{layerLabels[row.layer]}</td>
                   <td>
                     <code>{row.name}</code>
+                  </td>
+                  <td>
+                    <span className="token-description">{describeToken(row.name)}</span>
                   </td>
                   <td>
                     <TokenValue value={row.value} />
@@ -241,6 +333,7 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
             <thead>
               <tr>
                 <th scope="col">Token</th>
+                <th scope="col">用途说明</th>
                 <th scope="col">浅色</th>
                 <th scope="col">深色</th>
               </tr>
@@ -250,6 +343,9 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
                 <tr key={name}>
                   <td>
                     <code>{name}</code>
+                  </td>
+                  <td>
+                    <span className="token-description">{describeToken(name)}</span>
                   </td>
                   <td>
                     <TokenValue value={lightSemantic[name as keyof typeof lightSemantic]} />
