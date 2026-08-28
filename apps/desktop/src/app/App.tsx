@@ -22,7 +22,6 @@ import {
   Keyboard,
   Palette,
   Search,
-  Settings,
   Sparkles,
   Star,
   Wrench,
@@ -83,7 +82,7 @@ class ToolErrorBoundary extends Component<ToolErrorBoundaryProps, ToolErrorBound
   }
 }
 
-type WorkspaceNavigationId = ToolCategory | 'all' | 'settings';
+type WorkspaceNavigationId = ToolCategory | 'all';
 
 const workspaceNavigation: ReadonlyArray<
   Readonly<{ id: WorkspaceNavigationId; label: string; icon: LucideIcon }>
@@ -92,7 +91,6 @@ const workspaceNavigation: ReadonlyArray<
   { id: 'learning', label: categoryLabels.learning, icon: Sparkles },
   { id: 'entertainment', label: categoryLabels.entertainment, icon: Grid2X2 },
   { id: 'tools', label: categoryLabels.tools, icon: Wrench },
-  { id: 'settings', label: '设置', icon: Settings },
 ];
 
 const themes: ReadonlyArray<Readonly<{ id: ThemeName; label: string }>> = [
@@ -403,6 +401,17 @@ export function App() {
                 </Button>
               ))}
             </div>
+            <Button
+              variant="secondary"
+              aria-label="打开设置"
+              aria-haspopup="dialog"
+              onClick={() => {
+                closeActiveTool();
+                setView('settings');
+              }}
+            >
+              设置
+            </Button>
             <Button variant="secondary" onClick={closeActiveTool}>
               <ArrowLeft aria-hidden="true" />
               返回工具台
@@ -433,14 +442,8 @@ export function App() {
               label,
               icon: <Icon />,
             }))}
-            value={view === 'settings' ? 'settings' : category}
+            value={category}
             onChange={(value) => {
-              if (value === 'settings') {
-                closeActiveTool();
-                setView('settings');
-                return;
-              }
-
               if (isToolCategory(value)) {
                 setView('home');
                 setCategory(value);
@@ -453,21 +456,9 @@ export function App() {
         <header className="context-toolbar">
           <div>
             <p className="eyebrow">AllMyTools</p>
-            <h1 id="application-title">{view === 'settings' ? '设置' : '工具工作台'}</h1>
+            <h1 id="application-title">工具工作台</h1>
           </div>
           <div className="toolbar-actions">
-            <Button
-              className="toolbar-settings-button"
-              variant="secondary"
-              aria-label="打开设置"
-              onClick={() => {
-                closeActiveTool();
-                setView('settings');
-              }}
-            >
-              <Settings aria-hidden="true" />
-              设置
-            </Button>
             <div className="theme-switcher" role="group" aria-label="界面主题">
               {themes.map(({ id, label }) => (
                 <Button
@@ -481,95 +472,122 @@ export function App() {
                 </Button>
               ))}
             </div>
+            <Button
+              variant="secondary"
+              aria-label="打开设置"
+              aria-haspopup="dialog"
+              onClick={() => setView('settings')}
+            >
+              设置
+            </Button>
           </div>
         </header>
-        {view === 'settings' ? (
-          <section className="settings-workspace" aria-labelledby="application-title">
-            <Tabs
-              ariaLabel="设置页签"
-              idPrefix="settings"
-              items={settingsItems}
-              value={settingsTab}
-              onChange={(value) => {
-                if (isSettingsTab(value)) {
-                  setSettingsTab(value);
-                }
-              }}
-            />
-          </section>
-        ) : (
-          <section className="catalog-workspace" aria-label="工具目录">
-            <div className="catalog-heading">
-              <div className="search-field">
-                <Search aria-hidden="true" />
-                <TextField
-                  label="搜索工具"
-                  placeholder="按名称或关键词搜索"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                />
-              </div>
+        <section className="catalog-workspace" aria-label="工具目录">
+          <div className="catalog-heading">
+            <div className="search-field">
+              <Search aria-hidden="true" />
+              <TextField
+                label="搜索工具"
+                placeholder="按名称或关键词搜索"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
             </div>
-            <div className="catalog-sections">
-              {toolLoadMessage ? (
-                <InlineMessage title="工具启动失败" tone="error">
-                  {toolLoadMessage}
-                </InlineMessage>
-              ) : null}
-              {category === 'all' && !isSearchActive && frequentTools.length ? (
-                <section aria-labelledby="frequent-heading">
-                  <div className="section-heading">
-                    <Clock3 aria-hidden="true" />
-                    <h2 id="frequent-heading">常用</h2>
-                  </div>
-                  <div className="tool-tile-grid">
-                    {frequentTools.map((entry) => (
-                      <ToolTile
-                        key={entry.id}
-                        entry={entry}
-                        favorite={favoriteIds.includes(entry.id)}
-                        onOpen={openTool}
-                        onToggleFavorite={toggleFavorite}
-                        showCategory
-                      />
-                    ))}
-                  </div>
-                </section>
-              ) : null}
-              <section aria-labelledby="catalog-heading">
+          </div>
+          <div className="catalog-sections">
+            {toolLoadMessage ? (
+              <InlineMessage title="工具启动失败" tone="error">
+                {toolLoadMessage}
+              </InlineMessage>
+            ) : null}
+            {category === 'all' && !isSearchActive && frequentTools.length ? (
+              <section aria-labelledby="frequent-heading">
                 <div className="section-heading">
-                  <Wrench aria-hidden="true" />
-                  <h2 id="catalog-heading">
-                    {isSearchActive
-                      ? '匹配工具'
-                      : category === 'all'
-                        ? '其他工具'
-                        : `${categoryLabels[category]}工具`}
-                  </h2>
+                  <Clock3 aria-hidden="true" />
+                  <h2 id="frequent-heading">常用</h2>
                 </div>
-                {catalogTools.length ? (
-                  <div className="tool-tile-grid">
-                    {catalogTools.map((entry) => (
-                      <ToolTile
-                        key={entry.id}
-                        entry={entry}
-                        favorite={favoriteIds.includes(entry.id)}
-                        onOpen={openTool}
-                        onToggleFavorite={toggleFavorite}
-                        showCategory={category === 'all'}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    title="没有匹配的工具"
-                    description="尝试使用其他名称、分类或关键词。"
-                  />
-                )}
+                <div className="tool-tile-grid">
+                  {frequentTools.map((entry) => (
+                    <ToolTile
+                      key={entry.id}
+                      entry={entry}
+                      favorite={favoriteIds.includes(entry.id)}
+                      onOpen={openTool}
+                      onToggleFavorite={toggleFavorite}
+                      showCategory
+                    />
+                  ))}
+                </div>
               </section>
+            ) : null}
+            <section aria-labelledby="catalog-heading">
+              <div className="section-heading">
+                <Wrench aria-hidden="true" />
+                <h2 id="catalog-heading">
+                  {isSearchActive
+                    ? '匹配工具'
+                    : category === 'all'
+                      ? '其他工具'
+                      : `${categoryLabels[category]}工具`}
+                </h2>
+              </div>
+              {catalogTools.length ? (
+                <div className="tool-tile-grid">
+                  {catalogTools.map((entry) => (
+                    <ToolTile
+                      key={entry.id}
+                      entry={entry}
+                      favorite={favoriteIds.includes(entry.id)}
+                      onOpen={openTool}
+                      onToggleFavorite={toggleFavorite}
+                      showCategory={category === 'all'}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState title="没有匹配的工具" description="尝试使用其他名称、分类或关键词。" />
+              )}
+            </section>
+          </div>
+        </section>
+        {view === 'settings' ? (
+          <dialog
+            className="settings-dialog"
+            open
+            aria-labelledby="settings-dialog-title"
+            aria-modal="true"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) {
+                setView('home');
+              }
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                setView('home');
+              }
+            }}
+          >
+            <div className="settings-dialog-content">
+              <header className="settings-dialog-header">
+                <h1 id="settings-dialog-title">设置</h1>
+                <Button variant="secondary" onClick={() => setView('home')}>
+                  关闭
+                </Button>
+              </header>
+              <Tabs
+                ariaLabel="设置页签"
+                idPrefix="settings"
+                items={settingsItems}
+                value={settingsTab}
+                onChange={(value) => {
+                  if (isSettingsTab(value)) {
+                    setSettingsTab(value);
+                  }
+                }}
+              />
             </div>
-          </section>
-        )}
+          </dialog>
+        ) : null}
       </section>
     </main>
   );

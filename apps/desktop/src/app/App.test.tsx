@@ -21,6 +21,16 @@ describe('desktop shell', () => {
     expect(screen.getAllByRole('article')).toHaveLength(3);
   });
 
+  it('opens settings as a modal dialog from the toolbar', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: '打开设置' }));
+    expect(screen.getByRole('dialog', { name: '设置' })).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: '设置' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '关闭' }));
+    expect(screen.queryByRole('dialog', { name: '设置' })).not.toBeInTheDocument();
+  });
+
   it('filters tools by category and search query', () => {
     render(<App />);
 
@@ -44,7 +54,8 @@ describe('desktop shell', () => {
       expect(screen.getByRole('heading', { level: 1, name: '复习笔记' })).toBeInTheDocument(),
     );
     expect(screen.queryByRole('navigation', { name: '主导航' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '打开设置' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: '应用菜单' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '打开设置' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '返回工具台' }));
     expect(screen.getByRole('navigation', { name: '主导航' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '常用' }).closest('section')).toHaveTextContent(
@@ -312,6 +323,8 @@ describe('desktop shell', () => {
     expect(screen.getByRole('heading', { level: 1, name: '设置' })).toBeInTheDocument();
     expect(screen.queryByText('工作区')).not.toBeInTheDocument();
     expect(screen.getByRole('tablist', { name: '设置页签' })).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: '设置' })).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: '设置' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '外观' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('tablist', { name: '主题设置' })).toBeInTheDocument();
     expect(screen.queryByText('按功能整理偏好设置，切换后立即生效。')).not.toBeInTheDocument();
