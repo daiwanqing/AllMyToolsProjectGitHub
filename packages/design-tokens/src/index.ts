@@ -1,9 +1,15 @@
 export {
   componentTokens,
+  primitiveColorTokenNames,
   primitiveTokens,
   resolveThemeTokens,
+  semanticColorTokenNames,
   semanticThemeTokens,
   themeNames,
   type ResolvedThemeTokens,
+  type ColorTokenName,
+  type PrimitiveColorTokenName,
+  type SemanticColorTokenName,
   type ThemeName,
+  type ThemeColorOverrides,
 } from './tokens';

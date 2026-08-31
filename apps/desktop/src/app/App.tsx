@@ -1,6 +1,12 @@
 import { Component, type ErrorInfo, type ReactNode, useEffect, useMemo, useState } from 'react';
 import type { ToolCategory } from '@allmytools/platform-contracts';
-import type { ThemeName } from '@allmytools/design-tokens';
+import {
+  primitiveColorTokenNames,
+  semanticColorTokenNames,
+  type ColorTokenName,
+  type ThemeColorOverrides,
+  type ThemeName,
+} from '@allmytools/design-tokens';
 import {
   Button,
   HorizontalTabs,
@@ -106,6 +112,7 @@ const settingsTabs: ReadonlyArray<Readonly<{ id: SettingsTab; label: string; ico
   ];
 
 const workspaceStorageKey = 'shell.workspace-state';
+const themeColorOverridesStorageKey = 'shell.theme-color-overrides';
 
 type PersistedWorkspaceState = Readonly<{
   category: ToolCategory | 'all';
@@ -114,6 +121,50 @@ type PersistedWorkspaceState = Readonly<{
   theme: ThemeName;
   view: WorkspaceView;
 }>;
+
+type PersistedThemeColorOverrides = Readonly<Record<ThemeName, ThemeColorOverrides>>;
+
+function isHexColor(value: unknown): value is string {
+  return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value);
+}
+
+function readThemeColorOverrides(storage: Storage): PersistedThemeColorOverrides {
+  const fallback: PersistedThemeColorOverrides = { light: {}, dark: {} };
+  const stored = storage.getItem(themeColorOverridesStorageKey);
+  if (!stored) {
+    return fallback;
+  }
+
+  try {
+    const value: unknown = JSON.parse(stored);
+    if (!value || typeof value !== 'object') {
+      return fallback;
+    }
+
+    const parsed = value as Record<string, unknown>;
+    return {
+      light: readThemeColorOverrideLayer(parsed.light),
+      dark: readThemeColorOverrideLayer(parsed.dark),
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function readThemeColorOverrideLayer(value: unknown): ThemeColorOverrides {
+  if (!value || typeof value !== 'object') {
+    return {};
+  }
+
+  const source = value as Record<string, unknown>;
+  const result: Partial<ThemeColorOverrides> = {};
+  for (const name of [...primitiveColorTokenNames, ...semanticColorTokenNames]) {
+    if (isHexColor(source[name])) {
+      result[name] = source[name].toLowerCase();
+    }
+  }
+  return result;
+}
 
 function isWorkspaceView(value: unknown): value is WorkspaceView {
   return value === 'home' || value === 'settings';
@@ -206,7 +257,11 @@ function ToolTile({
 
 export function App() {
   const [initialWorkspaceState] = useState(() => readWorkspaceState(window.localStorage));
+  const [initialThemeColorOverrides] = useState(() => readThemeColorOverrides(window.localStorage));
   const [theme, setTheme] = useState<ThemeName>(initialWorkspaceState?.theme ?? 'light');
+  const [themeColorOverrides, setThemeColorOverrides] = useState<PersistedThemeColorOverrides>(
+    initialThemeColorOverrides,
+  );
   const [view, setView] = useState<WorkspaceView>(initialWorkspaceState?.view ?? 'home');
   const [category, setCategory] = useState<ToolCategory | 'all'>(
     initialWorkspaceState?.category ?? 'all',
@@ -226,7 +281,22 @@ export function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-  }, [theme]);
+    for (const tokenName of [...primitiveColorTokenNames, ...semanticColorTokenNames]) {
+      document.documentElement.style.removeProperty(
+        `--amt-${tokenName.replaceAll('.', '-').toLowerCase()}`,
+      );
+    }
+    for (const [tokenName, value] of Object.entries(themeColorOverrides[theme])) {
+      document.documentElement.style.setProperty(
+        `--amt-${tokenName.replaceAll('.', '-').toLowerCase()}`,
+        value,
+      );
+    }
+  }, [theme, themeColorOverrides]);
+
+  useEffect(() => {
+    window.localStorage.setItem(themeColorOverridesStorageKey, JSON.stringify(themeColorOverrides));
+  }, [themeColorOverrides]);
 
   useEffect(() => {
     const workspaceState: PersistedWorkspaceState = {
@@ -336,6 +406,17 @@ export function App() {
     }
   }
 
+  function updateThemeColor(name: ColorTokenName, value: string) {
+    setThemeColorOverrides((current) => ({
+      ...current,
+      [theme]: { ...current[theme], [name]: value },
+    }));
+  }
+
+  function resetThemeColors() {
+    setThemeColorOverrides((current) => ({ ...current, [theme]: {} }));
+  }
+
   const settingsPanels: Readonly<Record<SettingsTab, ReactNode>> = {
     appearance: (
       <div className="settings-section">
@@ -367,7 +448,14 @@ export function App() {
         ) : null}
       </div>
     ),
-    developer: <DesignSystemViewer theme={theme} />,
+    developer: (
+      <DesignSystemViewer
+        theme={theme}
+        colorOverrides={themeColorOverrides}
+        onColorChange={updateThemeColor}
+        onResetColors={resetThemeColors}
+      />
+    ),
   };
 
   const settingsItems: readonly TabsItem[] = settingsTabs.map(({ id, label, icon: Icon }) => ({

@@ -1,5 +1,12 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
-import { resolveThemeTokens, type ThemeName } from '@allmytools/design-tokens';
+import {
+  resolveThemeTokens,
+  primitiveColorTokenNames,
+  semanticColorTokenNames,
+  type ColorTokenName,
+  type ThemeColorOverrides,
+  type ThemeName,
+} from '@allmytools/design-tokens';
 import {
   Button,
   HorizontalTabs,
@@ -146,8 +153,8 @@ const developerTabs: ReadonlyArray<
   { id: 'guidelines', label: 'UI规范', icon: BookOpen },
 ];
 
-function tokenRows(theme: ThemeName): readonly TokenRow[] {
-  const tokens = resolveThemeTokens(theme);
+function tokenRows(theme: ThemeName, colorOverrides: ThemeColorOverrides): readonly TokenRow[] {
+  const tokens = resolveThemeTokens(theme, colorOverrides);
   const groups: ReadonlyArray<Readonly<{ layer: TokenLayer; values: Record<string, string> }>> = [
     { layer: 'primitive', values: tokens.primitive },
     { layer: 'semantic', values: tokens.semantic },
@@ -188,7 +195,64 @@ function TokenValue({ value }: Readonly<{ value: string }>) {
   );
 }
 
-export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
+function ColorTokenEditor({
+  name,
+  value,
+  onChange,
+}: Readonly<{
+  name: ColorTokenName;
+  value: string;
+  onChange: (name: ColorTokenName, value: string) => void;
+}>) {
+  const [draft, setDraft] = useState(value);
+  const valid = /^#[0-9a-fA-F]{6}$/.test(draft);
+
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  return (
+    <div className="token-color-editor">
+      <input
+        className="token-color-picker"
+        type="color"
+        aria-label={`选择 ${name}`}
+        value={valid ? draft : value}
+        onChange={(event) => {
+          setDraft(event.target.value);
+          onChange(name, event.target.value);
+        }}
+      />
+      <TextField
+        label="颜色值"
+        aria-label={`编辑 ${name}`}
+        value={draft}
+        spellCheck={false}
+        inputMode="text"
+        onChange={(event) => {
+          const nextValue = event.target.value;
+          setDraft(nextValue);
+          if (/^#[0-9a-fA-F]{6}$/.test(nextValue)) {
+            onChange(name, nextValue.toLowerCase());
+          }
+        }}
+        error={draft.length > 0 && !valid ? '请输入 6 位十六进制颜色值。' : undefined}
+      />
+    </div>
+  );
+}
+
+export function DesignSystemViewer({
+  theme,
+  colorOverrides,
+  onColorChange,
+  onResetColors,
+}: Readonly<{
+  theme: ThemeName;
+  colorOverrides: Readonly<Record<ThemeName, ThemeColorOverrides>>;
+  onColorChange: (name: ColorTokenName, value: string) => void;
+  onResetColors: () => void;
+}>) {
   const [filter, setFilter] = useState('');
   const [copied, setCopied] = useState<string>();
   const [activeView, setActiveView] = useState<DeveloperView>('tokens');
@@ -205,9 +269,19 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
   const [motionPreviewStep, setMotionPreviewStep] = useState(0);
   const [isMotionPreviewRunning, setIsMotionPreviewRunning] = useState(false);
   const [floatingNoticePreviewVersion, setFloatingNoticePreviewVersion] = useState(0);
-  const currentRows = useMemo(() => tokenRows(theme), [theme]);
-  const lightSemantic = useMemo(() => resolveThemeTokens('light').semantic, []);
-  const darkSemantic = useMemo(() => resolveThemeTokens('dark').semantic, []);
+  const [colorStatus, setColorStatus] = useState<string>();
+  const currentRows = useMemo(
+    () => tokenRows(theme, colorOverrides[theme]),
+    [colorOverrides, theme],
+  );
+  const lightSemantic = useMemo(
+    () => resolveThemeTokens('light', colorOverrides.light).semantic,
+    [colorOverrides],
+  );
+  const darkSemantic = useMemo(
+    () => resolveThemeTokens('dark', colorOverrides.dark).semantic,
+    [colorOverrides],
+  );
   const motionTokens = useMemo(() => resolveThemeTokens(theme).component, [theme]);
   const prefersReducedMotion =
     window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
@@ -269,6 +343,16 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
     }
   }
 
+  function handleColorChange(name: ColorTokenName, value: string) {
+    onColorChange(name, value);
+    setColorStatus(`已更新 ${name}，当前主题中的使用位置已同步。`);
+  }
+
+  function handleResetColors() {
+    onResetColors();
+    setColorStatus('已恢复当前主题的默认颜色。');
+  }
+
   const developerPanels: Readonly<Record<DeveloperView, ReactNode>> = {
     tokens: (
       <>
@@ -281,6 +365,17 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
           />
           <span>{filteredRows.length} 个 Token</span>
         </div>
+
+        <div className="token-color-settings">
+          <div>
+            <h3>公用 UI 颜色</h3>
+            <p>修改当前主题的语义颜色后，使用该 Token 的组件会立即同步更新。</p>
+          </div>
+          <Button variant="secondary" onClick={handleResetColors}>
+            恢复默认颜色
+          </Button>
+        </div>
+        {colorStatus ? <InlineMessage title="颜色设置状态">{colorStatus}</InlineMessage> : null}
 
         <div className="token-table-wrap" tabIndex={0} aria-label="当前主题 Token 列表">
           <table className="token-table">
@@ -307,6 +402,16 @@ export function DesignSystemViewer({ theme }: Readonly<{ theme: ThemeName }>) {
                     <TokenValue value={row.value} />
                   </td>
                   <td>
+                    {(row.layer === 'primitive' || row.layer === 'semantic') &&
+                    (
+                      [...primitiveColorTokenNames, ...semanticColorTokenNames] as readonly string[]
+                    ).includes(row.name) ? (
+                      <ColorTokenEditor
+                        name={row.name as ColorTokenName}
+                        value={row.value}
+                        onChange={handleColorChange}
+                      />
+                    ) : null}
                     <IconButton
                       className="token-copy-button"
                       label={`复制 ${row.name}`}

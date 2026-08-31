@@ -89,6 +89,58 @@ export const semanticThemeTokens = {
   },
 } as const;
 
+export const semanticColorTokenNames = Object.freeze(
+  Object.keys(semanticThemeTokens.light).filter((name) => name.startsWith('color.')),
+) as readonly Extract<keyof (typeof semanticThemeTokens)['light'], `color.${string}`>[];
+
+export const primitiveColorTokenNames = Object.freeze(
+  Object.keys(primitiveTokens).filter((name) => name.startsWith('color.')),
+) as readonly Extract<keyof typeof primitiveTokens, `color.${string}`>[];
+
+export type PrimitiveColorTokenName = (typeof primitiveColorTokenNames)[number];
+export type SemanticColorTokenName = (typeof semanticColorTokenNames)[number];
+export type ColorTokenName = PrimitiveColorTokenName | SemanticColorTokenName;
+export type ThemeColorOverrides = Partial<Record<ColorTokenName, string>>;
+
+const semanticPrimitiveSources: Readonly<
+  Record<ThemeName, Readonly<Record<SemanticColorTokenName, PrimitiveColorTokenName>>>
+> = {
+  light: {
+    'color.background.canvas': 'color.neutral.50',
+    'color.background.surface': 'color.neutral.0',
+    'color.background.selected': 'color.neutral.100',
+    'color.text.primary': 'color.neutral.950',
+    'color.text.secondary': 'color.neutral.500',
+    'color.border.default': 'color.neutral.300',
+    'color.border.strong': 'color.neutral.600',
+    'color.action.primary': 'color.neutral.950',
+    'color.action.primary-text': 'color.neutral.0',
+    'color.focus.ring': 'color.neutral.600',
+    'color.accent.calendar': 'color.red.700',
+    'color.status.info': 'color.cyan.700',
+    'color.status.success': 'color.green.700',
+    'color.status.warning': 'color.amber.700',
+    'color.status.error': 'color.red.700',
+  },
+  dark: {
+    'color.background.canvas': 'color.neutral.850',
+    'color.background.surface': 'color.neutral.750',
+    'color.background.selected': 'color.neutral.600',
+    'color.text.primary': 'color.neutral.50',
+    'color.text.secondary': 'color.neutral.300',
+    'color.border.default': 'color.neutral.600',
+    'color.border.strong': 'color.neutral.300',
+    'color.action.primary': 'color.neutral.50',
+    'color.action.primary-text': 'color.neutral.950',
+    'color.focus.ring': 'color.neutral.300',
+    'color.accent.calendar': 'color.cyan.300',
+    'color.status.info': 'color.cyan.300',
+    'color.status.success': 'color.green.300',
+    'color.status.warning': 'color.amber.300',
+    'color.status.error': 'color.red.300',
+  },
+};
+
 export const componentTokens = {
   'button.compact.height': primitiveTokens['dimension.control.compact'],
   'button.compact.radius': primitiveTokens['radius.2'],
@@ -119,10 +171,37 @@ export type ResolvedThemeTokens = Readonly<{
 }>;
 
 /** 返回构建期 Token 的只读快照，供测试和开发者查看器使用。 */
-export function resolveThemeTokens(theme: ThemeName): ResolvedThemeTokens {
+export function resolveThemeTokens(
+  theme: ThemeName,
+  colorOverrides: ThemeColorOverrides = {},
+): ResolvedThemeTokens {
+  const hasPrimitiveOverrides = primitiveColorTokenNames.some((name) =>
+    Boolean(colorOverrides[name]),
+  );
+  const hasSemanticOverrides = semanticColorTokenNames.some((name) =>
+    Boolean(colorOverrides[name]),
+  );
+  const primitive = hasPrimitiveOverrides ? { ...primitiveTokens } : primitiveTokens;
+  const semantic =
+    hasPrimitiveOverrides || hasSemanticOverrides
+      ? { ...semanticThemeTokens[theme] }
+      : semanticThemeTokens[theme];
+  for (const name of primitiveColorTokenNames) {
+    const override = colorOverrides[name];
+    if (override) {
+      (primitive as Record<string, string>)[name] = override;
+    }
+  }
+  for (const name of semanticColorTokenNames) {
+    const override = colorOverrides[name] ?? colorOverrides[semanticPrimitiveSources[theme][name]];
+    if (override) {
+      (semantic as Record<string, string>)[name] = override;
+    }
+  }
+
   return {
-    primitive: primitiveTokens,
-    semantic: semanticThemeTokens[theme],
+    primitive,
+    semantic,
     component: componentTokens,
   };
 }

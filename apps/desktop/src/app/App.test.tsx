@@ -441,6 +441,38 @@ describe('desktop shell', () => {
     expect(screen.getByText('已完成：整理今天的计划')).toBeInTheDocument();
   });
 
+  it('edits shared semantic colors, persists them, and restores defaults', () => {
+    const firstRender = render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: '打开设置' }));
+    fireEvent.click(screen.getByRole('tab', { name: '开发者' }));
+    const colorField = screen.getByRole('textbox', { name: '编辑 color.background.canvas' });
+    fireEvent.change(colorField, { target: { value: '#123456' } });
+
+    expect(document.documentElement.style.getPropertyValue('--amt-color-background-canvas')).toBe(
+      '#123456',
+    );
+    expect(JSON.parse(window.localStorage.getItem('shell.theme-color-overrides') ?? '')).toEqual({
+      light: { 'color.background.canvas': '#123456' },
+      dark: {},
+    });
+    expect(screen.getByText(/当前主题中的使用位置已同步/)).toBeInTheDocument();
+
+    firstRender.unmount();
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: '打开设置' }));
+    fireEvent.click(screen.getByRole('tab', { name: '开发者' }));
+    expect(screen.getByRole('textbox', { name: '编辑 color.background.canvas' })).toHaveValue(
+      '#123456',
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '恢复默认颜色' }));
+    expect(document.documentElement.style.getPropertyValue('--amt-color-background-canvas')).toBe(
+      '',
+    );
+    expect(screen.getByText('已恢复当前主题的默认颜色。')).toBeInTheDocument();
+  });
+
   it('restores the shell workspace after remounting', () => {
     const firstRender = render(<App />);
 

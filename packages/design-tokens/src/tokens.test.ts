@@ -43,6 +43,25 @@ describe('设计 Token', () => {
     expect(dark.semantic['color.accent.calendar']).toBe(primitiveTokens['color.cyan.300']);
   });
 
+  it('允许仅覆盖语义颜色并保留原始色阶和组件 Token', () => {
+    const resolved = resolveThemeTokens('light', {
+      'color.background.canvas': '#123456',
+    });
+
+    expect(resolved.semantic['color.background.canvas']).toBe('#123456');
+    expect(resolved.primitive).toBe(primitiveTokens);
+    expect(resolved.component).toBe(resolveThemeTokens('light').component);
+  });
+
+  it('让原始颜色覆盖沿引用关系同步到语义颜色', () => {
+    const resolved = resolveThemeTokens('light', {
+      'color.neutral.50': '#123456',
+    });
+
+    expect(resolved.primitive['color.neutral.50']).toBe('#123456');
+    expect(resolved.semantic['color.background.canvas']).toBe('#123456');
+  });
+
   it('提供桌面窗口和工作区的稳定尺寸 Token', () => {
     expect(primitiveTokens['dimension.window.min-width']).toBe('960px');
     expect(primitiveTokens['dimension.window.min-height']).toBe('640px');
