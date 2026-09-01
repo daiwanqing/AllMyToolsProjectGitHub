@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, HorizontalTabs, InlineMessage, StatusBadge } from '@allmytools/ui';
+import { Button, FloatingNotice, HorizontalTabs, StatusBadge } from '@allmytools/ui';
 import { manifest } from './manifest';
 import { loadSelectedSession, saveSelectedSession } from './storage';
 
@@ -32,7 +32,11 @@ export function ToolView() {
         保存选择
       </Button>
       {selected ? <StatusBadge tone="info">当前选择：{selected}</StatusBadge> : null}
-      {saved ? <InlineMessage title="保存状态">选择已保存</InlineMessage> : null}
+      {saved ? (
+        <FloatingNotice title="保存状态" onDismiss={() => setSaved(false)}>
+          选择已保存
+        </FloatingNotice>
+      ) : null}
     </section>
   );
 }

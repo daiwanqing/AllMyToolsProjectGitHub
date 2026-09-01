@@ -1,4 +1,12 @@
-import { Component, type ErrorInfo, type ReactNode, useEffect, useMemo, useState } from 'react';
+import {
+  Component,
+  type ErrorInfo,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { ToolCategory } from '@allmytools/platform-contracts';
 import {
   primitiveColorTokenNames,
@@ -9,6 +17,7 @@ import {
 } from '@allmytools/design-tokens';
 import {
   Button,
+  FloatingNotice,
   HorizontalTabs,
   VerticalTabs,
   EmptyState,
@@ -166,6 +175,12 @@ function readThemeColorOverrideLayer(value: unknown): ThemeColorOverrides {
   return result;
 }
 
+function colorTokenVariable(name: ColorTokenName): string {
+  return (primitiveColorTokenNames as readonly string[]).includes(name)
+    ? `--amt-primitive-${name.replaceAll('.', '-').toLowerCase()}`
+    : `--amt-${name.replaceAll('.', '-').toLowerCase()}`;
+}
+
 function isWorkspaceView(value: unknown): value is WorkspaceView {
   return value === 'home' || value === 'settings';
 }
@@ -262,6 +277,7 @@ export function App() {
   const [themeColorOverrides, setThemeColorOverrides] = useState<PersistedThemeColorOverrides>(
     initialThemeColorOverrides,
   );
+  const themeRef = useRef(theme);
   const [view, setView] = useState<WorkspaceView>(initialWorkspaceState?.view ?? 'home');
   const [category, setCategory] = useState<ToolCategory | 'all'>(
     initialWorkspaceState?.category ?? 'all',
@@ -276,19 +292,25 @@ export function App() {
     () => window.localStorage.getItem('shell.quick-toggle-shortcut') === 'enabled',
   );
   const [shortcutMessage, setShortcutMessage] = useState<string>();
+  const [shortcutNoticeVisible, setShortcutNoticeVisible] = useState(false);
   const [activeTool, setActiveTool] = useState<ActiveToolSession>();
   const [toolLoadMessage, setToolLoadMessage] = useState<string>();
 
   useEffect(() => {
+    if (shortcutMessage) {
+      setShortcutNoticeVisible(true);
+    }
+  }, [shortcutMessage]);
+
+  useEffect(() => {
+    themeRef.current = theme;
     document.documentElement.dataset.theme = theme;
     for (const tokenName of [...primitiveColorTokenNames, ...semanticColorTokenNames]) {
-      document.documentElement.style.removeProperty(
-        `--amt-${tokenName.replaceAll('.', '-').toLowerCase()}`,
-      );
+      document.documentElement.style.removeProperty(colorTokenVariable(tokenName));
     }
     for (const [tokenName, value] of Object.entries(themeColorOverrides[theme])) {
       document.documentElement.style.setProperty(
-        `--amt-${tokenName.replaceAll('.', '-').toLowerCase()}`,
+        colorTokenVariable(tokenName as ColorTokenName),
         value,
       );
     }
@@ -407,10 +429,15 @@ export function App() {
   }
 
   function updateThemeColor(name: ColorTokenName, value: string) {
+    document.documentElement.style.setProperty(colorTokenVariable(name), value);
     setThemeColorOverrides((current) => ({
       ...current,
-      [theme]: { ...current[theme], [name]: value },
+      [themeRef.current]: { ...current[themeRef.current], [name]: value },
     }));
+  }
+
+  function previewThemeColor(name: ColorTokenName, value: string) {
+    document.documentElement.style.setProperty(colorTokenVariable(name), value);
   }
 
   function resetThemeColors() {
@@ -443,8 +470,10 @@ export function App() {
             onChange={() => void toggleQuickToggleShortcut()}
           />
         </SettingRow>
-        {shortcutMessage ? (
-          <InlineMessage title="快捷键状态">{shortcutMessage}</InlineMessage>
+        {shortcutMessage && shortcutNoticeVisible ? (
+          <FloatingNotice title="快捷键状态" onDismiss={() => setShortcutNoticeVisible(false)}>
+            {shortcutMessage}
+          </FloatingNotice>
         ) : null}
       </div>
     ),
@@ -453,6 +482,7 @@ export function App() {
         theme={theme}
         colorOverrides={themeColorOverrides}
         onColorChange={updateThemeColor}
+        onColorPreview={previewThemeColor}
         onResetColors={resetThemeColors}
       />
     ),

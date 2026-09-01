@@ -4,6 +4,7 @@ import {
   HorizontalTabs,
   Disclosure,
   EmptyState,
+  FloatingNotice,
   InlineMessage,
   SelectField,
   StatusBadge,
@@ -236,7 +237,11 @@ export function ToolView() {
           {error}
         </InlineMessage>
       ) : null}
-      {message ? <InlineMessage title="处理状态">{message}</InlineMessage> : null}
+      {message ? (
+        <FloatingNotice title="处理状态" onDismiss={() => setMessage(undefined)}>
+          {message}
+        </FloatingNotice>
+      ) : null}
 
       <section className="text-workbench-section" aria-labelledby="text-result-heading">
         <h3 id="text-result-heading">结果</h3>

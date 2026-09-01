@@ -441,7 +441,7 @@ describe('desktop shell', () => {
     expect(screen.getByText('已完成：整理今天的计划')).toBeInTheDocument();
   });
 
-  it('edits shared semantic colors, persists them, and restores defaults', () => {
+  it('edits shared semantic colors, persists them, and restores defaults', async () => {
     const firstRender = render(<App />);
 
     fireEvent.click(screen.getByRole('button', { name: '打开设置' }));
@@ -452,11 +452,19 @@ describe('desktop shell', () => {
     expect(document.documentElement.style.getPropertyValue('--amt-color-background-canvas')).toBe(
       '#123456',
     );
-    expect(JSON.parse(window.localStorage.getItem('shell.theme-color-overrides') ?? '')).toEqual({
-      light: { 'color.background.canvas': '#123456' },
-      dark: {},
+    await waitFor(() =>
+      expect(JSON.parse(window.localStorage.getItem('shell.theme-color-overrides') ?? '')).toEqual({
+        light: { 'color.background.canvas': '#123456' },
+        dark: {},
+      }),
+    );
+    const primitiveColorField = screen.getByRole('textbox', {
+      name: '编辑 color.neutral.50',
     });
-    expect(screen.getByText(/当前主题中的使用位置已同步/)).toBeInTheDocument();
+    fireEvent.change(primitiveColorField, { target: { value: '#abcdef' } });
+    expect(
+      document.documentElement.style.getPropertyValue('--amt-primitive-color-neutral-50'),
+    ).toBe('#abcdef');
 
     firstRender.unmount();
     render(<App />);
@@ -470,7 +478,6 @@ describe('desktop shell', () => {
     expect(document.documentElement.style.getPropertyValue('--amt-color-background-canvas')).toBe(
       '',
     );
-    expect(screen.getByText('已恢复当前主题的默认颜色。')).toBeInTheDocument();
   });
 
   it('restores the shell workspace after remounting', () => {

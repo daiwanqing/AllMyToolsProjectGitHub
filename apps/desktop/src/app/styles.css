@@ -1275,7 +1275,7 @@ h2 {
   border-bottom: 0;
 }
 
-.token-table td:last-child {
+.token-actions {
   display: flex;
   align-items: center;
   gap: var(--amt-space-2);

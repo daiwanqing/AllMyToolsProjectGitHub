@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import {
   resolveThemeTokens,
   primitiveColorTokenNames,
@@ -199,17 +199,41 @@ function ColorTokenEditor({
   name,
   value,
   onChange,
+  onPreview,
 }: Readonly<{
   name: ColorTokenName;
   value: string;
   onChange: (name: ColorTokenName, value: string) => void;
+  onPreview: (name: ColorTokenName, value: string) => void;
 }>) {
   const [draft, setDraft] = useState(value);
+  const commitTimer = useRef<number | undefined>(undefined);
   const valid = /^#[0-9a-fA-F]{6}$/.test(draft);
 
   useEffect(() => {
     setDraft(value);
   }, [value]);
+
+  useEffect(
+    () => () => {
+      if (commitTimer.current !== undefined) {
+        window.clearTimeout(commitTimer.current);
+      }
+    },
+    [],
+  );
+
+  function previewAndCommit(nextValue: string) {
+    setDraft(nextValue);
+    onPreview(name, nextValue);
+    if (commitTimer.current !== undefined) {
+      window.clearTimeout(commitTimer.current);
+    }
+    commitTimer.current = window.setTimeout(() => {
+      onChange(name, nextValue.toLowerCase());
+      commitTimer.current = undefined;
+    }, 180);
+  }
 
   return (
     <div className="token-color-editor">
@@ -219,8 +243,7 @@ function ColorTokenEditor({
         aria-label={`选择 ${name}`}
         value={valid ? draft : value}
         onChange={(event) => {
-          setDraft(event.target.value);
-          onChange(name, event.target.value);
+          previewAndCommit(event.target.value);
         }}
       />
       <TextField
@@ -233,7 +256,14 @@ function ColorTokenEditor({
           const nextValue = event.target.value;
           setDraft(nextValue);
           if (/^#[0-9a-fA-F]{6}$/.test(nextValue)) {
-            onChange(name, nextValue.toLowerCase());
+            onPreview(name, nextValue.toLowerCase());
+            if (commitTimer.current !== undefined) {
+              window.clearTimeout(commitTimer.current);
+            }
+            commitTimer.current = window.setTimeout(() => {
+              onChange(name, nextValue.toLowerCase());
+              commitTimer.current = undefined;
+            }, 180);
           }
         }}
         error={draft.length > 0 && !valid ? '请输入 6 位十六进制颜色值。' : undefined}
@@ -246,11 +276,13 @@ export function DesignSystemViewer({
   theme,
   colorOverrides,
   onColorChange,
+  onColorPreview,
   onResetColors,
 }: Readonly<{
   theme: ThemeName;
   colorOverrides: Readonly<Record<ThemeName, ThemeColorOverrides>>;
   onColorChange: (name: ColorTokenName, value: string) => void;
+  onColorPreview: (name: ColorTokenName, value: string) => void;
   onResetColors: () => void;
 }>) {
   const [filter, setFilter] = useState('');
@@ -269,7 +301,6 @@ export function DesignSystemViewer({
   const [motionPreviewStep, setMotionPreviewStep] = useState(0);
   const [isMotionPreviewRunning, setIsMotionPreviewRunning] = useState(false);
   const [floatingNoticePreviewVersion, setFloatingNoticePreviewVersion] = useState(0);
-  const [colorStatus, setColorStatus] = useState<string>();
   const currentRows = useMemo(
     () => tokenRows(theme, colorOverrides[theme]),
     [colorOverrides, theme],
@@ -343,16 +374,6 @@ export function DesignSystemViewer({
     }
   }
 
-  function handleColorChange(name: ColorTokenName, value: string) {
-    onColorChange(name, value);
-    setColorStatus(`已更新 ${name}，当前主题中的使用位置已同步。`);
-  }
-
-  function handleResetColors() {
-    onResetColors();
-    setColorStatus('已恢复当前主题的默认颜色。');
-  }
-
   const developerPanels: Readonly<Record<DeveloperView, ReactNode>> = {
     tokens: (
       <>
@@ -369,13 +390,12 @@ export function DesignSystemViewer({
         <div className="token-color-settings">
           <div>
             <h3>公用 UI 颜色</h3>
-            <p>修改当前主题的语义颜色后，使用该 Token 的组件会立即同步更新。</p>
+            <p>修改当前主题的原始或语义颜色后，使用该 Token 的组件会立即同步更新。</p>
           </div>
-          <Button variant="secondary" onClick={handleResetColors}>
+          <Button variant="secondary" onClick={onResetColors}>
             恢复默认颜色
           </Button>
         </div>
-        {colorStatus ? <InlineMessage title="颜色设置状态">{colorStatus}</InlineMessage> : null}
 
         <div className="token-table-wrap" tabIndex={0} aria-label="当前主题 Token 列表">
           <table className="token-table">
@@ -402,23 +422,29 @@ export function DesignSystemViewer({
                     <TokenValue value={row.value} />
                   </td>
                   <td>
-                    {(row.layer === 'primitive' || row.layer === 'semantic') &&
-                    (
-                      [...primitiveColorTokenNames, ...semanticColorTokenNames] as readonly string[]
-                    ).includes(row.name) ? (
-                      <ColorTokenEditor
-                        name={row.name as ColorTokenName}
-                        value={row.value}
-                        onChange={handleColorChange}
-                      />
-                    ) : null}
-                    <IconButton
-                      className="token-copy-button"
-                      label={`复制 ${row.name}`}
-                      onClick={() => void copyToken(row.name, row.value)}
-                    >
-                      <Copy aria-hidden="true" />
-                    </IconButton>
+                    <div className="token-actions">
+                      {(row.layer === 'primitive' || row.layer === 'semantic') &&
+                      (
+                        [
+                          ...primitiveColorTokenNames,
+                          ...semanticColorTokenNames,
+                        ] as readonly string[]
+                      ).includes(row.name) ? (
+                        <ColorTokenEditor
+                          name={row.name as ColorTokenName}
+                          value={row.value}
+                          onChange={onColorChange}
+                          onPreview={onColorPreview}
+                        />
+                      ) : null}
+                      <IconButton
+                        className="token-copy-button"
+                        label={`复制 ${row.name}`}
+                        onClick={() => void copyToken(row.name, row.value)}
+                      >
+                        <Copy aria-hidden="true" />
+                      </IconButton>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -426,9 +452,13 @@ export function DesignSystemViewer({
           </table>
         </div>
         {copied ? (
-          <InlineMessage title="复制状态">
+          <FloatingNotice
+            title="复制状态"
+            tone={copied === '复制失败，请手动选择 Token 名称。' ? 'error' : 'info'}
+            onDismiss={() => setCopied(undefined)}
+          >
             {copied === '复制失败，请手动选择 Token 名称。' ? copied : `已复制 ${copied}。`}
-          </InlineMessage>
+          </FloatingNotice>
         ) : null}
       </>
     ),
