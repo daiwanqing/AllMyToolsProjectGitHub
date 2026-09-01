@@ -368,6 +368,11 @@ describe('desktop shell', () => {
     expect(
       within(screen.getByRole('tabpanel', { name: 'Token' })).getByText('页面最底层画布背景。'),
     ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('tabpanel', { name: 'Token' })).getAllByText(
+        '排版层级参数，用于统一字号、行高、字重和字体。',
+      ).length,
+    ).toBeGreaterThan(0);
 
     fireEvent.keyDown(screen.getByRole('tab', { name: 'Token' }), { key: 'ArrowRight' });
     expect(screen.getByRole('tab', { name: '主题对比' })).toHaveAttribute('aria-selected', 'true');

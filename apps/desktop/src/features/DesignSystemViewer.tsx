@@ -107,6 +107,9 @@ function describeToken(name: string): string {
   if (name.startsWith('dimension.')) {
     return '稳定尺寸刻度，用于控件、图标或工作区布局。';
   }
+  if (name.startsWith('typography.')) {
+    return '排版层级参数，用于统一字号、行高、字重和字体。';
+  }
   if (name.startsWith('duration.')) {
     return '动效时长刻度，用于统一反馈和内容切换速度。';
   }

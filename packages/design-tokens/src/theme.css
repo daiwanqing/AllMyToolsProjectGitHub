@@ -37,6 +37,22 @@
   --amt-primitive-dimension-window-min-width: 960px;
   --amt-primitive-dimension-window-min-height: 640px;
   --amt-primitive-dimension-workspace-tool-max-width: 880px;
+  --amt-primitive-typography-font-family-sans:
+    Inter, 'Microsoft YaHei UI', 'Microsoft YaHei', system-ui, sans-serif;
+  --amt-primitive-typography-size-page-title: 24px;
+  --amt-primitive-typography-size-tool-title: 20px;
+  --amt-primitive-typography-size-section-title: 16px;
+  --amt-primitive-typography-size-body: 14px;
+  --amt-primitive-typography-size-caption: 12px;
+  --amt-primitive-typography-size-data: 13px;
+  --amt-primitive-typography-line-height-page-title: 32px;
+  --amt-primitive-typography-line-height-tool-title: 28px;
+  --amt-primitive-typography-line-height-section-title: 24px;
+  --amt-primitive-typography-line-height-body: 20px;
+  --amt-primitive-typography-line-height-caption: 16px;
+  --amt-primitive-typography-weight-regular: 400;
+  --amt-primitive-typography-weight-medium: 600;
+  --amt-primitive-typography-weight-bold: 700;
   --amt-primitive-duration-fast: 120ms;
   --amt-primitive-duration-normal: 180ms;
   --amt-primitive-easing-standard: cubic-bezier(0.2, 0, 0, 1);
@@ -60,6 +76,23 @@
   --amt-dimension-window-min-width: var(--amt-primitive-dimension-window-min-width);
   --amt-dimension-window-min-height: var(--amt-primitive-dimension-window-min-height);
   --amt-dimension-workspace-tool-max-width: var(--amt-primitive-dimension-workspace-tool-max-width);
+  --amt-typography-font-family-sans: var(--amt-primitive-typography-font-family-sans);
+  --amt-typography-size-page-title: var(--amt-primitive-typography-size-page-title);
+  --amt-typography-size-tool-title: var(--amt-primitive-typography-size-tool-title);
+  --amt-typography-size-section-title: var(--amt-primitive-typography-size-section-title);
+  --amt-typography-size-body: var(--amt-primitive-typography-size-body);
+  --amt-typography-size-caption: var(--amt-primitive-typography-size-caption);
+  --amt-typography-size-data: var(--amt-primitive-typography-size-data);
+  --amt-typography-line-height-page-title: var(--amt-primitive-typography-line-height-page-title);
+  --amt-typography-line-height-tool-title: var(--amt-primitive-typography-line-height-tool-title);
+  --amt-typography-line-height-section-title: var(
+    --amt-primitive-typography-line-height-section-title
+  );
+  --amt-typography-line-height-body: var(--amt-primitive-typography-line-height-body);
+  --amt-typography-line-height-caption: var(--amt-primitive-typography-line-height-caption);
+  --amt-typography-weight-regular: var(--amt-primitive-typography-weight-regular);
+  --amt-typography-weight-medium: var(--amt-primitive-typography-weight-medium);
+  --amt-typography-weight-bold: var(--amt-primitive-typography-weight-bold);
   --amt-motion-fast: var(--amt-primitive-duration-fast);
   --amt-motion-normal: var(--amt-primitive-duration-normal);
   --amt-motion-easing-standard: var(--amt-primitive-easing-standard);

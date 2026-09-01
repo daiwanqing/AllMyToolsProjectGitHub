@@ -854,13 +854,15 @@ export function App() {
         >
           <div className="catalog-heading">
             <div className="search-field">
-              <Search aria-hidden="true" />
-              <TextField
-                label="搜索工具"
-                placeholder="按名称或关键词搜索"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-              />
+              <div className="search-input-shell">
+                <Search aria-hidden="true" />
+                <TextField
+                  label="搜索工具"
+                  placeholder="按名称或关键词搜索"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                />
+              </div>
             </div>
           </div>
           <div className="catalog-sections">

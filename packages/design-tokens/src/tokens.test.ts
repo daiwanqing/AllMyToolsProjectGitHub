@@ -76,4 +76,12 @@ describe('设计 Token', () => {
       primitiveTokens['easing.standard'],
     );
   });
+
+  it('提供工具台使用的共享排版层级', () => {
+    expect(primitiveTokens['typography.size.page-title']).toBe('24px');
+    expect(primitiveTokens['typography.size.tool-title']).toBe('20px');
+    expect(primitiveTokens['typography.size.body']).toBe('14px');
+    expect(primitiveTokens['typography.line-height.body']).toBe('20px');
+    expect(primitiveTokens['typography.weight.medium']).toBe('600');
+  });
 });
