@@ -1,3 +1,5 @@
+import { writeStorage, type StorageWriteResult } from '@allmytools/platform-services';
+
 export const calendarTodosStorageKey = 'tools.calendar-todos.items';
 export const calendarTodosStorageVersion = 4;
 const maxCheckInDates = 3660;
@@ -319,8 +321,12 @@ export function loadCalendarTodos(storage: CalendarTodosStorage): CalendarTodosD
   return { todos: [], checkIns: [], notes: [] };
 }
 
-export function saveCalendarTodos(storage: CalendarTodosStorage, data: CalendarTodosData): void {
-  storage.setItem(
+export function saveCalendarTodos(
+  storage: CalendarTodosStorage,
+  data: CalendarTodosData,
+): StorageWriteResult {
+  return writeStorage(
+    storage,
     calendarTodosStorageKey,
     JSON.stringify({
       version: calendarTodosStorageVersion,

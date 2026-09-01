@@ -8,6 +8,7 @@ import { EmptyState } from './EmptyState';
 import { FloatingNotice } from './FloatingNotice';
 import { IconButton } from './IconButton';
 import { InlineMessage } from './InlineMessage';
+import { Modal } from './Modal';
 import { NavigationItem } from './NavigationItem';
 import { ProgressBar } from './ProgressBar';
 import { SelectField } from './SelectField';
@@ -270,6 +271,7 @@ describe('composite controls', () => {
       'StatusBadge',
       'ProgressBar',
       'Disclosure',
+      'Modal',
     ]);
     expect(uiGuidelineGroups.map((group) => group.title)).toEqual([
       'Token 和主题',
@@ -277,6 +279,25 @@ describe('composite controls', () => {
       '可访问性与交互',
       '状态和响应式',
     ]);
+  });
+
+  it('uses modal semantics and restores focus after closing', async () => {
+    const trigger = document.createElement('button');
+    document.body.append(trigger);
+    trigger.focus();
+    const onClose = vi.fn();
+    const { unmount } = render(
+      <Modal open labelledBy="modal-title" onClose={onClose}>
+        <h2 id="modal-title">确认操作</h2>
+        <button type="button">继续</button>
+      </Modal>,
+    );
+    const dialog = screen.getByRole('dialog', { name: '确认操作' });
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    fireEvent.keyDown(dialog, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    unmount();
+    expect(trigger).toHaveFocus();
   });
 
   it('combines choice options with selected state', () => {

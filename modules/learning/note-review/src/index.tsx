@@ -8,6 +8,7 @@ export { manifest };
 export function ToolView() {
   const [note, setNote] = useState(() => loadReviewDraft(window.localStorage));
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string>();
 
   return (
     <section
@@ -24,12 +25,14 @@ export function ToolView() {
         onChange={(event) => {
           setNote(event.target.value);
           setSaved(false);
+          setSaveError(undefined);
         }}
       />
       <Button
         onClick={() => {
-          saveReviewDraft(window.localStorage, note);
-          setSaved(true);
+          const result = saveReviewDraft(window.localStorage, note);
+          setSaved(result.ok);
+          setSaveError(result.ok ? undefined : result.message);
         }}
       >
         保存草稿
@@ -37,6 +40,11 @@ export function ToolView() {
       {saved ? (
         <FloatingNotice title="保存状态" onDismiss={() => setSaved(false)}>
           草稿已保存。
+        </FloatingNotice>
+      ) : null}
+      {saveError ? (
+        <FloatingNotice title="保存失败" tone="error" onDismiss={() => setSaveError(undefined)}>
+          {saveError}
         </FloatingNotice>
       ) : null}
     </section>

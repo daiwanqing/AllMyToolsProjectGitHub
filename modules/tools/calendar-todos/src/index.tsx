@@ -11,6 +11,7 @@ import {
 import {
   Button,
   FloatingNotice,
+  Modal,
   SelectField,
   StatusBadge,
   TextAreaField,
@@ -243,6 +244,13 @@ export function ToolView() {
     todayAnchorRef.current?.scrollIntoView?.({ block: 'center' });
   }, [calendarView, showDateDetail, showCheckInManager, visibleMonth]);
 
+  useEffect(
+    () => () => {
+      mouseDragCleanup.current?.();
+    },
+    [],
+  );
+
   function goToToday() {
     const date = todayDate ?? new Date();
     setVisibleMonth(new Date(date.getFullYear(), date.getMonth(), 1));
@@ -251,9 +259,14 @@ export function ToolView() {
     shouldFocusToday.current = true;
   }
 
-  function commit(nextData: CalendarTodosData) {
+  function commit(nextData: CalendarTodosData): boolean {
+    const result = saveCalendarTodos(window.localStorage, nextData);
+    if (!result.ok) {
+      showNotice(result.message, 'error');
+      return false;
+    }
     setData(nextData);
-    saveCalendarTodos(window.localStorage, nextData);
+    return true;
   }
 
   function showNotice(message: string, tone: FloatingNoticeTone = 'info') {
@@ -295,19 +308,22 @@ export function ToolView() {
       return;
     }
 
-    commit({
-      ...data,
-      todos: [
-        ...data.todos,
-        {
-          id: createRecordId('todo'),
-          date: selectedDate,
-          title,
-          status: 'not-started',
-          createdAt: new Date().toISOString(),
-        },
-      ],
-    });
+    if (
+      !commit({
+        ...data,
+        todos: [
+          ...data.todos,
+          {
+            id: createRecordId('todo'),
+            date: selectedDate,
+            title,
+            status: 'not-started',
+            createdAt: new Date().toISOString(),
+          },
+        ],
+      })
+    )
+      return;
     setNewTodoTitle('');
     showNotice('待办已添加。');
   }
@@ -318,7 +334,7 @@ export function ToolView() {
       return;
     }
 
-    commit({ ...data, todos: data.todos.filter((item) => item.id !== id) });
+    if (!commit({ ...data, todos: data.todos.filter((item) => item.id !== id) })) return;
     showNotice(`待办已删除：${todo.title}`);
   }
 
@@ -342,7 +358,7 @@ export function ToolView() {
           } satisfies DailyNote,
         ]
       : data.notes.filter((note) => note.date !== selectedDate);
-    commit({ ...data, notes });
+    if (!commit({ ...data, notes })) return;
     setNoteDrafts((drafts) => {
       const remainingDrafts = { ...drafts };
       delete remainingDrafts[selectedDate];
@@ -356,10 +372,13 @@ export function ToolView() {
       return;
     }
 
-    commit({
-      ...data,
-      notes: data.notes.filter((note) => note.date !== selectedDate),
-    });
+    if (
+      !commit({
+        ...data,
+        notes: data.notes.filter((note) => note.date !== selectedDate),
+      })
+    )
+      return;
     setNoteDrafts((drafts) => {
       const remainingDrafts = { ...drafts };
       delete remainingDrafts[selectedDate];
@@ -375,10 +394,13 @@ export function ToolView() {
         return;
       }
 
-      commit({
-        ...data,
-        todos: data.todos.map((item) => (item.id === id ? { ...item, status } : item)),
-      });
+      if (
+        !commit({
+          ...data,
+          todos: data.todos.map((item) => (item.id === id ? { ...item, status } : item)),
+        })
+      )
+        return;
       showNotice(
         `${taskStatusLabels[status]}：${todo.title}`,
         status === 'completed' ? 'success' : 'info',
@@ -400,19 +422,22 @@ export function ToolView() {
     if (completed === alreadyCompleted) {
       return;
     }
-    commit({
-      ...data,
-      checkIns: data.checkIns.map((item) =>
-        item.id === checkIn.id
-          ? {
-              ...item,
-              dates: completed
-                ? [...item.dates, checkInDate]
-                : item.dates.filter((itemDate) => itemDate !== checkInDate),
-            }
-          : item,
-      ),
-    });
+    if (
+      !commit({
+        ...data,
+        checkIns: data.checkIns.map((item) =>
+          item.id === checkIn.id
+            ? {
+                ...item,
+                dates: completed
+                  ? [...item.dates, checkInDate]
+                  : item.dates.filter((itemDate) => itemDate !== checkInDate),
+              }
+            : item,
+        ),
+      })
+    )
+      return;
     showNotice(
       `${completed ? '已完成打卡' : '已取消打卡'}：${checkIn.title}`,
       completed ? 'success' : 'info',
@@ -558,20 +583,23 @@ export function ToolView() {
       ...(checkInDraft.frequency === 'monthly' ? { monthDays: checkInDraft.monthDays } : {}),
     };
     const isEditing = checkInDialog !== 'create' && checkInDialog !== null;
-    commit({
-      ...data,
-      checkIns: isEditing
-        ? data.checkIns.map((item) => (item.id === checkInDialog ? { ...item, ...fields } : item))
-        : [
-            ...data.checkIns,
-            {
-              id: createRecordId('check-in'),
-              ...fields,
-              dates: [],
-              createdAt: new Date().toISOString(),
-            },
-          ],
-    });
+    if (
+      !commit({
+        ...data,
+        checkIns: isEditing
+          ? data.checkIns.map((item) => (item.id === checkInDialog ? { ...item, ...fields } : item))
+          : [
+              ...data.checkIns,
+              {
+                id: createRecordId('check-in'),
+                ...fields,
+                dates: [],
+                createdAt: new Date().toISOString(),
+              },
+            ],
+      })
+    )
+      return;
     closeCheckInDialog();
     showNotice(isEditing ? '打卡项目已更新。' : '打卡项目已添加。');
   }
@@ -590,12 +618,15 @@ export function ToolView() {
     const dates = checked
       ? item.dates.filter((date) => date !== selectedDate)
       : [...item.dates, selectedDate];
-    commit({
-      ...data,
-      checkIns: data.checkIns.map((checkIn) =>
-        checkIn.id === id ? { ...checkIn, dates } : checkIn,
-      ),
-    });
+    if (
+      !commit({
+        ...data,
+        checkIns: data.checkIns.map((checkIn) =>
+          checkIn.id === id ? { ...checkIn, dates } : checkIn,
+        ),
+      })
+    )
+      return;
     showNotice(
       `${checked ? '已取消打卡' : '已完成打卡'}：${item.title}`,
       checked ? 'info' : 'success',
@@ -603,7 +634,7 @@ export function ToolView() {
   }
 
   function deleteCheckIn(id: string) {
-    commit({ ...data, checkIns: data.checkIns.filter((item) => item.id !== id) });
+    if (!commit({ ...data, checkIns: data.checkIns.filter((item) => item.id !== id) })) return;
     showNotice('打卡项目已删除。');
   }
 
@@ -1007,20 +1038,11 @@ export function ToolView() {
             })}
           </ul>
           {checkInDialog ? (
-            <dialog
-              open
+            <Modal
               className="check-in-dialog"
-              aria-labelledby="check-in-dialog-heading"
-              aria-modal="true"
-              onClick={(event) => {
-                if (event.target === event.currentTarget) {
-                  closeCheckInDialog();
-                }
-              }}
-              onCancel={(event) => {
-                event.preventDefault();
-                closeCheckInDialog();
-              }}
+              labelledBy="check-in-dialog-heading"
+              open
+              onClose={closeCheckInDialog}
             >
               <form className="check-in-dialog-form" onSubmit={saveCheckIn}>
                 <div className="check-in-dialog-heading">
@@ -1118,7 +1140,7 @@ export function ToolView() {
                   </Button>
                 </div>
               </form>
-            </dialog>
+            </Modal>
           ) : null}
         </section>
       )}

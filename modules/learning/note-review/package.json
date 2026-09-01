@@ -13,6 +13,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@allmytools/platform-services": "workspace:*",
     "@allmytools/platform-contracts": "workspace:*",
     "@allmytools/ui": "workspace:*"
   },

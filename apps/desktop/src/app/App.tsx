@@ -24,6 +24,7 @@ import {
   EmptyState,
   IconButton,
   InlineMessage,
+  Modal,
   SettingRow,
   Tabs,
   TextField,
@@ -276,12 +277,14 @@ function ToolTile({
   onOpen,
   onToggleFavorite,
   showCategory = false,
+  loading = false,
 }: Readonly<{
   entry: ToolCatalogEntry;
   favorite: boolean;
   onOpen: (entry: ToolCatalogEntry) => void;
   onToggleFavorite: (id: string) => void;
   showCategory?: boolean;
+  loading?: boolean;
 }>) {
   return (
     <article className="tool-tile" aria-labelledby={`tool-${entry.id}`}>
@@ -300,7 +303,7 @@ function ToolTile({
         >
           <Star aria-hidden="true" fill={favorite ? 'currentColor' : 'none'} />
         </IconButton>
-        <Button variant="secondary" onClick={() => onOpen(entry)}>
+        <Button variant="secondary" loading={loading} onClick={() => onOpen(entry)}>
           打开
         </Button>
       </div>
@@ -375,6 +378,8 @@ export function App() {
   const [workspaceElement, setWorkspaceElement] = useState<HTMLElement | null>(null);
   const [activeTool, setActiveTool] = useState<ActiveToolSession>();
   const [toolLoadMessage, setToolLoadMessage] = useState<string>();
+  const [loadingToolId, setLoadingToolId] = useState<string>();
+  const activationRequestRef = useRef(0);
 
   const appendDebugLog = useCallback((message: string) => {
     setDebugLogs((current) =>
@@ -540,23 +545,34 @@ export function App() {
   }
 
   async function openTool(entry: ToolCatalogEntry) {
+    const requestId = ++activationRequestRef.current;
+    setLoadingToolId(entry.id);
     setRecentIds((current) =>
       [entry.id, ...current.filter((currentId) => currentId !== entry.id)].slice(0, 4),
     );
 
     setToolLoadMessage(undefined);
-    const activation = await toolRegistry.activate(entry.id);
-    if (!activation.ok) {
-      setToolLoadMessage(activation.failure.message);
-      return;
-    }
+    try {
+      const activation = await toolRegistry.activate(entry.id);
+      if (requestId !== activationRequestRef.current) {
+        if (activation.ok) void toolRegistry.dispose(activation.session);
+        return;
+      }
+      if (!activation.ok) {
+        setToolLoadMessage(activation.failure.message);
+        return;
+      }
 
-    setActiveTool(activation.session);
+      setActiveTool(activation.session);
+    } finally {
+      if (requestId === activationRequestRef.current) setLoadingToolId(undefined);
+    }
   }
 
   function closeActiveTool() {
+    activationRequestRef.current += 1;
     if (activeTool) {
-      toolRegistry.dispose(activeTool);
+      void toolRegistry.dispose(activeTool);
     }
 
     setActiveTool(undefined);
@@ -867,6 +883,7 @@ export function App() {
                       favorite={favoriteIds.includes(entry.id)}
                       onOpen={openTool}
                       onToggleFavorite={toggleFavorite}
+                      loading={loadingToolId === entry.id}
                       showCategory
                     />
                   ))}
@@ -893,6 +910,7 @@ export function App() {
                       favorite={favoriteIds.includes(entry.id)}
                       onOpen={openTool}
                       onToggleFavorite={toggleFavorite}
+                      loading={loadingToolId === entry.id}
                       showCategory={category === 'all'}
                     />
                   ))}
@@ -904,25 +922,17 @@ export function App() {
           </div>
         </section>
         {view === 'settings' ? (
-          <dialog
+          <Modal
             className="settings-dialog"
+            labelledBy="settings-dialog-title"
             open
-            data-debug-target="true"
-            data-debug-kind="区域"
-            data-debug-label="设置弹窗"
-            data-debug-source="apps/desktop/src/app/App.tsx:884"
-            data-debug-code={'<dialog className="settings-dialog">...'}
-            aria-labelledby="settings-dialog-title"
-            aria-modal="true"
-            onClick={(event) => {
-              if (event.target === event.currentTarget) {
-                setView('home');
-              }
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape') {
-                setView('home');
-              }
+            onClose={() => setView('home')}
+            debugAttributes={{
+              'data-debug-target': 'true',
+              'data-debug-kind': '区域',
+              'data-debug-label': '设置弹窗',
+              'data-debug-source': 'apps/desktop/src/app/App.tsx:884',
+              'data-debug-code': '<dialog className="settings-dialog">...',
             }}
           >
             <div className="settings-dialog-content">
@@ -944,7 +954,7 @@ export function App() {
                 }}
               />
             </div>
-          </dialog>
+          </Modal>
         ) : null}
         <DebugOverlay
           enabled={debugMode}

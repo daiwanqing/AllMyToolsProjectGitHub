@@ -10,6 +10,7 @@ export { manifest };
 export function ToolView() {
   const [selected, setSelected] = useState(() => loadSelectedSession(window.localStorage));
   const [saved, setSaved] = useState(() => Boolean(loadSelectedSession(window.localStorage)));
+  const [saveError, setSaveError] = useState<string>();
 
   return (
     <section
@@ -29,13 +30,15 @@ export function ToolView() {
         onChange={(option) => {
           setSelected(option);
           setSaved(false);
+          setSaveError(undefined);
         }}
       />
       <Button
         disabled={!selected}
         onClick={() => {
-          saveSelectedSession(window.localStorage, selected);
-          setSaved(true);
+          const result = saveSelectedSession(window.localStorage, selected);
+          setSaved(result.ok);
+          setSaveError(result.ok ? undefined : result.message);
         }}
       >
         保存选择
@@ -44,6 +47,11 @@ export function ToolView() {
       {saved ? (
         <FloatingNotice title="保存状态" onDismiss={() => setSaved(false)}>
           选择已保存
+        </FloatingNotice>
+      ) : null}
+      {saveError ? (
+        <FloatingNotice title="保存失败" tone="error" onDismiss={() => setSaveError(undefined)}>
+          {saveError}
         </FloatingNotice>
       ) : null}
     </section>

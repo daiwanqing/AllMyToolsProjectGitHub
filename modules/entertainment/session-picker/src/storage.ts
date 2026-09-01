@@ -6,6 +6,10 @@ export function loadSelectedSession(storage: SessionPickerStorage): string {
   return storage.getItem(selectedSessionStorageKey) ?? '';
 }
 
-export function saveSelectedSession(storage: SessionPickerStorage, value: string): void {
-  storage.setItem(selectedSessionStorageKey, value);
+export function saveSelectedSession(
+  storage: SessionPickerStorage,
+  value: string,
+): StorageWriteResult {
+  return writeStorage(storage, selectedSessionStorageKey, value);
 }
+import { writeStorage, type StorageWriteResult } from '@allmytools/platform-services';

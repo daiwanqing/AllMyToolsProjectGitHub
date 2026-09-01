@@ -14,5 +14,7 @@ export {
   type RegisteredTool,
   type ToolActivationFailure,
   type ToolActivationResult,
+  type ToolModuleWithLifecycle,
   type ToolSession,
 } from './toolRegistry';
+export { writeStorage, type StorageWriteFailureCode, type StorageWriteResult } from './storage';

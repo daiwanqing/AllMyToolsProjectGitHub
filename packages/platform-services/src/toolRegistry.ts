@@ -14,6 +14,10 @@ export type RegisteredTool<TModule> = Readonly<{
   load: () => Promise<TModule>;
 }>;
 
+export type ToolModuleWithLifecycle = Readonly<{
+  dispose?: () => void | Promise<void>;
+}>;
+
 export type ToolActivationFailure = Readonly<{
   code: 'missing-capability' | 'unsupported-version' | 'load-failed' | 'unknown-tool';
   message: string;
@@ -103,8 +107,21 @@ export class ToolRegistry<TModule> {
     }
   }
 
-  public dispose(session: ToolSession<TModule>) {
-    return session.lifecycle === 'disposed' ? session : this.transition(session, 'disposed');
+  public async dispose(session: ToolSession<TModule>) {
+    if (session.lifecycle === 'disposed') {
+      return session;
+    }
+
+    const disposedSession = this.transition(session, 'disposed');
+    const module = session.module as (TModule & ToolModuleWithLifecycle) | undefined;
+    if (module?.dispose) {
+      try {
+        await module.dispose();
+      } catch {
+        // Disposal failures must not prevent the shell from leaving the tool workspace.
+      }
+    }
+    return disposedSession;
   }
 
   private transition(

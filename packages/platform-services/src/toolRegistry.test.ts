@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ToolRegistry } from './toolRegistry';
 
 const manifest = {
@@ -24,8 +24,20 @@ describe('ToolRegistry', () => {
       session: { id: manifest.id, lifecycle: 'active', module: 'loaded-module' },
     });
     if (result.ok) {
-      expect(registry.dispose(result.session).lifecycle).toBe('disposed');
+      expect((await registry.dispose(result.session)).lifecycle).toBe('disposed');
     }
+  });
+
+  it('runs a loaded module cleanup hook when disposing a session', async () => {
+    const dispose = vi.fn();
+    const registry = new ToolRegistry<{ dispose: () => void }>('0.1.0');
+    registry.register({ manifest, load: async () => ({ dispose }) });
+    const result = await registry.activate(manifest.id);
+
+    if (result.ok) {
+      await registry.dispose(result.session);
+    }
+    expect(dispose).toHaveBeenCalledTimes(1);
   });
 
   it('contains a failed loader without affecting another registered tool', async () => {

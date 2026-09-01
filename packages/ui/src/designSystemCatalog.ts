@@ -99,6 +99,11 @@ export const uiComponentCatalog: readonly UiComponentDefinition[] = [
     category: '复合控件',
     contract: '组合可展开标题和内容面板，保持展开状态可见。',
   },
+  {
+    name: 'Modal',
+    category: '复合控件',
+    contract: '真正 modal 对话框、Escape/遮罩关闭、焦点限制和关闭后焦点恢复。',
+  },
 ];
 
 export const uiGuidelineGroups: readonly UiGuidelineGroup[] = [
