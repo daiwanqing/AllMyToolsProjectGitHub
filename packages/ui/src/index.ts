@@ -32,3 +32,4 @@ export {
 export { TextField, type TextFieldProps } from './TextField';
 export { TextAreaField, type TextAreaFieldProps } from './TextAreaField';
 export { ToggleField, type ToggleFieldProps } from './ToggleField';
+export { ToggleButton, type ToggleButtonProps } from './ToggleButton';

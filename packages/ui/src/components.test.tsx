@@ -19,6 +19,7 @@ import { HorizontalTabs, VerticalTabs } from './TabControl';
 import { TextField } from './TextField';
 import { TextAreaField } from './TextAreaField';
 import { ToggleField } from './ToggleField';
+import { ToggleButton } from './ToggleButton';
 import { uiComponentCatalog, uiGuidelineGroups } from './designSystemCatalog';
 
 afterEach(() => {
@@ -57,6 +58,23 @@ describe('Button', () => {
     render(<Button variant="danger">删除</Button>);
 
     expect(screen.getByRole('button', { name: '删除' })).toHaveClass('amt-button-danger');
+  });
+});
+
+describe('ToggleButton', () => {
+  it('exposes and styles the pressed state while keeping button behavior', () => {
+    const onClick = vi.fn();
+    render(
+      <ToggleButton pressed onClick={onClick}>
+        调试
+      </ToggleButton>,
+    );
+
+    const button = screen.getByRole('button', { name: '调试' });
+    expect(button).toHaveAttribute('aria-pressed', 'true');
+    expect(button).toHaveClass('amt-toggle-button');
+    fireEvent.click(button);
+    expect(onClick).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -233,6 +251,7 @@ describe('composite controls', () => {
   it('keeps the shared component and guideline catalog complete', () => {
     expect(uiComponentCatalog.map((component) => component.name)).toEqual([
       'Button',
+      'ToggleButton',
       'TextField',
       'TextAreaField',
       'EmptyState',

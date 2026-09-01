@@ -31,6 +31,26 @@ describe('desktop shell', () => {
     expect(screen.queryByRole('dialog', { name: '设置' })).not.toBeInTheDocument();
   });
 
+  it('shows the runtime console and toggles debug mode from the host toolbar', () => {
+    render(<App />);
+
+    expect(screen.getByRole('region', { name: '运行输出台' })).toBeInTheDocument();
+    const debugButton = screen.getByRole('button', { name: '调试' });
+    fireEvent.click(debugButton);
+    expect(debugButton).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByText('调试模式已开启。')).toBeInTheDocument();
+    expect(screen.queryByRole('status', { name: '调试模式' })).not.toBeInTheDocument();
+
+    const workspace = screen.getByRole('region', { name: '工具目录' }).parentElement;
+    expect(workspace).not.toBeNull();
+    fireEvent.pointerMove(screen.getByRole('heading', { name: '工具工作台' }));
+    expect(screen.getByText(/悬浮 文本：/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('heading', { name: '工具工作台' }));
+    expect(screen.getByRole('dialog', { name: '元素源码定位' })).toHaveTextContent(
+      'apps/desktop/src/app/App.tsx',
+    );
+  });
+
   it('filters tools by category and search query', () => {
     render(<App />);
 
@@ -357,6 +377,10 @@ describe('desktop shell', () => {
     expect(screen.getByRole('heading', { name: '公共组件' })).toBeInTheDocument();
     expect(screen.getByText('SettingRow')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '组件展厅' })).toBeInTheDocument();
+    const showcaseToggle = screen.getByRole('button', { name: '调试状态' });
+    expect(showcaseToggle).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(showcaseToggle);
+    expect(showcaseToggle).toHaveAttribute('aria-pressed', 'true');
     const directionTablist = screen.getByRole('tablist', { name: '查看方向' });
     fireEvent.click(within(directionTablist).getByRole('tab', { name: '详情' }));
     expect(within(directionTablist).getByRole('tab', { name: '详情' })).toHaveAttribute(
@@ -412,6 +436,27 @@ describe('desktop shell', () => {
       'aria-selected',
       'true',
     );
+  });
+
+  it('toggles debug mode with the default shortcut and opens source details for a tool element', async () => {
+    render(<App />);
+    const reviewTool = screen.getByRole('article', { name: '复习笔记' });
+    fireEvent.click(within(reviewTool).getByRole('button', { name: '打开' }));
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1, name: '复习笔记' })).toBeInTheDocument(),
+    );
+
+    fireEvent.keyDown(window, { key: '0', ctrlKey: true, altKey: true });
+    const toolRegion = await waitFor(() => screen.getByRole('region', { name: '复习笔记工具' }));
+    fireEvent.pointerMove(toolRegion);
+    expect(await screen.findByText('区域 · 复习笔记工具')).toBeInTheDocument();
+    fireEvent.click(toolRegion);
+    expect(screen.getByRole('dialog', { name: '元素源码定位' })).toHaveTextContent(
+      'modules/learning/note-review/src/index.tsx:12',
+    );
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: '元素源码定位' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '调试' })).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('switches settings tabs with keyboard and restores the selected tab', () => {
@@ -487,7 +532,7 @@ describe('desktop shell', () => {
     fireEvent.change(screen.getByRole('textbox', { name: '搜索工具' }), {
       target: { value: '笔记' },
     });
-    fireEvent.click(screen.getByRole('button', { name: '深色' }));
+    fireEvent.click(screen.getByRole('tab', { name: '深色' }));
     firstRender.unmount();
 
     render(<App />);

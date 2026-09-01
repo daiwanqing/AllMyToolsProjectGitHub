@@ -15,6 +15,7 @@ import {
   StatusBadge,
   TextAreaField,
   TextField,
+  ToggleButton,
   ToggleField,
   type FloatingNoticeTone,
 } from '@allmytools/ui';
@@ -648,6 +649,13 @@ export function ToolView() {
     <section
       className="calendar-todo-workspace"
       aria-label={showCheckInManager ? '周期打卡' : '日历待办'}
+      data-debug-target="true"
+      data-debug-kind="区域"
+      data-debug-label={showCheckInManager ? '周期打卡' : '日历待办'}
+      data-debug-source="modules/tools/calendar-todos/src/index.tsx:647"
+      data-debug-code={
+        'export function ToolView() { return <section className="calendar-todo-workspace">...'
+      }
     >
       <div className="calendar-todo-heading-actions">
         {!showCheckInManager && !showDateDetail && calendarView === 'month' ? (
@@ -660,7 +668,7 @@ export function ToolView() {
             今天
           </Button>
         ) : null}
-        <Button
+        <ToggleButton
           variant="secondary"
           className={!showCheckInManager && !showDateDetail ? 'calendar-cycle-action' : undefined}
           onClick={() => {
@@ -673,10 +681,10 @@ export function ToolView() {
               setShowCheckInManager(true);
             }
           }}
-          aria-pressed={showCheckInManager}
+          pressed={showCheckInManager}
         >
           {showCheckInManager ? '返回日历待办' : showDateDetail ? '返回日历' : '周期打卡'}
-        </Button>
+        </ToggleButton>
       </div>
       {notice ? (
         <FloatingNotice

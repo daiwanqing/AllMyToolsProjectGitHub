@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Button } from './Button';
+import { ToggleButton } from './ToggleButton';
 
 export type ChoiceOption = Readonly<{
   id: string;
@@ -26,11 +26,11 @@ export function ChoiceGroup({ ariaLabel, className, onChange, options, value }: 
       aria-label={ariaLabel}
     >
       {options.map((option) => (
-        <Button
+        <ToggleButton
           key={option.id}
           className="amt-choice-option"
           variant={value === option.id ? 'primary' : 'secondary'}
-          aria-pressed={value === option.id}
+          pressed={value === option.id}
           disabled={option.disabled}
           onClick={() => onChange(option.id)}
         >
@@ -41,7 +41,7 @@ export function ChoiceGroup({ ariaLabel, className, onChange, options, value }: 
               <span className="amt-choice-option-description">{option.description}</span>
             ) : null}
           </span>
-        </Button>
+        </ToggleButton>
       ))}
     </div>
   );

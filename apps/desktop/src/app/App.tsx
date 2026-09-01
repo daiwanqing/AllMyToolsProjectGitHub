@@ -2,6 +2,7 @@ import {
   Component,
   type ErrorInfo,
   type ReactNode,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -27,10 +28,12 @@ import {
   Tabs,
   TextField,
   ToggleField,
+  ToggleButton,
   type TabsItem,
 } from '@allmytools/ui';
 import {
   ArrowLeft,
+  Bug,
   Code2,
   Clock3,
   Grid2X2,
@@ -50,8 +53,13 @@ import {
 } from '../features/catalog';
 import { toolRegistry, type ActiveToolSession } from '../features/registeredTools';
 import { DesignSystemViewer } from '../features/DesignSystemViewer';
+import { DebugOverlay } from '../features/DebugOverlay';
 import {
+  debugShortcutEventName,
+  defaultDebugShortcut,
   disableQuickToggleShortcut,
+  disableDebugShortcut,
+  enableDebugShortcut,
   enableQuickToggleShortcut,
   quickToggleShortcut,
   supportsGlobalShortcuts,
@@ -122,6 +130,8 @@ const settingsTabs: ReadonlyArray<Readonly<{ id: SettingsTab; label: string; ico
 
 const workspaceStorageKey = 'shell.workspace-state';
 const themeColorOverridesStorageKey = 'shell.theme-color-overrides';
+const debugShortcutStorageKey = 'shell.debug-shortcut';
+const debugShortcutEnabledStorageKey = 'shell.debug-shortcut-enabled';
 
 type PersistedWorkspaceState = Readonly<{
   category: ToolCategory | 'all';
@@ -132,9 +142,37 @@ type PersistedWorkspaceState = Readonly<{
 }>;
 
 type PersistedThemeColorOverrides = Readonly<Record<ThemeName, ThemeColorOverrides>>;
+type RuntimeLog = Readonly<{ id: number; message: string }>;
 
 function isHexColor(value: unknown): value is string {
   return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value);
+}
+
+type ShortcutKeyboardEvent = Readonly<{
+  key: string;
+  ctrlKey: boolean;
+  metaKey: boolean;
+  altKey: boolean;
+  shiftKey: boolean;
+}>;
+
+function shortcutForKeyboardEvent(event: ShortcutKeyboardEvent): string | undefined {
+  const key = event.key.length === 1 ? event.key.toUpperCase() : event.key;
+  if (!key || ['Control', 'Alt', 'Shift', 'Meta'].includes(key)) return undefined;
+  const modifiers: string[] = [];
+  if (event.ctrlKey || event.metaKey) modifiers.push('CommandOrControl');
+  if (event.altKey) modifiers.push('Alt');
+  if (event.shiftKey) modifiers.push('Shift');
+  return modifiers.length ? [...modifiers, key].join('+') : key;
+}
+
+function shortcutMatches(event: ShortcutKeyboardEvent, shortcut: string): boolean {
+  const actual = shortcutForKeyboardEvent(event);
+  return (
+    actual === shortcut ||
+    (shortcut.startsWith('CommandOrControl+') &&
+      actual === shortcut.replace('CommandOrControl', 'Control'))
+  );
 }
 
 function readThemeColorOverrides(storage: Storage): PersistedThemeColorOverrides {
@@ -270,6 +308,34 @@ function ToolTile({
   );
 }
 
+function RuntimeConsole({
+  logs,
+  onClear,
+}: Readonly<{ logs: readonly RuntimeLog[]; onClear: () => void }>) {
+  return (
+    <section className="runtime-console" aria-label="运行输出台">
+      <header>
+        <h2>运行输出台</h2>
+        <Button variant="secondary" onClick={onClear} disabled={!logs.length}>
+          清空
+        </Button>
+      </header>
+      {logs.length ? (
+        <pre>
+          {logs.map((entry) => (
+            <span key={entry.id}>
+              {entry.message}
+              {'\n'}
+            </span>
+          ))}
+        </pre>
+      ) : (
+        <p>暂无运行输出。</p>
+      )}
+    </section>
+  );
+}
+
 export function App() {
   const [initialWorkspaceState] = useState(() => readWorkspaceState(window.localStorage));
   const [initialThemeColorOverrides] = useState(() => readThemeColorOverrides(window.localStorage));
@@ -293,8 +359,46 @@ export function App() {
   );
   const [shortcutMessage, setShortcutMessage] = useState<string>();
   const [shortcutNoticeVisible, setShortcutNoticeVisible] = useState(false);
+  const [debugShortcut, setDebugShortcut] = useState(
+    () => window.localStorage.getItem(debugShortcutStorageKey) ?? defaultDebugShortcut,
+  );
+  const [debugShortcutEnabled, setDebugShortcutEnabled] = useState(
+    () => window.localStorage.getItem(debugShortcutEnabledStorageKey) !== 'disabled',
+  );
+  const [debugMode, setDebugMode] = useState(false);
+  const debugModeRef = useRef(false);
+  const debugRegistrationLoggedRef = useRef<string | undefined>(undefined);
+  const [debugLogs, setDebugLogs] = useState<readonly RuntimeLog[]>([]);
+  const toolContentRef = useRef<HTMLElement>(null);
+  const [toolContentElement, setToolContentElement] = useState<HTMLElement | null>(null);
+  const workspaceRef = useRef<HTMLElement>(null);
+  const [workspaceElement, setWorkspaceElement] = useState<HTMLElement | null>(null);
   const [activeTool, setActiveTool] = useState<ActiveToolSession>();
   const [toolLoadMessage, setToolLoadMessage] = useState<string>();
+
+  const appendDebugLog = useCallback((message: string) => {
+    setDebugLogs((current) =>
+      [...current, { id: Date.now() + current.length, message }].slice(-100),
+    );
+  }, []);
+
+  const toggleDebugMode = useCallback(() => {
+    const next = !debugModeRef.current;
+    debugModeRef.current = next;
+    setDebugMode(next);
+    appendDebugLog(next ? '调试模式已开启。' : '调试模式已关闭。');
+  }, [appendDebugLog]);
+
+  const exitDebugMode = useCallback(() => {
+    debugModeRef.current = false;
+    setDebugMode(false);
+    appendDebugLog('已退出调试模式。');
+  }, [appendDebugLog]);
+
+  const handleNativeDebugShortcut = useCallback(() => {
+    appendDebugLog('收到 Tauri 全局调试快捷键事件。');
+    toggleDebugMode();
+  }, [appendDebugLog, toggleDebugMode]);
 
   useEffect(() => {
     if (shortcutMessage) {
@@ -332,6 +436,11 @@ export function App() {
   }, [category, query, settingsTab, theme, view]);
 
   useEffect(() => {
+    setToolContentElement(toolContentRef.current);
+    setWorkspaceElement(workspaceRef.current);
+  }, [activeTool, view]);
+
+  useEffect(() => {
     if (!shortcutEnabled || !supportsGlobalShortcuts()) {
       return;
     }
@@ -351,6 +460,55 @@ export function App() {
     },
     [],
   );
+
+  useEffect(() => {
+    window.addEventListener(debugShortcutEventName, handleNativeDebugShortcut);
+    return () => window.removeEventListener(debugShortcutEventName, handleNativeDebugShortcut);
+  }, [handleNativeDebugShortcut]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey || event.altKey) && event.key !== 'Control') {
+        appendDebugLog(
+          `收到按键 ${event.key}（Ctrl=${event.ctrlKey} Alt=${event.altKey} Meta=${event.metaKey}）`,
+        );
+      }
+      if (debugShortcutEnabled && shortcutMatches(event, debugShortcut)) {
+        event.preventDefault();
+        appendDebugLog(`匹配调试快捷键 ${debugShortcut}`);
+        toggleDebugMode();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
+  }, [appendDebugLog, debugShortcut, debugShortcutEnabled, toggleDebugMode]);
+
+  useEffect(() => {
+    window.localStorage.setItem(debugShortcutStorageKey, debugShortcut);
+    window.localStorage.setItem(
+      debugShortcutEnabledStorageKey,
+      debugShortcutEnabled ? 'enabled' : 'disabled',
+    );
+    if (!debugShortcutEnabled || !supportsGlobalShortcuts()) {
+      if (debugRegistrationLoggedRef.current !== 'fallback') {
+        debugRegistrationLoggedRef.current = 'fallback';
+        appendDebugLog('窗口内快捷键监听已启用（当前宿主不支持全局注册）。');
+      }
+      return undefined;
+    }
+    void enableDebugShortcut(debugShortcut).catch(() => {
+      setDebugShortcutEnabled(false);
+      setShortcutMessage('调试模式快捷键注册失败，请修改快捷键后重试。');
+      appendDebugLog(`全局快捷键注册失败：${debugShortcut}`);
+    });
+    if (debugRegistrationLoggedRef.current !== debugShortcut) {
+      debugRegistrationLoggedRef.current = debugShortcut;
+      appendDebugLog(`正在注册全局调试快捷键：${debugShortcut}`);
+    }
+    return () => {
+      void disableDebugShortcut(debugShortcut);
+    };
+  }, [appendDebugLog, debugShortcut, debugShortcutEnabled]);
 
   const visibleTools = useMemo(
     () =>
@@ -402,6 +560,9 @@ export function App() {
     }
 
     setActiveTool(undefined);
+    debugModeRef.current = false;
+    setDebugMode(false);
+    setDebugLogs([]);
   }
 
   async function toggleQuickToggleShortcut() {
@@ -470,6 +631,28 @@ export function App() {
             onChange={() => void toggleQuickToggleShortcut()}
           />
         </SettingRow>
+        <SettingRow label="调试模式快捷键">
+          <TextField
+            label="按键组合"
+            value={debugShortcut}
+            readOnly
+            aria-keyshortcuts={debugShortcut}
+            onKeyDown={(event) => {
+              const next = shortcutForKeyboardEvent(event);
+              if (!next) return;
+              event.preventDefault();
+              setDebugShortcut(next);
+              setShortcutMessage(`调试模式快捷键已设为 ${next}。`);
+            }}
+          />
+        </SettingRow>
+        <SettingRow label="调试模式">
+          <ToggleField
+            label="启用调试模式快捷键"
+            checked={debugShortcutEnabled}
+            onChange={() => setDebugShortcutEnabled((current) => !current)}
+          />
+        </SettingRow>
         {shortcutMessage && shortcutNoticeVisible ? (
           <FloatingNotice title="快捷键状态" onDismiss={() => setShortcutNoticeVisible(false)}>
             {shortcutMessage}
@@ -506,19 +689,25 @@ export function App() {
             <h1 id="application-title">{activeToolName}</h1>
           </div>
           <div className="tool-focus-actions">
-            <div className="theme-switcher" role="group" aria-label="界面主题">
-              {themes.map(({ id, label }) => (
-                <Button
-                  key={id}
-                  className="theme-option"
-                  variant="secondary"
-                  aria-pressed={theme === id}
-                  onClick={() => setTheme(id)}
-                >
-                  {label}
-                </Button>
-              ))}
+            <div className="theme-switcher">
+              <HorizontalTabs
+                ariaLabel="界面主题"
+                items={themes}
+                value={theme}
+                onChange={(value) => {
+                  if (value === 'light' || value === 'dark') setTheme(value);
+                }}
+              />
             </div>
+            <ToggleButton
+              variant="secondary"
+              className="debug-toggle-button"
+              pressed={debugMode}
+              onClick={toggleDebugMode}
+            >
+              <Bug aria-hidden="true" />
+              调试
+            </ToggleButton>
             <Button
               variant="secondary"
               aria-label="打开设置"
@@ -536,18 +725,35 @@ export function App() {
             </Button>
           </div>
         </header>
-        <section className="tool-focus-content" aria-label="工具工作区">
+        <section className="tool-focus-content" aria-label="工具工作区" ref={toolContentRef}>
           <ToolErrorBoundary onClose={closeActiveTool}>
             <activeTool.module.ToolView />
           </ToolErrorBoundary>
+          <DebugOverlay enabled={debugMode} root={toolContentElement} onExit={exitDebugMode} />
         </section>
+        <RuntimeConsole logs={debugLogs} onClear={() => setDebugLogs([])} />
       </main>
     );
   }
 
   return (
-    <main className="desktop-shell" aria-labelledby="application-title">
-      <aside className="navigation-rail">
+    <main
+      className="desktop-shell"
+      aria-labelledby="application-title"
+      data-debug-target="true"
+      data-debug-kind="区域"
+      data-debug-label="AllMyTools 主界面"
+      data-debug-source="apps/desktop/src/app/App.tsx:750"
+      data-debug-code={'return <main className="desktop-shell">...'}
+    >
+      <aside
+        className="navigation-rail"
+        data-debug-target="true"
+        data-debug-kind="区域"
+        data-debug-label="主导航"
+        data-debug-source="apps/desktop/src/app/App.tsx:758"
+        data-debug-code={'<aside className="navigation-rail">...'}
+      >
         <div className="application-mark" aria-hidden="true">
           AT
         </div>
@@ -570,26 +776,47 @@ export function App() {
           />
         </nav>
       </aside>
-      <section className="workspace">
-        <header className="context-toolbar">
+      <section
+        className="workspace"
+        ref={workspaceRef}
+        data-debug-target="true"
+        data-debug-kind="区域"
+        data-debug-label="主工作区"
+        data-debug-source="apps/desktop/src/app/App.tsx:782"
+        data-debug-code={'<section className="workspace">...'}
+      >
+        <header
+          className="context-toolbar"
+          data-debug-target="true"
+          data-debug-kind="区域"
+          data-debug-label="主界面工具栏"
+          data-debug-source="apps/desktop/src/app/App.tsx:783"
+          data-debug-code={'<header className="context-toolbar">...'}
+        >
           <div>
             <p className="eyebrow">AllMyTools</p>
             <h1 id="application-title">工具工作台</h1>
           </div>
           <div className="toolbar-actions">
-            <div className="theme-switcher" role="group" aria-label="界面主题">
-              {themes.map(({ id, label }) => (
-                <Button
-                  key={id}
-                  className="theme-option"
-                  variant="secondary"
-                  aria-pressed={theme === id}
-                  onClick={() => setTheme(id)}
-                >
-                  {label}
-                </Button>
-              ))}
+            <div className="theme-switcher">
+              <HorizontalTabs
+                ariaLabel="界面主题"
+                items={themes}
+                value={theme}
+                onChange={(value) => {
+                  if (value === 'light' || value === 'dark') setTheme(value);
+                }}
+              />
             </div>
+            <ToggleButton
+              variant="secondary"
+              className="debug-toggle-button"
+              pressed={debugMode}
+              onClick={toggleDebugMode}
+            >
+              <Bug aria-hidden="true" />
+              调试
+            </ToggleButton>
             <Button
               variant="secondary"
               aria-label="打开设置"
@@ -600,7 +827,15 @@ export function App() {
             </Button>
           </div>
         </header>
-        <section className="catalog-workspace" aria-label="工具目录">
+        <section
+          className="catalog-workspace"
+          aria-label="工具目录"
+          data-debug-target="true"
+          data-debug-kind="区域"
+          data-debug-label="工具目录"
+          data-debug-source="apps/desktop/src/app/App.tsx:819"
+          data-debug-code={'<section className="catalog-workspace">...'}
+        >
           <div className="catalog-heading">
             <div className="search-field">
               <Search aria-hidden="true" />
@@ -672,6 +907,11 @@ export function App() {
           <dialog
             className="settings-dialog"
             open
+            data-debug-target="true"
+            data-debug-kind="区域"
+            data-debug-label="设置弹窗"
+            data-debug-source="apps/desktop/src/app/App.tsx:884"
+            data-debug-code={'<dialog className="settings-dialog">...'}
             aria-labelledby="settings-dialog-title"
             aria-modal="true"
             onClick={(event) => {
@@ -706,6 +946,13 @@ export function App() {
             </div>
           </dialog>
         ) : null}
+        <DebugOverlay
+          enabled={debugMode}
+          root={workspaceElement}
+          onExit={exitDebugMode}
+          onLog={appendDebugLog}
+        />
+        <RuntimeConsole logs={debugLogs} onClear={() => setDebugLogs([])} />
       </section>
     </main>
   );

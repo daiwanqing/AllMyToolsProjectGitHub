@@ -24,6 +24,7 @@ import {
   StepperField,
   Tabs,
   TextField,
+  ToggleButton,
   ToggleField,
   uiComponentCatalog,
   uiGuidelineGroups,
@@ -294,6 +295,7 @@ export function DesignSystemViewer({
   const [previewDensity, setPreviewDensity] = useState('comfortable');
   const [previewEnabled, setPreviewEnabled] = useState(false);
   const [previewNotifications, setPreviewNotifications] = useState(false);
+  const [previewDebug, setPreviewDebug] = useState(false);
   const [previewMode, setPreviewMode] = useState('system');
   const [previewCount, setPreviewCount] = useState(3);
   const [motionPreviewVersion, setMotionPreviewVersion] = useState(0);
@@ -659,6 +661,13 @@ export function DesignSystemViewer({
         <div className="component-state-preview">
           <h3 id="component-preview-heading">公共组件状态</h3>
           <div className="component-preview-row">
+            <ToggleButton
+              variant="secondary"
+              pressed={previewDebug}
+              onClick={() => setPreviewDebug((current) => !current)}
+            >
+              调试状态
+            </ToggleButton>
             <Button variant="primary">主要操作</Button>
             <Button variant="secondary">次要操作</Button>
             <Button variant="danger">危险操作</Button>

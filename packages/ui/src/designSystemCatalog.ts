@@ -16,6 +16,11 @@ export const uiComponentCatalog: readonly UiComponentDefinition[] = [
     category: '基础操作',
     contract: '主、次、危险红色、加载和禁用状态。',
   },
+  {
+    name: 'ToggleButton',
+    category: '基础操作',
+    contract: '用于状态开关，提供 aria-pressed、选中、焦点和禁用状态。',
+  },
   { name: 'TextField', category: '基础输入', contract: '可见标签、说明、错误关联和禁用状态。' },
   {
     name: 'TextAreaField',

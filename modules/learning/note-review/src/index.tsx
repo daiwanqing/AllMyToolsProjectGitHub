@@ -10,7 +10,14 @@ export function ToolView() {
   const [saved, setSaved] = useState(false);
 
   return (
-    <section aria-label="复习笔记工具">
+    <section
+      aria-label="复习笔记工具"
+      data-debug-target="true"
+      data-debug-kind="区域"
+      data-debug-label="复习笔记工具"
+      data-debug-source="modules/learning/note-review/src/index.tsx:12"
+      data-debug-code={'export function ToolView() { return <section aria-label="复习笔记工具">...'}
+    >
       <TextField
         label="待复习内容"
         value={note}

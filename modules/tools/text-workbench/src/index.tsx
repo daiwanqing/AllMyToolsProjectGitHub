@@ -149,7 +149,17 @@ export function ToolView() {
   }
 
   return (
-    <section className="text-workbench" aria-labelledby="text-workbench-heading">
+    <section
+      className="text-workbench"
+      aria-labelledby="text-workbench-heading"
+      data-debug-target="true"
+      data-debug-kind="区域"
+      data-debug-label="文本工作台"
+      data-debug-source="modules/tools/text-workbench/src/index.tsx:117"
+      data-debug-code={
+        'export function ToolView() { return <section className="text-workbench">...'
+      }
+    >
       <p className="eyebrow">工具</p>
       <h2 id="text-workbench-heading">文本工作台</h2>
       <p className="tool-workspace-description">

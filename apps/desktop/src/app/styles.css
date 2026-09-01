@@ -46,7 +46,7 @@ a:focus-visible {
 
 .tool-focus-shell {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   height: 100vh;
   min-height: var(--amt-dimension-window-min-height);
   background: var(--amt-color-background-canvas);
@@ -88,7 +88,7 @@ a:focus-visible {
 
 .workspace {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 0;
   min-width: 0;
   overflow: hidden;
@@ -152,31 +152,12 @@ h2 {
 
 .theme-switcher {
   display: inline-flex;
-  min-height: var(--amt-button-compact-height);
-  padding: var(--amt-space-1);
-  border: var(--amt-border-width-default) solid var(--amt-color-border-default);
-  border-radius: var(--amt-radius-control);
-  background: var(--amt-color-background-surface);
 }
 
 .toolbar-actions {
   display: inline-flex;
   align-items: center;
   gap: var(--amt-space-3);
-}
-
-.theme-option.amt-button {
-  min-width: calc(var(--amt-space-10) + var(--amt-space-4));
-  min-height: calc(var(--amt-button-compact-height) - var(--amt-space-2));
-  padding: 0 var(--amt-space-2);
-  border: var(--amt-border-width-default) solid var(--amt-color-border-default);
-  border-radius: var(--amt-button-compact-radius);
-  color: var(--amt-color-text-secondary);
-}
-
-.theme-option.amt-button[aria-pressed='true'] {
-  color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-selected);
 }
 
 .catalog-workspace,
@@ -250,6 +231,143 @@ h2 {
   min-height: 0;
   overflow: auto;
   padding: var(--amt-space-8);
+}
+
+.debug-overlay-box {
+  position: fixed;
+  z-index: var(--amt-primitive-z-index-menu);
+  pointer-events: none;
+  border: var(--amt-focus-ring-width) solid var(--debug-color);
+  background: color-mix(in srgb, var(--debug-color) 12%, transparent);
+}
+
+.debug-overlay-box span {
+  position: absolute;
+  top: calc(var(--amt-space-4) * -1);
+  left: calc(var(--amt-focus-ring-width) * -1);
+  max-width: calc(var(--amt-space-10) * 7);
+  overflow: hidden;
+  padding: var(--amt-space-1) var(--amt-space-2);
+  color: var(--amt-color-text-primary);
+  background: var(--amt-color-background-surface);
+  border: var(--amt-border-width-default) solid var(--debug-color);
+  font-size: var(--amt-space-3);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.debug-overlay-panel {
+  position: fixed;
+  z-index: var(--amt-primitive-z-index-dialog);
+  right: var(--amt-space-6);
+  bottom: var(--amt-space-6);
+  display: grid;
+  width: min(calc(var(--amt-space-10) * 9), calc(100vw - var(--amt-space-8)));
+  max-height: min(calc(var(--amt-space-10) * 8), calc(100vh - var(--amt-space-8)));
+  gap: var(--amt-space-4);
+  overflow: auto;
+  padding: var(--amt-space-5);
+  border: var(--amt-border-width-default) solid var(--amt-color-border-strong);
+  border-radius: var(--amt-radius-control);
+  color: var(--amt-color-text-primary);
+  background: var(--amt-color-background-surface);
+  box-shadow: 0 var(--amt-space-2) var(--amt-space-6)
+    color-mix(in srgb, var(--amt-color-text-primary) 22%, transparent);
+}
+
+.debug-overlay-panel header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--amt-space-4);
+}
+
+.debug-overlay-panel h2,
+.debug-overlay-panel p {
+  margin: 0;
+}
+
+.debug-overlay-panel dl {
+  display: grid;
+  gap: var(--amt-space-2);
+  margin: 0;
+}
+
+.debug-overlay-panel dl div {
+  display: grid;
+  grid-template-columns: calc(var(--amt-space-10) + var(--amt-space-3)) minmax(0, 1fr);
+  gap: var(--amt-space-3);
+}
+
+.debug-overlay-panel dt {
+  color: var(--amt-color-text-secondary);
+}
+
+.debug-overlay-panel dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.debug-overlay-panel pre {
+  max-height: calc(var(--amt-space-10) * 4);
+  margin: 0;
+  overflow: auto;
+  padding: var(--amt-space-3);
+  border: var(--amt-border-width-default) solid var(--amt-color-border-default);
+  border-radius: var(--amt-radius-control);
+  color: var(--amt-color-text-primary);
+  background: var(--amt-color-background-canvas);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: var(--amt-space-3);
+  line-height: var(--amt-space-5);
+  white-space: pre-wrap;
+}
+
+.runtime-console {
+  display: grid;
+  gap: var(--amt-space-2);
+  max-height: calc(var(--amt-space-10) * 3);
+  overflow: hidden;
+  padding: var(--amt-space-2) var(--amt-space-8);
+  border-top: var(--amt-border-width-default) solid var(--amt-color-border-default);
+  background: var(--amt-color-background-surface);
+}
+
+.runtime-console header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--amt-space-4);
+}
+
+.runtime-console h2,
+.runtime-console p {
+  margin: 0;
+}
+
+.runtime-console h2 {
+  font-size: var(--amt-space-3);
+  line-height: var(--amt-space-4);
+}
+
+.runtime-console p,
+.runtime-console pre {
+  color: var(--amt-color-text-secondary);
+  font-size: var(--amt-space-3);
+  line-height: var(--amt-space-5);
+}
+
+.runtime-console pre {
+  max-height: calc(var(--amt-space-10) * 2);
+  margin: 0;
+  overflow: auto;
+  padding: var(--amt-space-3);
+  border: var(--amt-border-width-default) solid var(--amt-color-border-default);
+  border-radius: var(--amt-radius-control);
+  background: var(--amt-color-background-canvas);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  white-space: pre-wrap;
 }
 
 .catalog-heading {
