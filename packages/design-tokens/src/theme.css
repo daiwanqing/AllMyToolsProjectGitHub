@@ -153,6 +153,7 @@
   --amt-navigation-item-radius: var(--amt-radius-control);
   --amt-navigation-item-padding-x: var(--amt-space-3);
   --amt-navigation-item-padding-y: var(--amt-space-2);
+  --amt-navigation-back-top-spacing: var(--amt-space-2);
   --amt-focus-ring-width: var(--amt-primitive-focus-width-default);
   --amt-focus-ring-offset: var(--amt-space-1);
   --amt-motion-fast-duration: var(--amt-motion-fast);

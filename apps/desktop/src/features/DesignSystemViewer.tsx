@@ -132,6 +132,9 @@ function describeToken(name: string): string {
     return '控件状态参数，用于统一禁用表现。';
   }
   if (name.startsWith('navigation.')) {
+    if (name === 'navigation.back-top-spacing') {
+      return '返回操作顶部留白，统一不同层级的返回入口间距。';
+    }
     return '导航项尺寸和内边距，保持导航密度一致。';
   }
   if (name.startsWith('motion.')) {

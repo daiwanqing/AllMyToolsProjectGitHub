@@ -84,4 +84,9 @@ describe('设计 Token', () => {
     expect(primitiveTokens['typography.line-height.body']).toBe('20px');
     expect(primitiveTokens['typography.weight.medium']).toBe('600');
   });
+
+  it('提供返回操作统一且更紧凑的顶部间距', () => {
+    expect(resolveThemeTokens('light').component['navigation.back-top-spacing']).toBe('8px');
+    expect(resolveThemeTokens('dark').component['navigation.back-top-spacing']).toBe('8px');
+  });
 });

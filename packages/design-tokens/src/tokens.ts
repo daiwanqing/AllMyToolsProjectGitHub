@@ -173,6 +173,7 @@ export const componentTokens = {
   'navigation.item.radius': primitiveTokens['radius.2'],
   'navigation.item.padding-x': primitiveTokens['space.3'],
   'navigation.item.padding-y': primitiveTokens['space.2'],
+  'navigation.back-top-spacing': primitiveTokens['space.2'],
   'focus.ring.width': primitiveTokens['focus.width.default'],
   'focus.ring.offset': primitiveTokens['space.1'],
   'motion.fast.duration': primitiveTokens['duration.fast'],
