@@ -98,7 +98,7 @@ type TimelineDrag = Readonly<{
 }>;
 
 const timelineSlotMinutes = 15;
-const timelineSlotHeight = 16;
+const timelineSlotHeight = 32;
 const dayMinutes = 24 * 60;
 
 function isValidTimeRange(startTime: string, endTime: string): boolean {
@@ -203,7 +203,6 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
   const todayAnchorRef = useRef<HTMLButtonElement>(null);
   const shouldFocusToday = useRef(true);
   const timelineDragRef = useRef<TimelineDrag | null>(null);
-  const timelineDragMovedRef = useRef(false);
 
   const monthRange = useMemo(
     () => Array.from({ length: 13 }, (_, index) => moveMonth(visibleMonth, index - 6)),
@@ -292,9 +291,6 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
       if (!current) return;
       const clientY = Number.isFinite(event.clientY) ? event.clientY : current.originY;
       const slotOffset = Math.round((clientY - current.originY) / timelineSlotHeight);
-      if (slotOffset !== 0) {
-        timelineDragMovedRef.current = true;
-      }
       const maxStart = dayMinutes - current.duration;
       const nextStart = Math.min(
         maxStart,
@@ -393,7 +389,6 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
       duration,
       nextStart: originalStart,
     };
-    timelineDragMovedRef.current = false;
     timelineDragRef.current = next;
     setTimelineDrag(next);
   }
@@ -1064,19 +1059,9 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
                               style={{ top, height }}
                               onMouseDown={(event) => startTimelineMouseDrag(event, todo)}
                               onPointerDown={(event) => startTimelineDrag(event, todo)}
-                              onClick={() => {
-                                if (timelineDragMovedRef.current) {
-                                  timelineDragMovedRef.current = false;
-                                  return;
-                                }
-                                openTodoEdit(todo);
-                              }}
-                              aria-label={`编辑 ${todo.title}，${todo.startTime} 至 ${todo.endTime}`}
+                              aria-label={`待办 ${todo.title}，${todo.startTime} 至 ${todo.endTime}，可拖动调整时间`}
                             >
                               <strong>{todo.title}</strong>
-                              <small>
-                                {todo.startTime}–{todo.endTime}
-                              </small>
                             </button>
                           );
                         })}
@@ -1198,7 +1183,12 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
                                       variant="secondary"
                                       onMouseDown={(event) => event.stopPropagation()}
                                       onPointerDown={(event) => event.stopPropagation()}
-                                      onClick={() => openTodoEdit(todo)}
+                                      aria-expanded={todoEditId === todo.id}
+                                      onClick={() =>
+                                        todoEditId === todo.id
+                                          ? setTodoEditId(null)
+                                          : openTodoEdit(todo)
+                                      }
                                     >
                                       安排时间
                                     </Button>
@@ -1214,6 +1204,51 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
                                   </div>
                                 ) : null}
                               </div>
+                              {todoEditId === todo.id ? (
+                                <form
+                                  className="todo-item-edit"
+                                  onSubmit={saveTodoEdit}
+                                  onMouseDown={(event) => event.stopPropagation()}
+                                  onPointerDown={(event) => event.stopPropagation()}
+                                >
+                                  <div className="todo-time-fields">
+                                    <TextField
+                                      label="开始时间"
+                                      type="time"
+                                      value={todoEditDraft.startTime}
+                                      onChange={(event) =>
+                                        setTodoEditDraft((time) => ({
+                                          ...time,
+                                          startTime: event.target.value,
+                                        }))
+                                      }
+                                    />
+                                    <TextField
+                                      label="结束时间"
+                                      type="time"
+                                      value={todoEditDraft.endTime}
+                                      onChange={(event) =>
+                                        setTodoEditDraft((time) => ({
+                                          ...time,
+                                          endTime: event.target.value,
+                                        }))
+                                      }
+                                    />
+                                  </div>
+                                  <div className="todo-edit-actions">
+                                    <Button
+                                      variant="secondary"
+                                      type="button"
+                                      onClick={() => setTodoEditId(null)}
+                                    >
+                                      取消
+                                    </Button>
+                                    <Button variant="primary" type="submit">
+                                      保存时间
+                                    </Button>
+                                  </div>
+                                </form>
+                              ) : null}
                             </li>
                           ))}
                         </ul>
@@ -1247,44 +1282,6 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
                   </section>
                 </aside>
               </div>
-              {todoEditId ? (
-                <Modal
-                  open
-                  className="todo-edit-dialog"
-                  labelledBy="todo-edit-heading"
-                  onClose={() => setTodoEditId(null)}
-                >
-                  <form onSubmit={saveTodoEdit} className="todo-edit-form">
-                    <h3 id="todo-edit-heading">安排待办时间</h3>
-                    <div className="todo-time-fields">
-                      <TextField
-                        label="开始时间"
-                        type="time"
-                        value={todoEditDraft.startTime}
-                        onChange={(event) =>
-                          setTodoEditDraft((time) => ({ ...time, startTime: event.target.value }))
-                        }
-                      />
-                      <TextField
-                        label="结束时间"
-                        type="time"
-                        value={todoEditDraft.endTime}
-                        onChange={(event) =>
-                          setTodoEditDraft((time) => ({ ...time, endTime: event.target.value }))
-                        }
-                      />
-                    </div>
-                    <div className="todo-edit-actions">
-                      <Button variant="secondary" type="button" onClick={() => setTodoEditId(null)}>
-                        取消
-                      </Button>
-                      <Button variant="primary" type="submit">
-                        保存时间
-                      </Button>
-                    </div>
-                  </form>
-                </Modal>
-              ) : null}
             </section>
           ) : null}
         </div>

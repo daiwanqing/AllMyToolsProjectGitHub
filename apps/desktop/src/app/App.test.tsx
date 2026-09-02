@@ -374,24 +374,41 @@ describe('desktop shell', () => {
       target: { value: '10:30' },
     });
     fireEvent.click(screen.getByRole('button', { name: '添加' }));
-    const timelineEvent = screen.getByRole('button', { name: /编辑 时间块任务/ });
+    const timelineEvent = screen.getByRole('button', { name: /待办 时间块任务/ });
     expect(timelineEvent).toBeInTheDocument();
+    expect(timelineEvent).toHaveStyle({ height: '192px' });
+    expect(timelineEvent).toHaveTextContent('时间块任务');
+    expect(timelineEvent).not.toHaveTextContent('09:00–10:30');
     expect(document.querySelector('.day-detail-main .timeline-event')).toBeInTheDocument();
     expect(document.querySelector('.day-detail-side .timeline-event')).not.toBeInTheDocument();
     expect(screen.getByRole('list', { name: '未开始任务' })).toHaveTextContent('时间块任务');
     expect(screen.getByRole('list', { name: '未开始任务' })).toHaveTextContent('09:00–10:30');
     expect(document.querySelector('.todo-board')).toHaveClass('todo-board');
     fireEvent.mouseDown(timelineEvent, { button: 0, clientY: 100 });
-    fireEvent.mouseMove(window, { clientY: 132 });
+    fireEvent.mouseMove(window, { clientY: 164 });
     fireEvent.mouseUp(window);
     expect(
       JSON.parse(window.localStorage.getItem('tools.calendar-todos.items') ?? ''),
     ).toMatchObject({ todos: [{ title: '时间块任务', startTime: '09:30', endTime: '11:00' }] });
-    fireEvent.click(screen.getByRole('button', { name: /编辑 时间块任务/ }));
-    fireEvent.click(screen.getByRole('button', { name: /编辑 时间块任务/ }));
-    const editDialog = screen.getByRole('dialog', { name: '安排待办时间' });
-    expect(editDialog).toBeInTheDocument();
-    fireEvent.change(within(editDialog).getByLabelText('结束时间'), { target: { value: '11:30' } });
+    fireEvent.click(timelineEvent);
+    expect(screen.queryByRole('dialog', { name: '安排待办时间' })).not.toBeInTheDocument();
+    const timedTodo = within(screen.getByRole('list', { name: '未开始任务' }))
+      .getByText('时间块任务')
+      .closest('li');
+    if (!timedTodo) throw new Error('Expected the timed task to be present in the task board.');
+    fireEvent.click(within(timedTodo).getByRole('button', { name: '安排时间' }));
+    expect(screen.queryByRole('dialog', { name: '安排待办时间' })).not.toBeInTheDocument();
+    fireEvent.change(within(timedTodo).getByLabelText('结束时间'), {
+      target: { value: '11:30' },
+    });
+    fireEvent.click(within(timedTodo).getByRole('button', { name: '取消' }));
+    expect(
+      JSON.parse(window.localStorage.getItem('tools.calendar-todos.items') ?? ''),
+    ).toMatchObject({ todos: [{ title: '时间块任务', endTime: '11:00' }] });
+    fireEvent.click(within(timedTodo).getByRole('button', { name: '安排时间' }));
+    fireEvent.change(within(timedTodo).getByLabelText('结束时间'), {
+      target: { value: '11:30' },
+    });
     fireEvent.click(screen.getByRole('button', { name: '保存时间' }));
     expect(
       JSON.parse(window.localStorage.getItem('tools.calendar-todos.items') ?? ''),

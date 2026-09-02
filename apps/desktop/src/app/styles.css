@@ -1040,7 +1040,7 @@ h2 {
 
 .timeline-grid {
   position: relative;
-  min-height: calc(var(--amt-space-8) * 48);
+  min-height: calc(var(--amt-space-8) * 96);
   padding: var(--amt-space-2) 0;
 }
 
@@ -1070,7 +1070,7 @@ h2 {
 
 .timeline-hour {
   position: relative;
-  height: calc(var(--amt-space-8) * 2);
+  height: calc(var(--amt-space-8) * 4);
   border-bottom: var(--amt-border-width-default) solid var(--amt-color-border-default);
 }
 
@@ -1118,9 +1118,8 @@ h2 {
   display: grid;
   align-content: center;
   justify-items: start;
-  gap: var(--amt-space-1);
   overflow: hidden;
-  padding: var(--amt-space-2) var(--amt-space-3);
+  padding: var(--amt-space-1) var(--amt-space-3);
   border: var(--amt-border-width-default) solid var(--amt-color-action-primary);
   border-radius: var(--amt-radius-control);
   color: var(--amt-color-text-primary);
@@ -1135,9 +1134,13 @@ h2 {
   box-shadow: var(--amt-shadow-low);
 }
 
-.timeline-event small {
-  color: var(--amt-color-text-secondary);
-  font-size: var(--amt-space-3);
+.timeline-event strong {
+  width: 100%;
+  min-width: 0;
+  line-height: var(--amt-typography-line-height-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .timeline-event[data-completed='true'] {
@@ -1148,15 +1151,6 @@ h2 {
 .timeline-event:focus-visible {
   outline: var(--amt-focus-ring-width) solid var(--amt-color-focus-ring);
   outline-offset: calc(var(--amt-focus-ring-offset) * -1);
-}
-
-.todo-edit-form {
-  display: grid;
-  gap: var(--amt-space-4);
-}
-
-.todo-edit-form h3 {
-  margin: 0;
 }
 
 .todo-edit-actions {
@@ -1202,7 +1196,9 @@ h2 {
 
 .todo-item {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   min-height: var(--amt-button-default-height);
+  gap: var(--amt-space-3);
   align-items: center;
   padding: var(--amt-space-3);
   border: var(--amt-border-width-default) solid var(--amt-color-border-default);
@@ -1256,6 +1252,13 @@ h2 {
   display: flex;
   align-items: center;
   gap: var(--amt-space-2);
+}
+
+.todo-item-edit {
+  display: grid;
+  gap: var(--amt-space-3);
+  padding-top: var(--amt-space-3);
+  border-top: var(--amt-border-width-default) solid var(--amt-color-border-default);
 }
 
 .todo-item-content input {
