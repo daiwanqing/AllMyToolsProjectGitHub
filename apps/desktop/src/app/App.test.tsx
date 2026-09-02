@@ -374,23 +374,28 @@ describe('desktop shell', () => {
       target: { value: '10:30' },
     });
     fireEvent.click(screen.getByRole('button', { name: '添加' }));
-    expect(screen.getByRole('button', { name: /编辑 时间块任务/ })).toBeInTheDocument();
+    const timelineEvent = screen.getByRole('button', { name: /编辑 时间块任务/ });
+    expect(timelineEvent).toBeInTheDocument();
     expect(document.querySelector('.day-detail-main .timeline-event')).toBeInTheDocument();
     expect(document.querySelector('.day-detail-side .timeline-event')).not.toBeInTheDocument();
     expect(screen.getByRole('list', { name: '未开始任务' })).toHaveTextContent('时间块任务');
     expect(screen.getByRole('list', { name: '未开始任务' })).toHaveTextContent('09:00–10:30');
     expect(document.querySelector('.todo-board')).toHaveClass('todo-board');
+    fireEvent.mouseDown(timelineEvent, { button: 0, clientY: 100 });
+    fireEvent.mouseMove(window, { clientY: 132 });
+    fireEvent.mouseUp(window);
     expect(
       JSON.parse(window.localStorage.getItem('tools.calendar-todos.items') ?? ''),
-    ).toMatchObject({ todos: [{ title: '时间块任务', startTime: '09:00', endTime: '10:30' }] });
+    ).toMatchObject({ todos: [{ title: '时间块任务', startTime: '09:30', endTime: '11:00' }] });
+    fireEvent.click(screen.getByRole('button', { name: /编辑 时间块任务/ }));
     fireEvent.click(screen.getByRole('button', { name: /编辑 时间块任务/ }));
     const editDialog = screen.getByRole('dialog', { name: '安排待办时间' });
     expect(editDialog).toBeInTheDocument();
-    fireEvent.change(within(editDialog).getByLabelText('结束时间'), { target: { value: '11:00' } });
+    fireEvent.change(within(editDialog).getByLabelText('结束时间'), { target: { value: '11:30' } });
     fireEvent.click(screen.getByRole('button', { name: '保存时间' }));
     expect(
       JSON.parse(window.localStorage.getItem('tools.calendar-todos.items') ?? ''),
-    ).toMatchObject({ todos: [{ title: '时间块任务', endTime: '11:00' }] });
+    ).toMatchObject({ todos: [{ title: '时间块任务', endTime: '11:30' }] });
   });
 
   it('opens settings, reports shortcut availability, and switches the active theme', async () => {

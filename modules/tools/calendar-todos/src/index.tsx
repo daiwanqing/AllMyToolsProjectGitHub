@@ -89,6 +89,17 @@ type CheckInDraft = Readonly<{
 }>;
 
 type TodoTimeDraft = Readonly<{ startTime: string; endTime: string }>;
+type TimelineDrag = Readonly<{
+  todoId: string;
+  originY: number;
+  originalStart: number;
+  duration: number;
+  nextStart: number;
+}>;
+
+const timelineSlotMinutes = 15;
+const timelineSlotHeight = 16;
+const dayMinutes = 24 * 60;
 
 function isValidTimeRange(startTime: string, endTime: string): boolean {
   return Boolean(startTime && endTime && endTime > startTime);
@@ -97,6 +108,12 @@ function isValidTimeRange(startTime: string, endTime: string): boolean {
 function timeToMinutes(value: string): number {
   const [hours, minutes] = value.split(':').map(Number);
   return hours * 60 + minutes;
+}
+
+function minutesToTime(value: number): string {
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 
 function createRecordId(prefix: string): string {
@@ -180,10 +197,13 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
   const [showCheckInManager, setShowCheckInManager] = useState(false);
   const [draggedTodoId, setDraggedTodoId] = useState<string>();
   const [dragOverStatus, setDragOverStatus] = useState<TodoStatus>();
+  const [timelineDrag, setTimelineDrag] = useState<TimelineDrag | null>(null);
   const [notice, setNotice] = useState<TodoNotice>();
   const mouseDragCleanup = useRef<(() => void) | undefined>(undefined);
   const todayAnchorRef = useRef<HTMLButtonElement>(null);
   const shouldFocusToday = useRef(true);
+  const timelineDragRef = useRef<TimelineDrag | null>(null);
+  const timelineDragMovedRef = useRef(false);
 
   const monthRange = useMemo(
     () => Array.from({ length: 13 }, (_, index) => moveMonth(visibleMonth, index - 6)),
@@ -261,9 +281,61 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
   useEffect(
     () => () => {
       mouseDragCleanup.current?.();
+      timelineDragRef.current = null;
     },
     [],
   );
+
+  useEffect(() => {
+    const handleMove = (event: globalThis.PointerEvent | globalThis.MouseEvent) => {
+      const current = timelineDragRef.current;
+      if (!current) return;
+      const clientY = Number.isFinite(event.clientY) ? event.clientY : current.originY;
+      const slotOffset = Math.round((clientY - current.originY) / timelineSlotHeight);
+      if (slotOffset !== 0) {
+        timelineDragMovedRef.current = true;
+      }
+      const maxStart = dayMinutes - current.duration;
+      const nextStart = Math.min(
+        maxStart,
+        Math.max(0, current.originalStart + slotOffset * timelineSlotMinutes),
+      );
+      const next = { ...current, nextStart };
+      timelineDragRef.current = next;
+      setTimelineDrag(next);
+    };
+
+    const handleUp = () => {
+      const current = timelineDragRef.current;
+      if (!current) return;
+      if (current.nextStart !== current.originalStart) {
+        const nextStartTime = minutesToTime(current.nextStart);
+        const nextEndTime = minutesToTime(current.nextStart + current.duration);
+        commit({
+          ...data,
+          todos: data.todos.map((todo) =>
+            todo.id === current.todoId
+              ? { ...todo, startTime: nextStartTime, endTime: nextEndTime }
+              : todo,
+          ),
+        });
+        showNotice(`时间已调整为 ${nextStartTime}–${nextEndTime}。`);
+      }
+      timelineDragRef.current = null;
+      setTimelineDrag(null);
+    };
+
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+    return () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+    };
+  }, [data]);
 
   function goToToday() {
     const date = todayDate ?? new Date();
@@ -300,6 +372,35 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
     if (zoomToMonth) {
       setCalendarView('month');
     }
+  }
+
+  function startTimelineDrag(event: PointerEvent<HTMLButtonElement>, todo: DisplayTodo) {
+    if (
+      todo.checkInId ||
+      (event.button !== undefined && event.button !== 0) ||
+      !todo.startTime ||
+      !todo.endTime
+    )
+      return;
+    event.preventDefault();
+    event.stopPropagation();
+    const originalStart = timeToMinutes(todo.startTime);
+    const duration = timeToMinutes(todo.endTime) - originalStart;
+    const next = {
+      todoId: todo.id,
+      originY: Number.isFinite(event.clientY) ? event.clientY : 0,
+      originalStart,
+      duration,
+      nextStart: originalStart,
+    };
+    timelineDragMovedRef.current = false;
+    timelineDragRef.current = next;
+    setTimelineDrag(next);
+  }
+
+  function startTimelineMouseDrag(event: MouseEvent<HTMLButtonElement>, todo: DisplayTodo) {
+    if (timelineDragRef.current) return;
+    startTimelineDrag(event as unknown as PointerEvent<HTMLButtonElement>, todo);
   }
 
   function chooseMonth(month: Date) {
@@ -941,20 +1042,35 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
                           </div>
                         ))}
                         {scheduledTodos.map((todo) => {
-                          const top = (timeToMinutes(todo.startTime!) / 30) * 32;
+                          const activeDrag =
+                            timelineDrag?.todoId === todo.id ? timelineDrag : undefined;
+                          const startMinutes =
+                            activeDrag?.nextStart ?? timeToMinutes(todo.startTime!);
+                          const duration =
+                            activeDrag?.duration ??
+                            timeToMinutes(todo.endTime!) - timeToMinutes(todo.startTime!);
+                          const top = (startMinutes / timelineSlotMinutes) * timelineSlotHeight;
                           const height = Math.max(
-                            32,
-                            ((timeToMinutes(todo.endTime!) - timeToMinutes(todo.startTime!)) / 30) *
-                              32,
+                            timelineSlotHeight,
+                            (duration / timelineSlotMinutes) * timelineSlotHeight,
                           );
                           return (
                             <button
                               type="button"
                               className="timeline-event"
                               data-completed={todo.status === 'completed' || undefined}
+                              data-dragging={activeDrag ? 'true' : undefined}
                               key={todo.id}
                               style={{ top, height }}
-                              onClick={() => openTodoEdit(todo)}
+                              onMouseDown={(event) => startTimelineMouseDrag(event, todo)}
+                              onPointerDown={(event) => startTimelineDrag(event, todo)}
+                              onClick={() => {
+                                if (timelineDragMovedRef.current) {
+                                  timelineDragMovedRef.current = false;
+                                  return;
+                                }
+                                openTodoEdit(todo);
+                              }}
                               aria-label={`编辑 ${todo.title}，${todo.startTime} 至 ${todo.endTime}`}
                             >
                               <strong>{todo.title}</strong>
