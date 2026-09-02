@@ -18,6 +18,7 @@ const keywordsByToolId: Readonly<Record<string, readonly string[]>> = {
   'learning.note-review': ['笔记', '复习', '学习'],
   'entertainment.session-picker': ['活动', '娱乐', '选择'],
   'tools.calendar-todos': ['日历', '待办', '任务', '计划', '日程'],
+  'tools.travel-notes': ['旅行', '笔记', '旅程', '地点', '回顾'],
 };
 
 export const toolCatalog: readonly ToolCatalogEntry[] = toolRegistry.list().map((manifest) => ({

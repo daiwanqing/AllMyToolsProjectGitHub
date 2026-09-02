@@ -18,7 +18,67 @@ describe('desktop shell', () => {
     expect(screen.getByRole('heading', { name: '其他工具' })).toBeInTheDocument();
     expect(screen.getByRole('article', { name: '日历待办' })).toBeInTheDocument();
     expect(screen.queryByRole('article', { name: '文本工作台' })).not.toBeInTheDocument();
-    expect(screen.getAllByRole('article')).toHaveLength(3);
+    expect(screen.getAllByRole('article')).toHaveLength(4);
+  });
+
+  it('opens travel notes and saves a quick entry in its own namespace', async () => {
+    render(<App />);
+
+    const travelTool = screen.getByRole('article', { name: '旅行笔记' });
+    fireEvent.click(within(travelTool).getByRole('button', { name: '打开' }));
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: '大理，慢下来' })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: '快速记录' }));
+    fireEvent.change(screen.getByRole('textbox', { name: '标题' }), {
+      target: { value: '新的片段' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: '发生了什么' }), {
+      target: { value: '风从湖面过来。' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存记录' }));
+    expect(screen.getByText('新的片段')).toBeInTheDocument();
+    expect(window.localStorage.getItem('tools.travel-notes.workspace')).toContain('新的片段');
+  });
+
+  it('searches a journey, records an expense, and opens its review', async () => {
+    render(<App />);
+    const travelTool = screen.getByRole('article', { name: '旅行笔记' });
+    fireEvent.click(within(travelTool).getByRole('button', { name: '打开' }));
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: '大理，慢下来' })).toBeInTheDocument(),
+    );
+
+    fireEvent.change(screen.getByRole('textbox', { name: '搜索这段旅程' }), {
+      target: { value: '洱海' },
+    });
+    expect(screen.getByRole('heading', { name: '洱海边走了很久' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '抵达古城' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '记录花费' }));
+    fireEvent.change(screen.getByRole('textbox', { name: '项目' }), { target: { value: '咖啡' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: '金额（CNY）' }), {
+      target: { value: '28' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存花费' }));
+    expect(window.localStorage.getItem('tools.travel-notes.workspace')).toContain('咖啡');
+
+    fireEvent.click(screen.getByRole('tab', { name: '回顾' }));
+    expect(screen.getByRole('heading', { name: '这段旅程留下了什么' })).toBeInTheDocument();
+  });
+
+  it('shows expense totals and switches between the timeline and review tabs', async () => {
+    render(<App />);
+    const travelTool = screen.getByRole('article', { name: '旅行笔记' });
+    fireEvent.click(within(travelTool).getByRole('button', { name: '打开' }));
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: '大理，慢下来' })).toBeInTheDocument(),
+    );
+    expect(screen.getByText('214')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: '回顾' }));
+    expect(screen.getByRole('region', { name: '旅行回顾' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: '时间线' }));
+    expect(screen.getByRole('heading', { name: '抵达古城' })).toBeInTheDocument();
   });
 
   it('opens settings as a modal dialog from the toolbar', () => {

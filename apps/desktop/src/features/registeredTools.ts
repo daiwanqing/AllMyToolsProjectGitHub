@@ -3,6 +3,7 @@ import { ToolRegistry, type ToolSession } from '@allmytools/platform-services';
 import { manifest as noteReviewManifest } from '@allmytools/learning-note-review/manifest';
 import { manifest as sessionPickerManifest } from '@allmytools/entertainment-session-picker/manifest';
 import { manifest as calendarTodosManifest } from '@allmytools/tools-calendar-todos/manifest';
+import { manifest as travelNotesManifest } from '@allmytools/tools-travel-notes/manifest';
 
 export type LoadedToolModule = Readonly<{
   ToolView: ComponentType<{ onClose?: () => void }>;
@@ -25,4 +26,9 @@ toolRegistry.register({
 toolRegistry.register({
   manifest: calendarTodosManifest,
   load: () => import('@allmytools/tools-calendar-todos'),
+});
+
+toolRegistry.register({
+  manifest: travelNotesManifest,
+  load: () => import('@allmytools/tools-travel-notes'),
 });
