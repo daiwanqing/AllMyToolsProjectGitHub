@@ -248,7 +248,6 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
     [selectedTodos],
   );
   const scheduledTodos = selectedTodos.filter((todo) => todo.startTime && todo.endTime);
-  const unscheduledTodos = selectedTodos.filter((todo) => !todo.startTime || !todo.endTime);
 
   useEffect(() => {
     if (!shouldFocusToday.current || showDateDetail || showCheckInManager) {
@@ -919,7 +918,10 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
             </section>
           ) : null}
           {showDateDetail ? (
-            <section className="todo-panel" aria-labelledby="selected-date-heading">
+            <section
+              className="todo-panel day-detail-panel"
+              aria-labelledby="selected-date-heading"
+            >
               <div className="day-detail-layout">
                 <div className="day-detail-main">
                   <section className="day-timeline" aria-labelledby="selected-date-heading">
@@ -938,6 +940,30 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
                             <div className="timeline-hour-line" />
                           </div>
                         ))}
+                        {scheduledTodos.map((todo) => {
+                          const top = (timeToMinutes(todo.startTime!) / 30) * 32;
+                          const height = Math.max(
+                            32,
+                            ((timeToMinutes(todo.endTime!) - timeToMinutes(todo.startTime!)) / 30) *
+                              32,
+                          );
+                          return (
+                            <button
+                              type="button"
+                              className="timeline-event"
+                              data-completed={todo.status === 'completed' || undefined}
+                              key={todo.id}
+                              style={{ top, height }}
+                              onClick={() => openTodoEdit(todo)}
+                              aria-label={`编辑 ${todo.title}，${todo.startTime} 至 ${todo.endTime}`}
+                            >
+                              <strong>{todo.title}</strong>
+                              <small>
+                                {todo.startTime}–{todo.endTime}
+                              </small>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </section>
@@ -974,50 +1000,6 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
                       添加
                     </Button>
                   </form>
-                  <section className="scheduled-todos" aria-labelledby="scheduled-heading">
-                    <div className="todo-panel-heading">
-                      <h4 id="scheduled-heading">已安排时间</h4>
-                      <StatusBadge tone="info">{scheduledTodos.length}</StatusBadge>
-                    </div>
-                    <div
-                      className="scheduled-timeline"
-                      aria-label={`${selectedDateTitle(selectedDate)}已安排时间轴`}
-                    >
-                      {scheduledTodos.map((todo) => {
-                        const top = (timeToMinutes(todo.startTime!) / 30) * 32;
-                        const height = Math.max(
-                          32,
-                          ((timeToMinutes(todo.endTime!) - timeToMinutes(todo.startTime!)) / 30) *
-                            32,
-                        );
-                        return (
-                          <button
-                            type="button"
-                            className="timeline-event"
-                            data-completed={todo.status === 'completed' || undefined}
-                            key={todo.id}
-                            style={{ top, height }}
-                            onClick={() => openTodoEdit(todo)}
-                            aria-label={`编辑 ${todo.title}，${todo.startTime} 至 ${todo.endTime}`}
-                          >
-                            <strong>{todo.title}</strong>
-                            <small>
-                              {todo.startTime}–{todo.endTime}
-                            </small>
-                          </button>
-                        );
-                      })}
-                      {!scheduledTodos.length ? (
-                        <p className="calendar-empty-copy">暂无已安排时间的待办。</p>
-                      ) : null}
-                    </div>
-                  </section>
-                  <section className="unscheduled-todos" aria-labelledby="unscheduled-heading">
-                    <div className="todo-panel-heading">
-                      <h4 id="unscheduled-heading">未安排时间</h4>
-                      <StatusBadge tone="neutral">{unscheduledTodos.length}</StatusBadge>
-                    </div>
-                  </section>
                   <div
                     className="todo-board"
                     aria-label={`${selectedDateTitle(selectedDate)}任务看板`}
@@ -1039,80 +1021,85 @@ export function ToolView({ onClose }: { onClose?: () => void }) {
                         <div className="todo-column-heading">
                           <h4>{taskStatusLabels[status]}</h4>
                           <StatusBadge tone={status === 'completed' ? 'success' : 'neutral'}>
-                            {unscheduledTodos.filter((todo) => todo.status === status).length}
+                            {todosByStatus[status].length}
                           </StatusBadge>
                         </div>
                         <ul className="todo-list" aria-label={`${taskStatusLabels[status]}任务`}>
-                          {todosByStatus[status]
-                            .filter((todo) => !todo.startTime || !todo.endTime)
-                            .map((todo) => (
-                              <li
-                                key={todo.id}
-                                className="todo-item"
-                                tabIndex={0}
-                                aria-label={`${todo.title}，${taskStatusLabels[todo.status]}`}
-                                data-dragging={draggedTodoId === todo.id || undefined}
-                                draggable={false}
-                                onMouseDown={(event) => startMouseDragging(event, todo)}
-                                onPointerDown={(event) => startPointerDragging(event, todo)}
-                                onPointerMove={movePointerDragging}
-                                onPointerUp={(event) => finishPointerDragging(event, todo)}
-                                onPointerCancel={() => {
-                                  setDraggedTodoId(undefined);
-                                  setDragOverStatus(undefined);
-                                }}
-                                onDragStart={(event) => startDragging(event, todo.id)}
-                                onKeyDown={(event) => {
-                                  if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-                                    event.preventDefault();
-                                    moveTodoByKeyboard(todo, 1);
-                                  }
-                                  if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-                                    event.preventDefault();
-                                    moveTodoByKeyboard(todo, -1);
-                                  }
-                                }}
-                                onDragEnd={() => {
-                                  setDraggedTodoId(undefined);
-                                  setDragOverStatus(undefined);
-                                }}
-                              >
-                                <div className="todo-item-actions">
-                                  <label className="todo-item-content">
-                                    <input
-                                      type="checkbox"
-                                      checked={todo.status === 'completed'}
-                                      aria-label={`完成 ${todo.title}`}
+                          {todosByStatus[status].map((todo) => (
+                            <li
+                              key={todo.id}
+                              className="todo-item"
+                              tabIndex={0}
+                              aria-label={`${todo.title}，${taskStatusLabels[todo.status]}`}
+                              data-dragging={draggedTodoId === todo.id || undefined}
+                              draggable={false}
+                              onMouseDown={(event) => startMouseDragging(event, todo)}
+                              onPointerDown={(event) => startPointerDragging(event, todo)}
+                              onPointerMove={movePointerDragging}
+                              onPointerUp={(event) => finishPointerDragging(event, todo)}
+                              onPointerCancel={() => {
+                                setDraggedTodoId(undefined);
+                                setDragOverStatus(undefined);
+                              }}
+                              onDragStart={(event) => startDragging(event, todo.id)}
+                              onKeyDown={(event) => {
+                                if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                                  event.preventDefault();
+                                  moveTodoByKeyboard(todo, 1);
+                                }
+                                if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                                  event.preventDefault();
+                                  moveTodoByKeyboard(todo, -1);
+                                }
+                              }}
+                              onDragEnd={() => {
+                                setDraggedTodoId(undefined);
+                                setDragOverStatus(undefined);
+                              }}
+                            >
+                              <div className="todo-item-actions">
+                                <label className="todo-item-content">
+                                  <input
+                                    type="checkbox"
+                                    checked={todo.status === 'completed'}
+                                    aria-label={`完成 ${todo.title}`}
+                                    onMouseDown={(event) => event.stopPropagation()}
+                                    onPointerDown={(event) => event.stopPropagation()}
+                                    onChange={() => toggleTodoCompletion(todo)}
+                                  />
+                                  <span className="todo-item-title">
+                                    {todo.title}
+                                    {todo.startTime && todo.endTime ? (
+                                      <small className="todo-item-time">
+                                        {todo.startTime}–{todo.endTime}
+                                      </small>
+                                    ) : null}
+                                  </span>
+                                </label>
+                                {!todo.checkInId ? (
+                                  <div className="todo-item-command-actions">
+                                    <Button
+                                      variant="secondary"
                                       onMouseDown={(event) => event.stopPropagation()}
                                       onPointerDown={(event) => event.stopPropagation()}
-                                      onChange={() => toggleTodoCompletion(todo)}
-                                    />
-                                    <span className="todo-item-title">{todo.title}</span>
-                                  </label>
-                                  {!todo.checkInId ? (
-                                    <div className="todo-item-command-actions">
-                                      <Button
-                                        variant="secondary"
-                                        onMouseDown={(event) => event.stopPropagation()}
-                                        onPointerDown={(event) => event.stopPropagation()}
-                                        onClick={() => openTodoEdit(todo)}
-                                      >
-                                        安排时间
-                                      </Button>
-                                      <Button
-                                        variant="danger"
-                                        aria-label={`删除 ${todo.title}`}
-                                        onMouseDown={(event) => event.stopPropagation()}
-                                        onPointerDown={(event) => event.stopPropagation()}
-                                        onClick={() => deleteTodo(todo.id)}
-                                      >
-                                        删除
-                                      </Button>
-                                    </div>
-                                  ) : null}
-                                </div>
-                              </li>
-                            ))}
+                                      onClick={() => openTodoEdit(todo)}
+                                    >
+                                      安排时间
+                                    </Button>
+                                    <Button
+                                      variant="danger"
+                                      aria-label={`删除 ${todo.title}`}
+                                      onMouseDown={(event) => event.stopPropagation()}
+                                      onPointerDown={(event) => event.stopPropagation()}
+                                      onClick={() => deleteTodo(todo.id)}
+                                    >
+                                      删除
+                                    </Button>
+                                  </div>
+                                ) : null}
+                              </div>
+                            </li>
+                          ))}
                         </ul>
                       </section>
                     ))}

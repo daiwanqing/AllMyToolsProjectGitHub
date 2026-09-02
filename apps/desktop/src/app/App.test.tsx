@@ -177,6 +177,10 @@ describe('desktop shell', () => {
     expect(screen.getAllByRole('heading', { name: /^\d+月\d+日$/ })).toHaveLength(1);
     expect(screen.queryByRole('heading', { name: '时间安排' })).not.toBeInTheDocument();
     expect(screen.queryByText('时间安排')).not.toBeInTheDocument();
+    expect(document.querySelector('.day-detail-panel')).toHaveClass('day-detail-panel');
+    expect(document.querySelector('.day-detail-main .day-timeline')).toHaveClass('day-timeline');
+    expect(screen.queryByRole('heading', { name: '已安排时间' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '未安排时间' })).not.toBeInTheDocument();
 
     const newTodoField = screen.getByRole('textbox', { name: '新增待办' });
     const newTodoForm = newTodoField.closest('form');
@@ -371,6 +375,11 @@ describe('desktop shell', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: '添加' }));
     expect(screen.getByRole('button', { name: /编辑 时间块任务/ })).toBeInTheDocument();
+    expect(document.querySelector('.day-detail-main .timeline-event')).toBeInTheDocument();
+    expect(document.querySelector('.day-detail-side .timeline-event')).not.toBeInTheDocument();
+    expect(screen.getByRole('list', { name: '未开始任务' })).toHaveTextContent('时间块任务');
+    expect(screen.getByRole('list', { name: '未开始任务' })).toHaveTextContent('09:00–10:30');
+    expect(document.querySelector('.todo-board')).toHaveClass('todo-board');
     expect(
       JSON.parse(window.localStorage.getItem('tools.calendar-todos.items') ?? ''),
     ).toMatchObject({ todos: [{ title: '时间块任务', startTime: '09:00', endTime: '10:30' }] });
@@ -507,6 +516,13 @@ describe('desktop shell', () => {
     fireEvent.click(toolRegion);
     expect(screen.getByRole('dialog', { name: '元素源码定位' })).toHaveTextContent(
       'modules/learning/note-review/src/index.tsx:12',
+    );
+    fireEvent.click(screen.getByRole('button', { name: '关闭' }));
+    const noteField = screen.getByRole('textbox', { name: '待复习内容' });
+    fireEvent.pointerMove(noteField);
+    fireEvent.click(noteField);
+    expect(screen.getByRole('dialog', { name: '元素源码定位' })).toHaveTextContent(
+      'modules/learning/note-review/src/index.tsx:22',
     );
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByRole('dialog', { name: '元素源码定位' })).not.toBeInTheDocument();

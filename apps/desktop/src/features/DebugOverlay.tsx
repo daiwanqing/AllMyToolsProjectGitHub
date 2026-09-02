@@ -29,7 +29,9 @@ function kindFor(element: Element): string {
 }
 
 function targetFor(element: Element, root: HTMLElement): DebugTargetInfo {
-  const sourceTarget = element.closest('[data-debug-target]') ?? root;
+  // 叶子节点可以声明自己的源码行；没有声明时才回退到最近的区域目标。
+  const sourceTarget = element.closest('[data-debug-source], [data-debug-target]') ?? root;
+  const codeTarget = element.closest('[data-debug-code], [data-debug-target]') ?? root;
   const kind = kindFor(element);
   const isSourceTarget = element === sourceTarget;
   return {
@@ -44,6 +46,7 @@ function targetFor(element: Element, root: HTMLElement): DebugTargetInfo {
     code:
       element.getAttribute('data-debug-code') ??
       sourceTarget.getAttribute('data-debug-code') ??
+      codeTarget.getAttribute('data-debug-code') ??
       element.outerHTML.slice(0, 800),
     kind,
     rect: element.getBoundingClientRect(),

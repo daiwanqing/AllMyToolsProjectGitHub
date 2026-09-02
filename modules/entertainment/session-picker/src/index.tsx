@@ -34,6 +34,8 @@ export function ToolView() {
         }}
       />
       <Button
+        data-debug-source="modules/entertainment/session-picker/src/index.tsx:36"
+        data-debug-code={'<Button>保存选择</Button>'}
         disabled={!selected}
         onClick={() => {
           const result = saveSelectedSession(window.localStorage, selected);

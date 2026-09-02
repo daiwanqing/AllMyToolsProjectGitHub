@@ -21,6 +21,8 @@ export function ToolView() {
     >
       <TextField
         label="待复习内容"
+        data-debug-source="modules/learning/note-review/src/index.tsx:22"
+        data-debug-code={'<TextField label="待复习内容" ... />'}
         value={note}
         onChange={(event) => {
           setNote(event.target.value);
@@ -29,6 +31,8 @@ export function ToolView() {
         }}
       />
       <Button
+        data-debug-source="modules/learning/note-review/src/index.tsx:33"
+        data-debug-code={'<Button>保存草稿</Button>'}
         onClick={() => {
           const result = saveReviewDraft(window.localStorage, note);
           setSaved(result.ok);

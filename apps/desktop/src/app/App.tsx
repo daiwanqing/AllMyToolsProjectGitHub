@@ -727,6 +727,8 @@ export function App() {
             <ToggleButton
               variant="secondary"
               className="debug-toggle-button"
+              data-debug-source="apps/desktop/src/app/App.tsx:727"
+              data-debug-code={'<ToggleButton className="debug-toggle-button">调试</ToggleButton>'}
               pressed={debugMode}
               onClick={toggleDebugMode}
             >
@@ -737,6 +739,8 @@ export function App() {
               variant="secondary"
               aria-label="打开设置"
               aria-haspopup="dialog"
+              data-debug-source="apps/desktop/src/app/App.tsx:738"
+              data-debug-code={'<Button aria-label="打开设置">设置</Button>'}
               onClick={() => {
                 closeActiveTool();
                 setView('settings');
@@ -832,6 +836,8 @@ export function App() {
             <ToggleButton
               variant="secondary"
               className="debug-toggle-button"
+              data-debug-source="apps/desktop/src/app/App.tsx:834"
+              data-debug-code={'<ToggleButton className="debug-toggle-button">调试</ToggleButton>'}
               pressed={debugMode}
               onClick={toggleDebugMode}
             >
@@ -842,6 +848,8 @@ export function App() {
               variant="secondary"
               aria-label="打开设置"
               aria-haspopup="dialog"
+              data-debug-source="apps/desktop/src/app/App.tsx:843"
+              data-debug-code={'<Button aria-label="打开设置">设置</Button>'}
               onClick={() => setView('settings')}
             >
               设置
@@ -863,6 +871,8 @@ export function App() {
                 <Search aria-hidden="true" />
                 <TextField
                   label="搜索工具"
+                  data-debug-source="apps/desktop/src/app/App.tsx:865"
+                  data-debug-code={'<TextField label="搜索工具" ... />'}
                   placeholder="按名称或关键词搜索"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
