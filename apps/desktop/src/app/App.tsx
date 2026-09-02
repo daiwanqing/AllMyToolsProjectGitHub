@@ -42,6 +42,7 @@ import {
   Search,
   Sparkles,
   Star,
+  Terminal,
   Wrench,
   type LucideIcon,
 } from 'lucide-react';
@@ -57,11 +58,15 @@ import { DebugOverlay } from '../features/DebugOverlay';
 import {
   debugShortcutEventName,
   defaultDebugShortcut,
+  defaultRuntimeConsoleShortcut,
   disableQuickToggleShortcut,
   disableDebugShortcut,
+  disableRuntimeConsoleShortcut,
   enableDebugShortcut,
   enableQuickToggleShortcut,
+  enableRuntimeConsoleShortcut,
   quickToggleShortcut,
+  runtimeConsoleShortcutEventName,
   supportsGlobalShortcuts,
 } from '../native/globalShortcut';
 
@@ -132,6 +137,8 @@ const workspaceStorageKey = 'shell.workspace-state';
 const themeColorOverridesStorageKey = 'shell.theme-color-overrides';
 const debugShortcutStorageKey = 'shell.debug-shortcut';
 const debugShortcutEnabledStorageKey = 'shell.debug-shortcut-enabled';
+const runtimeConsoleShortcutStorageKey = 'shell.runtime-console-shortcut';
+const runtimeConsoleShortcutEnabledStorageKey = 'shell.runtime-console-shortcut-enabled';
 
 type PersistedWorkspaceState = Readonly<{
   category: ToolCategory | 'all';
@@ -367,10 +374,21 @@ export function App() {
   const [debugShortcutEnabled, setDebugShortcutEnabled] = useState(
     () => window.localStorage.getItem(debugShortcutEnabledStorageKey) !== 'disabled',
   );
+  const [runtimeConsoleShortcut, setRuntimeConsoleShortcut] = useState(
+    () =>
+      window.localStorage.getItem(runtimeConsoleShortcutStorageKey) ??
+      defaultRuntimeConsoleShortcut,
+  );
+  const [runtimeConsoleShortcutEnabled, setRuntimeConsoleShortcutEnabled] = useState(
+    () => window.localStorage.getItem(runtimeConsoleShortcutEnabledStorageKey) !== 'disabled',
+  );
   const [debugMode, setDebugMode] = useState(false);
   const debugModeRef = useRef(false);
   const debugRegistrationLoggedRef = useRef<string | undefined>(undefined);
+  const runtimeConsoleRegistrationLoggedRef = useRef<string | undefined>(undefined);
   const [debugLogs, setDebugLogs] = useState<readonly RuntimeLog[]>([]);
+  const [runtimeConsoleVisible, setRuntimeConsoleVisible] = useState(true);
+  const runtimeConsoleVisibleRef = useRef(true);
   const toolContentRef = useRef<HTMLElement>(null);
   const [toolContentElement, setToolContentElement] = useState<HTMLElement | null>(null);
   const workspaceRef = useRef<HTMLElement>(null);
@@ -403,6 +421,18 @@ export function App() {
     appendDebugLog('收到 Tauri 全局调试快捷键事件。');
     toggleDebugMode();
   }, [appendDebugLog, toggleDebugMode]);
+
+  const toggleRuntimeConsole = useCallback(() => {
+    const next = !runtimeConsoleVisibleRef.current;
+    runtimeConsoleVisibleRef.current = next;
+    setRuntimeConsoleVisible(next);
+    appendDebugLog(next ? '运行输出台已显示。' : '运行输出台已隐藏。');
+  }, [appendDebugLog]);
+
+  const handleNativeRuntimeConsoleShortcut = useCallback(() => {
+    appendDebugLog('收到 Tauri 全局运行输出台快捷键事件。');
+    toggleRuntimeConsole();
+  }, [appendDebugLog, toggleRuntimeConsole]);
 
   useEffect(() => {
     if (shortcutMessage) {
@@ -467,8 +497,15 @@ export function App() {
 
   useEffect(() => {
     window.addEventListener(debugShortcutEventName, handleNativeDebugShortcut);
-    return () => window.removeEventListener(debugShortcutEventName, handleNativeDebugShortcut);
-  }, [handleNativeDebugShortcut]);
+    window.addEventListener(runtimeConsoleShortcutEventName, handleNativeRuntimeConsoleShortcut);
+    return () => {
+      window.removeEventListener(debugShortcutEventName, handleNativeDebugShortcut);
+      window.removeEventListener(
+        runtimeConsoleShortcutEventName,
+        handleNativeRuntimeConsoleShortcut,
+      );
+    };
+  }, [handleNativeDebugShortcut, handleNativeRuntimeConsoleShortcut]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -482,10 +519,23 @@ export function App() {
         appendDebugLog(`匹配调试快捷键 ${debugShortcut}`);
         toggleDebugMode();
       }
+      if (runtimeConsoleShortcutEnabled && shortcutMatches(event, runtimeConsoleShortcut)) {
+        event.preventDefault();
+        appendDebugLog(`匹配运行输出台快捷键 ${runtimeConsoleShortcut}`);
+        toggleRuntimeConsole();
+      }
     };
     window.addEventListener('keydown', onKeyDown, true);
     return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [appendDebugLog, debugShortcut, debugShortcutEnabled, toggleDebugMode]);
+  }, [
+    appendDebugLog,
+    debugShortcut,
+    debugShortcutEnabled,
+    runtimeConsoleShortcut,
+    runtimeConsoleShortcutEnabled,
+    toggleDebugMode,
+    toggleRuntimeConsole,
+  ]);
 
   useEffect(() => {
     window.localStorage.setItem(debugShortcutStorageKey, debugShortcut);
@@ -513,6 +563,33 @@ export function App() {
       void disableDebugShortcut(debugShortcut);
     };
   }, [appendDebugLog, debugShortcut, debugShortcutEnabled]);
+
+  useEffect(() => {
+    window.localStorage.setItem(runtimeConsoleShortcutStorageKey, runtimeConsoleShortcut);
+    window.localStorage.setItem(
+      runtimeConsoleShortcutEnabledStorageKey,
+      runtimeConsoleShortcutEnabled ? 'enabled' : 'disabled',
+    );
+    if (!runtimeConsoleShortcutEnabled || !supportsGlobalShortcuts()) {
+      if (runtimeConsoleRegistrationLoggedRef.current !== 'fallback') {
+        runtimeConsoleRegistrationLoggedRef.current = 'fallback';
+        appendDebugLog('窗口内运行输出台快捷键监听已启用（当前宿主不支持全局注册）。');
+      }
+      return undefined;
+    }
+    void enableRuntimeConsoleShortcut(runtimeConsoleShortcut).catch(() => {
+      setRuntimeConsoleShortcutEnabled(false);
+      setShortcutMessage('运行输出台快捷键注册失败，请修改快捷键后重试。');
+      appendDebugLog(`全局运行输出台快捷键注册失败：${runtimeConsoleShortcut}`);
+    });
+    if (runtimeConsoleRegistrationLoggedRef.current !== runtimeConsoleShortcut) {
+      runtimeConsoleRegistrationLoggedRef.current = runtimeConsoleShortcut;
+      appendDebugLog(`正在注册全局运行输出台快捷键：${runtimeConsoleShortcut}`);
+    }
+    return () => {
+      void disableRuntimeConsoleShortcut(runtimeConsoleShortcut);
+    };
+  }, [appendDebugLog, runtimeConsoleShortcut, runtimeConsoleShortcutEnabled]);
 
   const visibleTools = useMemo(
     () =>
@@ -578,6 +655,8 @@ export function App() {
     debugModeRef.current = false;
     setDebugMode(false);
     setDebugLogs([]);
+    runtimeConsoleVisibleRef.current = true;
+    setRuntimeConsoleVisible(true);
   }
 
   async function toggleQuickToggleShortcut() {
@@ -648,7 +727,7 @@ export function App() {
         </SettingRow>
         <SettingRow label="调试模式快捷键">
           <TextField
-            label="按键组合"
+            label="调试模式按键组合"
             value={debugShortcut}
             readOnly
             aria-keyshortcuts={debugShortcut}
@@ -666,6 +745,28 @@ export function App() {
             label="启用调试模式快捷键"
             checked={debugShortcutEnabled}
             onChange={() => setDebugShortcutEnabled((current) => !current)}
+          />
+        </SettingRow>
+        <SettingRow label="运行输出台快捷键">
+          <TextField
+            label="运行输出台按键组合"
+            value={runtimeConsoleShortcut}
+            readOnly
+            aria-keyshortcuts={runtimeConsoleShortcut}
+            onKeyDown={(event) => {
+              const next = shortcutForKeyboardEvent(event);
+              if (!next) return;
+              event.preventDefault();
+              setRuntimeConsoleShortcut(next);
+              setShortcutMessage(`运行输出台快捷键已设为 ${next}。`);
+            }}
+          />
+        </SettingRow>
+        <SettingRow label="运行输出台">
+          <ToggleField
+            label="启用运行输出台快捷键"
+            checked={runtimeConsoleShortcutEnabled}
+            onChange={() => setRuntimeConsoleShortcutEnabled((current) => !current)}
           />
         </SettingRow>
         {shortcutMessage && shortcutNoticeVisible ? (
@@ -735,6 +836,19 @@ export function App() {
               <Bug aria-hidden="true" />
               调试
             </ToggleButton>
+            <ToggleButton
+              variant="secondary"
+              className="runtime-console-toggle-button"
+              data-debug-source="apps/desktop/src/app/App.tsx:839"
+              data-debug-code={
+                '<ToggleButton className="runtime-console-toggle-button">输出台</ToggleButton>'
+              }
+              pressed={runtimeConsoleVisible}
+              onClick={toggleRuntimeConsole}
+            >
+              <Terminal aria-hidden="true" />
+              输出台
+            </ToggleButton>
             <Button
               variant="secondary"
               aria-label="打开设置"
@@ -756,7 +870,9 @@ export function App() {
           </ToolErrorBoundary>
           <DebugOverlay enabled={debugMode} root={toolContentElement} onExit={exitDebugMode} />
         </section>
-        <RuntimeConsole logs={debugLogs} onClear={() => setDebugLogs([])} />
+        {runtimeConsoleVisible ? (
+          <RuntimeConsole logs={debugLogs} onClear={() => setDebugLogs([])} />
+        ) : null}
       </main>
     );
   }
@@ -843,6 +959,19 @@ export function App() {
             >
               <Bug aria-hidden="true" />
               调试
+            </ToggleButton>
+            <ToggleButton
+              variant="secondary"
+              className="runtime-console-toggle-button"
+              data-debug-source="apps/desktop/src/app/App.tsx:963"
+              data-debug-code={
+                '<ToggleButton className="runtime-console-toggle-button">输出台</ToggleButton>'
+              }
+              pressed={runtimeConsoleVisible}
+              onClick={toggleRuntimeConsole}
+            >
+              <Terminal aria-hidden="true" />
+              输出台
             </ToggleButton>
             <Button
               variant="secondary"
@@ -979,7 +1108,9 @@ export function App() {
           onExit={exitDebugMode}
           onLog={appendDebugLog}
         />
-        <RuntimeConsole logs={debugLogs} onClear={() => setDebugLogs([])} />
+        {runtimeConsoleVisible ? (
+          <RuntimeConsole logs={debugLogs} onClear={() => setDebugLogs([])} />
+        ) : null}
       </section>
     </main>
   );

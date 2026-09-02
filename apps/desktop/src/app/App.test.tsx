@@ -35,6 +35,12 @@ describe('desktop shell', () => {
     render(<App />);
 
     expect(screen.getByRole('region', { name: '运行输出台' })).toBeInTheDocument();
+    const consoleButton = screen.getByRole('button', { name: '输出台' });
+    expect(consoleButton).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(consoleButton);
+    expect(screen.queryByRole('region', { name: '运行输出台' })).not.toBeInTheDocument();
+    fireEvent.keyDown(window, { key: '1', ctrlKey: true, altKey: true });
+    expect(screen.getByRole('region', { name: '运行输出台' })).toBeInTheDocument();
     const debugButton = screen.getByRole('button', { name: '调试' });
     fireEvent.click(debugButton);
     expect(debugButton).toHaveAttribute('aria-pressed', 'true');
@@ -432,6 +438,11 @@ describe('desktop shell', () => {
     fireEvent.click(screen.getByRole('tab', { name: '快捷键' }));
     expect(screen.getByRole('tab', { name: '快捷键' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText('全局快捷键')).toBeInTheDocument();
+    expect(screen.getByText('运行输出台快捷键')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: '运行输出台按键组合' })).toHaveValue(
+      'CommandOrControl+Alt+1',
+    );
+    expect(screen.getByRole('checkbox', { name: '启用运行输出台快捷键' })).toBeChecked();
     expect(screen.queryByText(/启用后可使用/)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: '开发者' }));
@@ -531,6 +542,12 @@ describe('desktop shell', () => {
       expect(screen.getByRole('heading', { level: 1, name: '复习笔记' })).toBeInTheDocument(),
     );
 
+    const consoleButton = screen.getByRole('button', { name: '输出台' });
+    fireEvent.click(consoleButton);
+    expect(screen.queryByRole('region', { name: '运行输出台' })).not.toBeInTheDocument();
+    fireEvent.keyDown(window, { key: '1', ctrlKey: true, altKey: true });
+    expect(screen.getByRole('region', { name: '运行输出台' })).toBeInTheDocument();
+
     fireEvent.keyDown(window, { key: '0', ctrlKey: true, altKey: true });
     const toolRegion = await waitFor(() => screen.getByRole('region', { name: '复习笔记工具' }));
     fireEvent.pointerMove(toolRegion);
@@ -549,6 +566,8 @@ describe('desktop shell', () => {
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByRole('dialog', { name: '元素源码定位' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '调试' })).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(screen.getByRole('button', { name: '返回工具台' }));
+    expect(screen.getByRole('region', { name: '运行输出台' })).toBeInTheDocument();
   });
 
   it('switches settings tabs with keyboard and restores the selected tab', () => {
