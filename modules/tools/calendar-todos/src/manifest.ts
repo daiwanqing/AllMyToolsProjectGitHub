@@ -6,6 +6,7 @@ export const manifest = defineToolManifest({
   description: '按日期安排待办，在月历中查看每天的计划。',
   version: '0.1.0',
   category: 'tools',
+  subcategory: 'calendar',
   entry: './index',
   icon: 'calendar-check',
   capabilities: [],

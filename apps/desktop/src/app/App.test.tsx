@@ -71,6 +71,31 @@ describe('desktop shell', () => {
     expect(screen.getByRole('heading', { name: '没有匹配的工具' })).toBeInTheDocument();
   });
 
+  it('groups a module by its second-level categories', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('tab', { name: '学习' }));
+    expect(screen.queryByRole('tablist', { name: '学习分类' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '学习规划' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '美术' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '英语' })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('article', { name: '复习笔记' })).toHaveLength(1);
+    expect(screen.queryByRole('article', { name: '活动选择器' })).not.toBeInTheDocument();
+  });
+
+  it('keeps the selected module in the workspace state', () => {
+    const firstRender = render(<App />);
+
+    fireEvent.click(screen.getByRole('tab', { name: '工具' }));
+    expect(JSON.parse(window.localStorage.getItem('shell.workspace-state') ?? '')).toMatchObject({
+      category: 'tools',
+    });
+
+    firstRender.unmount();
+    render(<App />);
+    expect(screen.getByRole('heading', { name: '日程' })).toBeInTheDocument();
+  });
+
   it('updates favorites and recent tools through tool actions', async () => {
     render(<App />);
 

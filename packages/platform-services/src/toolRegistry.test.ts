@@ -6,6 +6,7 @@ const manifest = {
   name: '示例工具',
   version: '0.1.0',
   category: 'tools' as const,
+  subcategory: 'productivity' as const,
   entry: './index',
   icon: 'wrench',
   capabilities: [],

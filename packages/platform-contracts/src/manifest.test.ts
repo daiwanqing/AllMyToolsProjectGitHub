@@ -7,6 +7,7 @@ const validManifest: ToolManifest = {
   name: '示例工具',
   version: '1.0.0',
   category: 'tools',
+  subcategory: 'productivity',
   entry: './src/index.ts',
   icon: 'wrench',
   capabilities: ['clipboard'],
@@ -48,5 +49,18 @@ describe('工具清单契约', () => {
     expect(() => defineToolManifest({ ...validManifest, id: 'invalid id' })).toThrow(
       '工具 ID 必须使用小写字母、数字、点或连字符。',
     );
+  });
+
+  it('拒绝不属于一级模块的二级分类', () => {
+    const result = validateToolManifest({
+      ...validManifest,
+      category: 'learning',
+      subcategory: 'calendar',
+    });
+
+    expect(result).toMatchObject({ ok: false });
+    if (!result.ok) {
+      expect(result.issues.map((item) => item.code)).toContain('invalid-subcategory');
+    }
   });
 });

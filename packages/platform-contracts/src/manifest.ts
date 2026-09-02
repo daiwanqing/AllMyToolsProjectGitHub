@@ -1,6 +1,7 @@
 import {
   capabilities,
   toolCategories,
+  toolSubcategories,
   type ManifestValidationIssue,
   type ManifestValidationResult,
   type ToolManifest,
@@ -42,6 +43,15 @@ export function validateToolManifest(manifest: ToolManifest): ManifestValidation
 
   if (!toolCategories.includes(manifest.category)) {
     issues.push(issue('invalid-category', 'category', '工具分类不受平台支持。'));
+  }
+
+  if (
+    !toolCategories.includes(manifest.category) ||
+    !(toolSubcategories[manifest.category] as readonly string[]).includes(manifest.subcategory)
+  ) {
+    issues.push(
+      issue('invalid-subcategory', 'subcategory', '工具二级分类必须存在且属于当前一级模块。'),
+    );
   }
 
   if (manifest.entry.trim().length === 0) {

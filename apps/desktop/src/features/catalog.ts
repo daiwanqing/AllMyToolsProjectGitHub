@@ -1,8 +1,13 @@
-import type { ToolCategory } from '@allmytools/platform-contracts';
+import {
+  toolSubcategories,
+  type ToolCategory,
+  type ToolSubcategory,
+} from '@allmytools/platform-contracts';
 import { toolRegistry } from './registeredTools';
 
 export type ToolCatalogEntry = Readonly<{
   category: ToolCategory;
+  subcategory: ToolSubcategory;
   description: string;
   id: string;
   keywords: readonly string[];
@@ -20,6 +25,7 @@ export const toolCatalog: readonly ToolCatalogEntry[] = toolRegistry.list().map(
   name: manifest.name,
   description: manifest.description ?? '',
   category: manifest.category,
+  subcategory: manifest.subcategory,
   keywords: keywordsByToolId[manifest.id] ?? [],
 }));
 
@@ -28,6 +34,24 @@ export const categoryLabels: Readonly<Record<ToolCategory, string>> = {
   entertainment: '娱乐',
   tools: '工具',
 };
+
+export const subcategoryLabels: Readonly<Record<ToolSubcategory, string>> = {
+  'study-planning': '学习规划',
+  art: '美术',
+  english: '英语',
+  activity: '活动',
+  music: '音乐',
+  games: '游戏',
+  calendar: '日程',
+  productivity: '效率',
+  'learning-other': '其他学习',
+  'entertainment-other': '其他娱乐',
+  'tools-other': '其他工具',
+};
+
+export function subcategoriesForCategory(category: ToolCategory) {
+  return toolSubcategories[category].map((id) => ({ id, label: subcategoryLabels[id] }));
+}
 
 export function matchesToolSearch(entry: ToolCatalogEntry, query: string): boolean {
   const normalizedQuery = query.trim().toLocaleLowerCase('zh-CN');

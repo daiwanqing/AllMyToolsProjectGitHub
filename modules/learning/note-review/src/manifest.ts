@@ -6,6 +6,7 @@ export const manifest = defineToolManifest({
   description: '整理待复习内容并建立下一次学习计划。',
   version: '0.1.0',
   category: 'learning',
+  subcategory: 'study-planning',
   entry: './index',
   icon: 'sparkles',
   capabilities: [],

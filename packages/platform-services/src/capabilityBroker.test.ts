@@ -8,6 +8,7 @@ const manifest: ToolManifest = {
   description: '测试受限能力中介。',
   version: '0.1.0',
   category: 'tools',
+  subcategory: 'productivity',
   entry: './index',
   icon: 'shield-check',
   capabilities: ['filesystem'],

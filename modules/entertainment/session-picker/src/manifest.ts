@@ -6,6 +6,7 @@ export const manifest = defineToolManifest({
   description: '从已保存的娱乐项目中快速决定当前活动。',
   version: '0.1.0',
   category: 'entertainment',
+  subcategory: 'activity',
   entry: './index',
   icon: 'grid-2x2',
   capabilities: [],

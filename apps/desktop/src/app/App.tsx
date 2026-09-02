@@ -49,6 +49,8 @@ import {
 import {
   categoryLabels,
   matchesToolSearch,
+  subcategoriesForCategory,
+  subcategoryLabels,
   toolCatalog,
   type ToolCatalogEntry,
 } from '../features/catalog';
@@ -296,7 +298,9 @@ function ToolTile({
     <article className="tool-tile" aria-labelledby={`tool-${entry.id}`}>
       <div className="tool-tile-content">
         {showCategory ? (
-          <p className="tool-tile-category">{categoryLabels[entry.category]}</p>
+          <p className="tool-tile-category">
+            {categoryLabels[entry.category]} · {subcategoryLabels[entry.subcategory]}
+          </p>
         ) : null}
         <h3 id={`tool-${entry.id}`}>{entry.name}</h3>
         <p>{entry.description}</p>
@@ -613,6 +617,22 @@ export function App() {
     category === 'all' && !isSearchActive
       ? visibleTools.filter((entry) => !frequentTools.some((frequent) => frequent.id === entry.id))
       : visibleTools;
+  const catalogSections =
+    category === 'all'
+      ? [
+          {
+            id: 'catalog',
+            label: isSearchActive ? '匹配工具' : '其他工具',
+            entries: catalogTools,
+          },
+        ]
+      : subcategoriesForCategory(category)
+          .map(({ id, label }) => ({
+            id,
+            label,
+            entries: catalogTools.filter((entry) => entry.subcategory === id),
+          }))
+          .filter((section) => section.entries.length > 0);
 
   function toggleFavorite(id: string) {
     setFavoriteIds((current) =>
@@ -1036,35 +1056,40 @@ export function App() {
                 </div>
               </section>
             ) : null}
-            <section aria-labelledby="catalog-heading">
-              <div className="section-heading">
-                <Wrench aria-hidden="true" />
-                <h2 id="catalog-heading">
-                  {isSearchActive
-                    ? '匹配工具'
-                    : category === 'all'
-                      ? '其他工具'
-                      : `${categoryLabels[category]}工具`}
-                </h2>
-              </div>
-              {catalogTools.length ? (
-                <div className="tool-tile-grid">
-                  {catalogTools.map((entry) => (
-                    <ToolTile
-                      key={entry.id}
-                      entry={entry}
-                      favorite={favoriteIds.includes(entry.id)}
-                      onOpen={openTool}
-                      onToggleFavorite={toggleFavorite}
-                      loading={loadingToolId === entry.id}
-                      showCategory={category === 'all'}
+            {catalogSections.map((section) => {
+              const headingId = `catalog-heading-${section.id}`;
+              return (
+                <section key={section.id} aria-labelledby={headingId}>
+                  <div className="section-heading">
+                    <Wrench aria-hidden="true" />
+                    <h2 id={headingId}>{section.label}</h2>
+                  </div>
+                  {section.entries.length ? (
+                    <div className="tool-tile-grid">
+                      {section.entries.map((entry) => (
+                        <ToolTile
+                          key={entry.id}
+                          entry={entry}
+                          favorite={favoriteIds.includes(entry.id)}
+                          onOpen={openTool}
+                          onToggleFavorite={toggleFavorite}
+                          loading={loadingToolId === entry.id}
+                          showCategory={category === 'all'}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      title="没有匹配的工具"
+                      description="尝试使用其他名称、分类或关键词。"
                     />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState title="没有匹配的工具" description="尝试使用其他名称、分类或关键词。" />
-              )}
-            </section>
+                  )}
+                </section>
+              );
+            })}
+            {!catalogSections.length ? (
+              <EmptyState title="没有匹配的工具" description="尝试使用其他名称、分类或关键词。" />
+            ) : null}
           </div>
         </section>
         {view === 'settings' ? (

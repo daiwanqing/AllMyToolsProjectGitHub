@@ -6,6 +6,7 @@ export const manifest = defineToolManifest({
   description: '离线清理、转换、格式化文本并保存常用处理预设。',
   version: '0.1.0',
   category: 'tools',
+  subcategory: 'productivity',
   entry: './index',
   icon: 'wrench',
   capabilities: [],

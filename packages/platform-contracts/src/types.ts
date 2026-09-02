@@ -3,6 +3,15 @@ export const toolCategories = ['learning', 'entertainment', 'tools'] as const;
 
 export type ToolCategory = (typeof toolCategories)[number];
 
+/** 平台维护的二级分类。每个二级分类只属于一个一级产品域。 */
+export const toolSubcategories = {
+  learning: ['study-planning', 'art', 'english', 'learning-other'],
+  entertainment: ['activity', 'music', 'games', 'entertainment-other'],
+  tools: ['calendar', 'productivity', 'tools-other'],
+} as const;
+
+export type ToolSubcategory = (typeof toolSubcategories)[keyof typeof toolSubcategories][number];
+
 /** 工具可以声明但不能自行授予的受限平台能力。 */
 export const capabilities = [
   'filesystem',
@@ -25,6 +34,7 @@ export type ToolManifest = Readonly<{
   description?: string;
   version: string;
   category: ToolCategory;
+  subcategory: ToolSubcategory;
   entry: string;
   icon: string;
   capabilities: readonly Capability[];
@@ -52,6 +62,7 @@ export type ManifestValidationIssueCode =
   | 'missing-name'
   | 'invalid-version'
   | 'invalid-category'
+  | 'invalid-subcategory'
   | 'missing-entry'
   | 'missing-icon'
   | 'invalid-capability'
