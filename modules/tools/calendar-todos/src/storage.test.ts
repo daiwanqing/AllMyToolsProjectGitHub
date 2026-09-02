@@ -144,4 +144,42 @@ describe('calendar todo storage', () => {
       notes: [],
     });
   });
+
+  it('migrates version four records and keeps scheduled times', () => {
+    const storage = createStorage();
+    const scheduledTodo = { ...data.todos[0], startTime: '09:00', endTime: '10:30' };
+    storage.setItem(
+      calendarTodosStorageKey,
+      JSON.stringify({
+        version: 4,
+        todos: [scheduledTodo],
+        checkIns: data.checkIns,
+        notes: data.notes,
+      }),
+    );
+
+    expect(loadCalendarTodos(storage).todos[0]).toMatchObject({
+      startTime: '09:00',
+      endTime: '10:30',
+    });
+  });
+
+  it('ignores invalid or reversed time ranges', () => {
+    const storage = createStorage();
+    storage.setItem(
+      calendarTodosStorageKey,
+      JSON.stringify({
+        version: calendarTodosStorageVersion,
+        todos: [
+          { ...data.todos[0], startTime: '09:00', endTime: '08:30' },
+          { ...data.todos[0], id: 'todo-2', startTime: '25:00', endTime: '26:00' },
+          { ...data.todos[0], id: 'todo-3', startTime: '09:00' },
+        ],
+        checkIns: [],
+        notes: [],
+      }),
+    );
+
+    expect(loadCalendarTodos(storage).todos).toEqual([]);
+  });
 });

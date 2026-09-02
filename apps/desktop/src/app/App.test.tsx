@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
 
 afterEach(() => {
@@ -76,7 +76,9 @@ describe('desktop shell', () => {
     expect(screen.queryByRole('navigation', { name: '主导航' })).not.toBeInTheDocument();
     expect(screen.queryByRole('navigation', { name: '应用菜单' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '打开设置' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '返回工具台' }));
+    const backToWorkspaceButton = screen.getByRole('button', { name: '返回工具台' });
+    expect(backToWorkspaceButton).toHaveTextContent('← 工具台');
+    fireEvent.click(backToWorkspaceButton);
     expect(screen.getByRole('navigation', { name: '主导航' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '常用' }).closest('section')).toHaveTextContent(
       '复习笔记',
@@ -128,12 +130,18 @@ describe('desktop shell', () => {
   });
 
   it('manages dated todos in the calendar tool namespace', async () => {
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoView,
+    });
     render(<App />);
 
     const calendarTool = screen.getByRole('article', { name: '日历待办' });
     fireEvent.click(within(calendarTool).getByRole('button', { name: '打开' }));
 
     await waitFor(() => expect(screen.getByLabelText('连续年历')).toBeInTheDocument());
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'center' });
     expect(screen.getAllByLabelText(/年日历概览/)).toHaveLength(5);
     expect(screen.getByLabelText('连续年历')).toHaveClass('calendar-scroll-list');
     expect(screen.queryByRole('button', { name: '上一个周期' })).not.toBeInTheDocument();
@@ -153,7 +161,9 @@ describe('desktop shell', () => {
       throw new Error('Expected the current year month to be present.');
     }
     fireEvent.click(currentYearMonth);
-    expect(screen.getByRole('button', { name: '返回年历' })).toBeInTheDocument();
+    const backToYearButton = screen.getByRole('button', { name: '返回年历' });
+    expect(backToYearButton).toBeInTheDocument();
+    expect(backToYearButton).toHaveTextContent('← 年历');
     expect(screen.getAllByRole('grid', { name: /日历/ }).length).toBeGreaterThan(0);
     expect(document.querySelectorAll('.calendar-month-block')).toHaveLength(13);
     expect(screen.getByLabelText('连续月历')).toHaveClass('calendar-scroll-list');
@@ -164,7 +174,9 @@ describe('desktop shell', () => {
     expect(todayCell).toBeDefined();
     expect(todayCell).not.toHaveAttribute('aria-selected', 'true');
     fireEvent.click(todayCell as HTMLElement);
-    expect(screen.getByRole('heading', { name: /^\d+月\d+日$/ })).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { name: /^\d+月\d+日$/ })).toHaveLength(1);
+    expect(screen.queryByRole('heading', { name: '时间安排' })).not.toBeInTheDocument();
+    expect(screen.queryByText('时间安排')).not.toBeInTheDocument();
 
     const newTodoField = screen.getByRole('textbox', { name: '新增待办' });
     const newTodoForm = newTodoField.closest('form');
@@ -187,7 +199,9 @@ describe('desktop shell', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: '保存笔记' }));
     expect(screen.getByRole('status')).toHaveTextContent('当日笔记已保存。');
-    fireEvent.click(screen.getByRole('button', { name: '返回日历' }));
+    const backToCalendarButton = screen.getByRole('button', { name: '返回日历' });
+    expect(backToCalendarButton).toHaveTextContent('← 日历');
+    fireEvent.click(backToCalendarButton);
     const selectedCellWithNote = screen
       .getAllByRole('gridcell')
       .find((cell) => cell.getAttribute('aria-selected') === 'true');
@@ -200,7 +214,7 @@ describe('desktop shell', () => {
     expect(
       JSON.parse(window.localStorage.getItem('tools.calendar-todos.items') ?? ''),
     ).toMatchObject({
-      version: 4,
+      version: 5,
       todos: [{ title: '整理今天的计划', status: 'not-started' }],
       checkIns: [],
       notes: [{ content: '今天先整理本周的重点事项。' }],
@@ -333,6 +347,41 @@ describe('desktop shell', () => {
     fireEvent.click(finalDateCell);
     fireEvent.click(screen.getByRole('button', { name: '删除 整理今天的计划' }));
     expect(screen.queryByText('整理今天的计划')).not.toBeInTheDocument();
+  });
+
+  it('creates and edits a timed task in the daily timeline', async () => {
+    render(<App />);
+    const calendarTool = screen.getByRole('article', { name: '日历待办' });
+    fireEvent.click(within(calendarTool).getByRole('button', { name: '打开' }));
+    await waitFor(() => expect(screen.getByLabelText('连续年历')).toBeInTheDocument());
+    const todayCell = screen
+      .getAllByRole('button')
+      .find((button) => button.getAttribute('aria-current') === 'date');
+    if (!todayCell) throw new Error('Expected today in the year calendar.');
+    fireEvent.click(todayCell);
+    expect(screen.getByRole('heading', { name: /^\d+月\d+日$/ })).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('textbox', { name: '新增待办' }), {
+      target: { value: '时间块任务' },
+    });
+    fireEvent.change(screen.getByLabelText('开始时间'), {
+      target: { value: '09:00' },
+    });
+    fireEvent.change(screen.getByLabelText('结束时间'), {
+      target: { value: '10:30' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '添加' }));
+    expect(screen.getByRole('button', { name: /编辑 时间块任务/ })).toBeInTheDocument();
+    expect(
+      JSON.parse(window.localStorage.getItem('tools.calendar-todos.items') ?? ''),
+    ).toMatchObject({ todos: [{ title: '时间块任务', startTime: '09:00', endTime: '10:30' }] });
+    fireEvent.click(screen.getByRole('button', { name: /编辑 时间块任务/ }));
+    const editDialog = screen.getByRole('dialog', { name: '安排待办时间' });
+    expect(editDialog).toBeInTheDocument();
+    fireEvent.change(within(editDialog).getByLabelText('结束时间'), { target: { value: '11:00' } });
+    fireEvent.click(screen.getByRole('button', { name: '保存时间' }));
+    expect(
+      JSON.parse(window.localStorage.getItem('tools.calendar-todos.items') ?? ''),
+    ).toMatchObject({ todos: [{ title: '时间块任务', endTime: '11:00' }] });
   });
 
   it('opens settings, reports shortcut availability, and switches the active theme', async () => {

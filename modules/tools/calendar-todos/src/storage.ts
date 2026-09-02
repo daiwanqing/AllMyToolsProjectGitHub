@@ -1,7 +1,7 @@
 import { writeStorage, type StorageWriteResult } from '@allmytools/platform-services';
 
 export const calendarTodosStorageKey = 'tools.calendar-todos.items';
-export const calendarTodosStorageVersion = 4;
+export const calendarTodosStorageVersion = 5;
 const maxCheckInDates = 3660;
 const maxCheckIns = 100;
 const maxDailyNoteLength = 5000;
@@ -20,6 +20,8 @@ export type TodoItem = Readonly<{
   date: string;
   title: string;
   status: TodoStatus;
+  startTime?: string;
+  endTime?: string;
   createdAt: string;
 }>;
 
@@ -105,7 +107,23 @@ function isTodoItem(value: unknown): value is TodoItem {
     return false;
   }
 
-  return typeof value.date === 'string' && isDateKey(value.date) && isTodoStatus(value.status);
+  const startTime = value.startTime;
+  const endTime = value.endTime;
+  return (
+    typeof value.date === 'string' &&
+    isDateKey(value.date) &&
+    isTodoStatus(value.status) &&
+    isOptionalTime(startTime) &&
+    isOptionalTime(endTime) &&
+    ((!startTime && !endTime) ||
+      (typeof startTime === 'string' && typeof endTime === 'string' && endTime > startTime))
+  );
+}
+
+function isOptionalTime(value: unknown): value is string | undefined {
+  return (
+    value === undefined || (typeof value === 'string' && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value))
+  );
 }
 
 function isLegacyTodoItem(value: unknown): value is LegacyTodoItem {
@@ -287,14 +305,15 @@ export function loadCalendarTodos(storage: CalendarTodosStorage): CalendarTodosD
 
     if (
       isRecordBase(parsed) &&
-      parsed.version === 3 &&
+      (parsed.version === 4 || parsed.version === 3) &&
       Array.isArray(parsed.todos) &&
       Array.isArray(parsed.checkIns)
     ) {
       return {
         todos: sanitizeTodos(parsed.todos),
         checkIns: sanitizeCheckIns(parsed.checkIns),
-        notes: [],
+        notes:
+          parsed.version === 4 && Array.isArray(parsed.notes) ? sanitizeNotes(parsed.notes) : [],
       };
     }
 

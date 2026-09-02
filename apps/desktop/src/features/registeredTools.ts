@@ -5,7 +5,7 @@ import { manifest as sessionPickerManifest } from '@allmytools/entertainment-ses
 import { manifest as calendarTodosManifest } from '@allmytools/tools-calendar-todos/manifest';
 
 export type LoadedToolModule = Readonly<{
-  ToolView: ComponentType;
+  ToolView: ComponentType<{ onClose?: () => void }>;
 }>;
 
 export type ActiveToolSession = ToolSession<LoadedToolModule>;

@@ -16,7 +16,6 @@ import {
   StatusBadge,
   TextAreaField,
   TextField,
-  ToggleButton,
   ToggleField,
   type FloatingNoticeTone,
 } from '@allmytools/ui';
@@ -89,6 +88,17 @@ type CheckInDraft = Readonly<{
   monthDays: readonly number[];
 }>;
 
+type TodoTimeDraft = Readonly<{ startTime: string; endTime: string }>;
+
+function isValidTimeRange(startTime: string, endTime: string): boolean {
+  return Boolean(startTime && endTime && endTime > startTime);
+}
+
+function timeToMinutes(value: string): number {
+  const [hours, minutes] = value.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
 function createRecordId(prefix: string): string {
   if (globalThis.crypto?.randomUUID) {
     return globalThis.crypto.randomUUID();
@@ -146,7 +156,7 @@ function checkInDraftFromItem(item: CheckInItem): CheckInDraft {
   };
 }
 
-export function ToolView() {
+export function ToolView({ onClose }: { onClose?: () => void }) {
   const today = dateKey(new Date());
   const todayDate = dateFromKey(today);
   const [data, setData] = useState<CalendarTodosData>(() => loadCalendarTodos(window.localStorage));
@@ -159,6 +169,9 @@ export function ToolView() {
     return new Date(date.getFullYear(), date.getMonth(), 1);
   });
   const [newTodoTitle, setNewTodoTitle] = useState('');
+  const [newTodoTime, setNewTodoTime] = useState<TodoTimeDraft>({ startTime: '', endTime: '' });
+  const [todoEditId, setTodoEditId] = useState<string | null>(null);
+  const [todoEditDraft, setTodoEditDraft] = useState<TodoTimeDraft>({ startTime: '', endTime: '' });
   const [noteDrafts, setNoteDrafts] = useState<Readonly<Record<string, string>>>({});
   const [checkInDraft, setCheckInDraft] = useState<CheckInDraft>(() =>
     createCheckInDraft(selectedDate),
@@ -170,7 +183,7 @@ export function ToolView() {
   const [notice, setNotice] = useState<TodoNotice>();
   const mouseDragCleanup = useRef<(() => void) | undefined>(undefined);
   const todayAnchorRef = useRef<HTMLButtonElement>(null);
-  const shouldFocusToday = useRef(false);
+  const shouldFocusToday = useRef(true);
 
   const monthRange = useMemo(
     () => Array.from({ length: 13 }, (_, index) => moveMonth(visibleMonth, index - 6)),
@@ -234,6 +247,8 @@ export function ToolView() {
       ),
     [selectedTodos],
   );
+  const scheduledTodos = selectedTodos.filter((todo) => todo.startTime && todo.endTime);
+  const unscheduledTodos = selectedTodos.filter((todo) => !todo.startTime || !todo.endTime);
 
   useEffect(() => {
     if (!shouldFocusToday.current || showDateDetail || showCheckInManager) {
@@ -309,6 +324,14 @@ export function ToolView() {
     }
 
     if (
+      (newTodoTime.startTime || newTodoTime.endTime) &&
+      !isValidTimeRange(newTodoTime.startTime, newTodoTime.endTime)
+    ) {
+      showNotice('请填写有效的开始和结束时间。', 'error');
+      return;
+    }
+
+    if (
       !commit({
         ...data,
         todos: [
@@ -318,6 +341,7 @@ export function ToolView() {
             date: selectedDate,
             title,
             status: 'not-started',
+            ...(newTodoTime.startTime ? newTodoTime : {}),
             createdAt: new Date().toISOString(),
           },
         ],
@@ -325,7 +349,39 @@ export function ToolView() {
     )
       return;
     setNewTodoTitle('');
+    setNewTodoTime({ startTime: '', endTime: '' });
     showNotice('待办已添加。');
+  }
+
+  function openTodoEdit(todo: DisplayTodo) {
+    if (todo.checkInId) return;
+    setTodoEditId(todo.id);
+    setTodoEditDraft({ startTime: todo.startTime ?? '', endTime: todo.endTime ?? '' });
+  }
+
+  function saveTodoEdit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!todoEditId) return;
+    if (
+      (todoEditDraft.startTime || todoEditDraft.endTime) &&
+      !isValidTimeRange(todoEditDraft.startTime, todoEditDraft.endTime)
+    ) {
+      showNotice('请填写有效的开始和结束时间。', 'error');
+      return;
+    }
+    const todos = data.todos.map((todo) => {
+      if (todo.id !== todoEditId) return todo;
+      if (todoEditDraft.startTime) {
+        return { ...todo, startTime: todoEditDraft.startTime, endTime: todoEditDraft.endTime };
+      }
+      const withoutTime = { ...todo } as { startTime?: string; endTime?: string } & TodoItem;
+      delete withoutTime.startTime;
+      delete withoutTime.endTime;
+      return withoutTime;
+    });
+    if (!commit({ ...data, todos })) return;
+    setTodoEditId(null);
+    showNotice('待办时间已更新。');
   }
 
   function deleteTodo(id: string) {
@@ -689,9 +745,24 @@ export function ToolView() {
       }
     >
       <div className="calendar-todo-heading-actions">
+        {onClose ? (
+          <Button
+            className="back-button"
+            variant="secondary"
+            aria-label="返回工具台"
+            onClick={onClose}
+          >
+            ← 工具台
+          </Button>
+        ) : null}
         {!showCheckInManager && !showDateDetail && calendarView === 'month' ? (
-          <Button variant="secondary" aria-label="返回年历" onClick={() => setCalendarView('year')}>
-            返回年历
+          <Button
+            className="back-button"
+            variant="secondary"
+            aria-label="返回年历"
+            onClick={() => setCalendarView('year')}
+          >
+            ← 年历
           </Button>
         ) : null}
         {!showCheckInManager && !showDateDetail ? (
@@ -699,9 +770,14 @@ export function ToolView() {
             今天
           </Button>
         ) : null}
-        <ToggleButton
+        <Button
           variant="secondary"
-          className={!showCheckInManager && !showDateDetail ? 'calendar-cycle-action' : undefined}
+          className={
+            !showCheckInManager && !showDateDetail ? 'calendar-cycle-action' : 'back-button'
+          }
+          aria-label={
+            showCheckInManager ? '返回日历待办' : showDateDetail ? '返回日历' : '周期打卡'
+          }
           onClick={() => {
             if (showCheckInManager) {
               setShowCheckInManager(false);
@@ -712,10 +788,9 @@ export function ToolView() {
               setShowCheckInManager(true);
             }
           }}
-          pressed={showCheckInManager}
         >
-          {showCheckInManager ? '返回日历待办' : showDateDetail ? '返回日历' : '周期打卡'}
-        </ToggleButton>
+          {showCheckInManager ? '← 日历待办' : showDateDetail ? '← 日历' : '周期打卡'}
+        </Button>
       </div>
       {notice ? (
         <FloatingNotice
@@ -845,142 +920,268 @@ export function ToolView() {
           ) : null}
           {showDateDetail ? (
             <section className="todo-panel" aria-labelledby="selected-date-heading">
-              <div className="todo-panel-heading">
-                <h3 id="selected-date-heading">{selectedDateTitle(selectedDate)}</h3>
-                <StatusBadge
-                  tone={
-                    selectedTodos.length && !todosByStatus['not-started'].length
-                      ? 'success'
-                      : 'info'
-                  }
-                >
-                  {selectedTodos.length
-                    ? `${todosByStatus.completed.length}/${selectedTodos.length} 已完成`
-                    : '暂无待办'}
-                </StatusBadge>
-              </div>
-              <form className="todo-create-form" onSubmit={addTodo}>
-                <TextField
-                  label="新增待办"
-                  placeholder="写下要完成的事"
-                  value={newTodoTitle}
-                  maxLength={120}
-                  required
-                  onChange={(event) => setNewTodoTitle(event.target.value)}
-                />
-                <Button variant="primary" type="submit">
-                  添加
-                </Button>
-              </form>
-              <div className="todo-board" aria-label={`${selectedDateTitle(selectedDate)}任务看板`}>
-                {taskStatuses.map((status) => (
-                  <section
-                    key={status}
-                    className="todo-column"
-                    aria-label={taskStatusLabels[status]}
-                    data-todo-status={status}
-                    data-drag-over={dragOverStatus === status || undefined}
-                    onDragOver={(event) => {
-                      event.preventDefault();
-                      setDragOverStatus(status);
-                    }}
-                    onDragLeave={() => setDragOverStatus(undefined)}
-                    onDrop={(event) => dropTodo(event, status)}
-                  >
-                    <div className="todo-column-heading">
-                      <h4>{taskStatusLabels[status]}</h4>
-                      <StatusBadge tone={status === 'completed' ? 'success' : 'neutral'}>
-                        {todosByStatus[status].length}
-                      </StatusBadge>
+              <div className="day-detail-layout">
+                <div className="day-detail-main">
+                  <section className="day-timeline" aria-labelledby="selected-date-heading">
+                    <div className="todo-panel-heading">
+                      <h3 id="selected-date-heading">{selectedDateTitle(selectedDate)}</h3>
+                      <span className="timeline-range">00:00–24:00</span>
                     </div>
-                    <ul className="todo-list" aria-label={`${taskStatusLabels[status]}任务`}>
-                      {todosByStatus[status].map((todo) => (
-                        <li
-                          key={todo.id}
-                          className="todo-item"
-                          tabIndex={0}
-                          aria-label={`${todo.title}，${taskStatusLabels[todo.status]}`}
-                          data-dragging={draggedTodoId === todo.id || undefined}
-                          draggable={false}
-                          onMouseDown={(event) => startMouseDragging(event, todo)}
-                          onPointerDown={(event) => startPointerDragging(event, todo)}
-                          onPointerMove={movePointerDragging}
-                          onPointerUp={(event) => finishPointerDragging(event, todo)}
-                          onPointerCancel={() => {
-                            setDraggedTodoId(undefined);
-                            setDragOverStatus(undefined);
-                          }}
-                          onDragStart={(event) => startDragging(event, todo.id)}
-                          onKeyDown={(event) => {
-                            if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-                              event.preventDefault();
-                              moveTodoByKeyboard(todo, 1);
-                            }
-                            if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-                              event.preventDefault();
-                              moveTodoByKeyboard(todo, -1);
-                            }
-                          }}
-                          onDragEnd={() => {
-                            setDraggedTodoId(undefined);
-                            setDragOverStatus(undefined);
-                          }}
-                        >
-                          <div className="todo-item-actions">
-                            <label className="todo-item-content">
-                              <input
-                                type="checkbox"
-                                checked={todo.status === 'completed'}
-                                aria-label={`完成 ${todo.title}`}
-                                onMouseDown={(event) => event.stopPropagation()}
-                                onPointerDown={(event) => event.stopPropagation()}
-                                onChange={() => toggleTodoCompletion(todo)}
-                              />
-                              <span className="todo-item-title">{todo.title}</span>
-                            </label>
-                            {!todo.checkInId ? (
-                              <Button
-                                variant="danger"
-                                aria-label={`删除 ${todo.title}`}
-                                onMouseDown={(event) => event.stopPropagation()}
-                                onPointerDown={(event) => event.stopPropagation()}
-                                onClick={() => deleteTodo(todo.id)}
-                              >
-                                删除
-                              </Button>
-                            ) : null}
+                    <div
+                      className="timeline-scroll"
+                      aria-label={`${selectedDateTitle(selectedDate)}时间轴`}
+                    >
+                      <div className="timeline-grid">
+                        {Array.from({ length: 24 }, (_, hour) => (
+                          <div className="timeline-hour" key={hour}>
+                            <span>{String(hour).padStart(2, '0')}:00</span>
+                            <div className="timeline-hour-line" />
                           </div>
-                        </li>
-                      ))}
-                    </ul>
+                        ))}
+                      </div>
+                    </div>
                   </section>
-                ))}
-              </div>
-              <section className="daily-note" aria-labelledby="daily-note-heading">
-                <div className="todo-panel-heading">
-                  <h4 id="daily-note-heading">当日笔记</h4>
                 </div>
-                <TextAreaField
-                  label={`${selectedDateTitle(selectedDate)}笔记`}
-                  description="记录当天想法、进展或补充信息。"
-                  rows={6}
-                  maxLength={5000}
-                  value={noteDraft}
-                  onChange={(event) => updateNoteDraft(event.target.value)}
-                />
-                <div className="daily-note-actions">
-                  <Button
-                    variant="secondary"
-                    onClick={saveDailyNote}
-                    disabled={noteDraft.trim() === selectedNoteContent}
+                <aside className="day-detail-side" aria-label="待办与笔记">
+                  <form className="todo-create-form" onSubmit={addTodo}>
+                    <TextField
+                      label="新增待办"
+                      placeholder="写下要完成的事"
+                      value={newTodoTitle}
+                      maxLength={120}
+                      required
+                      onChange={(event) => setNewTodoTitle(event.target.value)}
+                    />
+                    <div className="todo-time-fields">
+                      <TextField
+                        label="开始时间"
+                        type="time"
+                        value={newTodoTime.startTime}
+                        onChange={(event) =>
+                          setNewTodoTime((time) => ({ ...time, startTime: event.target.value }))
+                        }
+                      />
+                      <TextField
+                        label="结束时间"
+                        type="time"
+                        value={newTodoTime.endTime}
+                        onChange={(event) =>
+                          setNewTodoTime((time) => ({ ...time, endTime: event.target.value }))
+                        }
+                      />
+                    </div>
+                    <Button variant="primary" type="submit">
+                      添加
+                    </Button>
+                  </form>
+                  <section className="scheduled-todos" aria-labelledby="scheduled-heading">
+                    <div className="todo-panel-heading">
+                      <h4 id="scheduled-heading">已安排时间</h4>
+                      <StatusBadge tone="info">{scheduledTodos.length}</StatusBadge>
+                    </div>
+                    <div
+                      className="scheduled-timeline"
+                      aria-label={`${selectedDateTitle(selectedDate)}已安排时间轴`}
+                    >
+                      {scheduledTodos.map((todo) => {
+                        const top = (timeToMinutes(todo.startTime!) / 30) * 32;
+                        const height = Math.max(
+                          32,
+                          ((timeToMinutes(todo.endTime!) - timeToMinutes(todo.startTime!)) / 30) *
+                            32,
+                        );
+                        return (
+                          <button
+                            type="button"
+                            className="timeline-event"
+                            data-completed={todo.status === 'completed' || undefined}
+                            key={todo.id}
+                            style={{ top, height }}
+                            onClick={() => openTodoEdit(todo)}
+                            aria-label={`编辑 ${todo.title}，${todo.startTime} 至 ${todo.endTime}`}
+                          >
+                            <strong>{todo.title}</strong>
+                            <small>
+                              {todo.startTime}–{todo.endTime}
+                            </small>
+                          </button>
+                        );
+                      })}
+                      {!scheduledTodos.length ? (
+                        <p className="calendar-empty-copy">暂无已安排时间的待办。</p>
+                      ) : null}
+                    </div>
+                  </section>
+                  <section className="unscheduled-todos" aria-labelledby="unscheduled-heading">
+                    <div className="todo-panel-heading">
+                      <h4 id="unscheduled-heading">未安排时间</h4>
+                      <StatusBadge tone="neutral">{unscheduledTodos.length}</StatusBadge>
+                    </div>
+                  </section>
+                  <div
+                    className="todo-board"
+                    aria-label={`${selectedDateTitle(selectedDate)}任务看板`}
                   >
-                    保存笔记
-                  </Button>
-                  <Button variant="danger" onClick={deleteDailyNote} disabled={!selectedNote}>
-                    删除笔记
-                  </Button>
-                </div>
-              </section>
+                    {taskStatuses.map((status) => (
+                      <section
+                        key={status}
+                        className="todo-column"
+                        aria-label={taskStatusLabels[status]}
+                        data-todo-status={status}
+                        data-drag-over={dragOverStatus === status || undefined}
+                        onDragOver={(event) => {
+                          event.preventDefault();
+                          setDragOverStatus(status);
+                        }}
+                        onDragLeave={() => setDragOverStatus(undefined)}
+                        onDrop={(event) => dropTodo(event, status)}
+                      >
+                        <div className="todo-column-heading">
+                          <h4>{taskStatusLabels[status]}</h4>
+                          <StatusBadge tone={status === 'completed' ? 'success' : 'neutral'}>
+                            {unscheduledTodos.filter((todo) => todo.status === status).length}
+                          </StatusBadge>
+                        </div>
+                        <ul className="todo-list" aria-label={`${taskStatusLabels[status]}任务`}>
+                          {todosByStatus[status]
+                            .filter((todo) => !todo.startTime || !todo.endTime)
+                            .map((todo) => (
+                              <li
+                                key={todo.id}
+                                className="todo-item"
+                                tabIndex={0}
+                                aria-label={`${todo.title}，${taskStatusLabels[todo.status]}`}
+                                data-dragging={draggedTodoId === todo.id || undefined}
+                                draggable={false}
+                                onMouseDown={(event) => startMouseDragging(event, todo)}
+                                onPointerDown={(event) => startPointerDragging(event, todo)}
+                                onPointerMove={movePointerDragging}
+                                onPointerUp={(event) => finishPointerDragging(event, todo)}
+                                onPointerCancel={() => {
+                                  setDraggedTodoId(undefined);
+                                  setDragOverStatus(undefined);
+                                }}
+                                onDragStart={(event) => startDragging(event, todo.id)}
+                                onKeyDown={(event) => {
+                                  if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                                    event.preventDefault();
+                                    moveTodoByKeyboard(todo, 1);
+                                  }
+                                  if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                                    event.preventDefault();
+                                    moveTodoByKeyboard(todo, -1);
+                                  }
+                                }}
+                                onDragEnd={() => {
+                                  setDraggedTodoId(undefined);
+                                  setDragOverStatus(undefined);
+                                }}
+                              >
+                                <div className="todo-item-actions">
+                                  <label className="todo-item-content">
+                                    <input
+                                      type="checkbox"
+                                      checked={todo.status === 'completed'}
+                                      aria-label={`完成 ${todo.title}`}
+                                      onMouseDown={(event) => event.stopPropagation()}
+                                      onPointerDown={(event) => event.stopPropagation()}
+                                      onChange={() => toggleTodoCompletion(todo)}
+                                    />
+                                    <span className="todo-item-title">{todo.title}</span>
+                                  </label>
+                                  {!todo.checkInId ? (
+                                    <div className="todo-item-command-actions">
+                                      <Button
+                                        variant="secondary"
+                                        onMouseDown={(event) => event.stopPropagation()}
+                                        onPointerDown={(event) => event.stopPropagation()}
+                                        onClick={() => openTodoEdit(todo)}
+                                      >
+                                        安排时间
+                                      </Button>
+                                      <Button
+                                        variant="danger"
+                                        aria-label={`删除 ${todo.title}`}
+                                        onMouseDown={(event) => event.stopPropagation()}
+                                        onPointerDown={(event) => event.stopPropagation()}
+                                        onClick={() => deleteTodo(todo.id)}
+                                      >
+                                        删除
+                                      </Button>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              </li>
+                            ))}
+                        </ul>
+                      </section>
+                    ))}
+                  </div>
+                  <section className="daily-note" aria-labelledby="daily-note-heading">
+                    <div className="todo-panel-heading">
+                      <h4 id="daily-note-heading">当日笔记</h4>
+                    </div>
+                    <TextAreaField
+                      label={`${selectedDateTitle(selectedDate)}笔记`}
+                      description="记录当天想法、进展或补充信息。"
+                      rows={6}
+                      maxLength={5000}
+                      value={noteDraft}
+                      onChange={(event) => updateNoteDraft(event.target.value)}
+                    />
+                    <div className="daily-note-actions">
+                      <Button
+                        variant="secondary"
+                        onClick={saveDailyNote}
+                        disabled={noteDraft.trim() === selectedNoteContent}
+                      >
+                        保存笔记
+                      </Button>
+                      <Button variant="danger" onClick={deleteDailyNote} disabled={!selectedNote}>
+                        删除笔记
+                      </Button>
+                    </div>
+                  </section>
+                </aside>
+              </div>
+              {todoEditId ? (
+                <Modal
+                  open
+                  className="todo-edit-dialog"
+                  labelledBy="todo-edit-heading"
+                  onClose={() => setTodoEditId(null)}
+                >
+                  <form onSubmit={saveTodoEdit} className="todo-edit-form">
+                    <h3 id="todo-edit-heading">安排待办时间</h3>
+                    <div className="todo-time-fields">
+                      <TextField
+                        label="开始时间"
+                        type="time"
+                        value={todoEditDraft.startTime}
+                        onChange={(event) =>
+                          setTodoEditDraft((time) => ({ ...time, startTime: event.target.value }))
+                        }
+                      />
+                      <TextField
+                        label="结束时间"
+                        type="time"
+                        value={todoEditDraft.endTime}
+                        onChange={(event) =>
+                          setTodoEditDraft((time) => ({ ...time, endTime: event.target.value }))
+                        }
+                      />
+                    </div>
+                    <div className="todo-edit-actions">
+                      <Button variant="secondary" type="button" onClick={() => setTodoEditId(null)}>
+                        取消
+                      </Button>
+                      <Button variant="primary" type="submit">
+                        保存时间
+                      </Button>
+                    </div>
+                  </form>
+                </Modal>
+              ) : null}
             </section>
           ) : null}
         </div>

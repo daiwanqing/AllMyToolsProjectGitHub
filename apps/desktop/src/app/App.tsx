@@ -33,7 +33,6 @@ import {
   type TabsItem,
 } from '@allmytools/ui';
 import {
-  ArrowLeft,
   Bug,
   Code2,
   Clock3,
@@ -700,6 +699,16 @@ export function App() {
     return (
       <main className="tool-focus-shell" aria-labelledby="application-title">
         <header className="tool-focus-toolbar">
+          {activeTool.id !== 'tools.calendar-todos' ? (
+            <Button
+              className="back-button"
+              variant="secondary"
+              aria-label="返回工具台"
+              onClick={closeActiveTool}
+            >
+              ← 工具台
+            </Button>
+          ) : null}
           <div className="tool-focus-title">
             <p className="eyebrow">AllMyTools</p>
             <h1 id="application-title">{activeToolName}</h1>
@@ -735,15 +744,11 @@ export function App() {
             >
               设置
             </Button>
-            <Button variant="secondary" onClick={closeActiveTool}>
-              <ArrowLeft aria-hidden="true" />
-              返回工具台
-            </Button>
           </div>
         </header>
         <section className="tool-focus-content" aria-label="工具工作区" ref={toolContentRef}>
           <ToolErrorBoundary onClose={closeActiveTool}>
-            <activeTool.module.ToolView />
+            <activeTool.module.ToolView onClose={closeActiveTool} />
           </ToolErrorBoundary>
           <DebugOverlay enabled={debugMode} root={toolContentElement} onExit={exitDebugMode} />
         </section>
