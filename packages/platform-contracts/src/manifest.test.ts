@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { defineToolManifest, validateToolManifest } from './manifest';
+import { toolCategories, toolSubcategories } from './types';
 import type { ToolManifest } from './types';
 
 const validManifest: ToolManifest = {
@@ -15,6 +16,17 @@ const validManifest: ToolManifest = {
 };
 
 describe('工具清单契约', () => {
+  it('公开生活一级模块及其专属二级分类', () => {
+    expect(toolCategories).toContain('life');
+    expect(toolSubcategories.life).toEqual([
+      'daily-life',
+      'health',
+      'finance',
+      'household',
+      'life-other',
+    ]);
+  });
+
   it('接受有效的构建期清单', () => {
     expect(validateToolManifest(validManifest)).toEqual({ ok: true, manifest: validManifest });
   });

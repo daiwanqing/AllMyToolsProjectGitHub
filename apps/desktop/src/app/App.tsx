@@ -37,6 +37,7 @@ import {
   Code2,
   Clock3,
   Grid2X2,
+  Home,
   Keyboard,
   Palette,
   Search,
@@ -121,6 +122,7 @@ const workspaceNavigation: ReadonlyArray<
   { id: 'learning', label: categoryLabels.learning, icon: Sparkles },
   { id: 'entertainment', label: categoryLabels.entertainment, icon: Grid2X2 },
   { id: 'tools', label: categoryLabels.tools, icon: Wrench },
+  { id: 'life', label: categoryLabels.life, icon: Home },
 ];
 
 const themes: ReadonlyArray<Readonly<{ id: ThemeName; label: string }>> = [
@@ -241,7 +243,13 @@ function isSettingsTab(value: unknown): value is SettingsTab {
 }
 
 function isToolCategory(value: unknown): value is ToolCategory | 'all' {
-  return value === 'all' || value === 'learning' || value === 'entertainment' || value === 'tools';
+  return (
+    value === 'all' ||
+    value === 'learning' ||
+    value === 'entertainment' ||
+    value === 'tools' ||
+    value === 'life'
+  );
 }
 
 function readWorkspaceState(storage: Storage): PersistedWorkspaceState | undefined {
@@ -1088,7 +1096,19 @@ export function App() {
               );
             })}
             {!catalogSections.length ? (
-              <EmptyState title="没有匹配的工具" description="尝试使用其他名称、分类或关键词。" />
+              category !== 'all' && !isSearchActive ? (
+                <EmptyState
+                  title={`${categoryLabels[category]}模块已就绪`}
+                  description="该模块正在接入工具，后续会按生活日常、健康、财务和家庭分类提供能力。"
+                  action={
+                    <Button variant="secondary" onClick={() => setCategory('all')}>
+                      查看全部工具
+                    </Button>
+                  }
+                />
+              ) : (
+                <EmptyState title="没有匹配的工具" description="尝试使用其他名称、分类或关键词。" />
+              )
             ) : null}
           </div>
         </section>

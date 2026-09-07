@@ -14,6 +14,7 @@ describe('desktop shell', () => {
 
     expect(screen.getByRole('navigation', { name: '主导航' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '学习' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '生活' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '常用' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '其他工具' })).toBeInTheDocument();
     expect(screen.getByRole('article', { name: '日历待办' })).toBeInTheDocument();
@@ -129,6 +130,25 @@ describe('desktop shell', () => {
       target: { value: '不存在' },
     });
     expect(screen.getByRole('heading', { name: '没有匹配的工具' })).toBeInTheDocument();
+  });
+
+  it('opens the empty life module and preserves the selected module', () => {
+    const firstRender = render(<App />);
+
+    fireEvent.click(screen.getByRole('tab', { name: '生活' }));
+
+    expect(screen.getByRole('tab', { name: '生活' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('heading', { name: '生活模块已就绪' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '查看全部工具' })).toBeInTheDocument();
+    expect(JSON.parse(window.localStorage.getItem('shell.workspace-state') ?? '')).toMatchObject({
+      category: 'life',
+    });
+
+    firstRender.unmount();
+    render(<App />);
+
+    expect(screen.getByRole('tab', { name: '生活' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('heading', { name: '生活模块已就绪' })).toBeInTheDocument();
   });
 
   it('groups a module by its second-level categories', () => {

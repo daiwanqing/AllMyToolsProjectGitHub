@@ -34,6 +34,7 @@ export const categoryLabels: Readonly<Record<ToolCategory, string>> = {
   learning: '学习',
   entertainment: '娱乐',
   tools: '工具',
+  life: '生活',
 };
 
 export const subcategoryLabels: Readonly<Record<ToolSubcategory, string>> = {
@@ -48,6 +49,11 @@ export const subcategoryLabels: Readonly<Record<ToolSubcategory, string>> = {
   'learning-other': '其他学习',
   'entertainment-other': '其他娱乐',
   'tools-other': '其他工具',
+  'daily-life': '生活日常',
+  health: '健康',
+  finance: '财务',
+  household: '家庭',
+  'life-other': '其他生活',
 };
 
 export function subcategoriesForCategory(category: ToolCategory) {

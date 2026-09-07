@@ -1,5 +1,5 @@
 /** 独立工具所属的产品域。 */
-export const toolCategories = ['learning', 'entertainment', 'tools'] as const;
+export const toolCategories = ['learning', 'entertainment', 'tools', 'life'] as const;
 
 export type ToolCategory = (typeof toolCategories)[number];
 
@@ -8,6 +8,7 @@ export const toolSubcategories = {
   learning: ['study-planning', 'art', 'english', 'learning-other'],
   entertainment: ['activity', 'music', 'games', 'entertainment-other'],
   tools: ['calendar', 'productivity', 'tools-other'],
+  life: ['daily-life', 'health', 'finance', 'household', 'life-other'],
 } as const;
 
 export type ToolSubcategory = (typeof toolSubcategories)[keyof typeof toolSubcategories][number];
