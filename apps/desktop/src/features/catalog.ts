@@ -19,6 +19,7 @@ const keywordsByToolId: Readonly<Record<string, readonly string[]>> = {
   'entertainment.session-picker': ['活动', '娱乐', '选择'],
   'tools.calendar-todos': ['日历', '待办', '任务', '计划', '日程'],
   'tools.travel-notes': ['旅行', '笔记', '旅程', '地点', '回顾'],
+  'life.board-games': ['桌游', '收藏', '游戏', '聚会'],
 };
 
 export const toolCatalog: readonly ToolCatalogEntry[] = toolRegistry.list().map((manifest) => ({
@@ -50,6 +51,7 @@ export const subcategoryLabels: Readonly<Record<ToolSubcategory, string>> = {
   'entertainment-other': '其他娱乐',
   'tools-other': '其他工具',
   'daily-life': '生活日常',
+  collection: '收藏',
   health: '健康',
   finance: '财务',
   household: '家庭',

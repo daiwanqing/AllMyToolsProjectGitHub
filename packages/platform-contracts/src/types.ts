@@ -8,7 +8,7 @@ export const toolSubcategories = {
   learning: ['study-planning', 'art', 'english', 'learning-other'],
   entertainment: ['activity', 'music', 'games', 'entertainment-other'],
   tools: ['calendar', 'productivity', 'tools-other'],
-  life: ['daily-life', 'health', 'finance', 'household', 'life-other'],
+  life: ['collection', 'daily-life', 'health', 'finance', 'household', 'life-other'],
 } as const;
 
 export type ToolSubcategory = (typeof toolSubcategories)[keyof typeof toolSubcategories][number];

@@ -19,7 +19,7 @@ describe('desktop shell', () => {
     expect(screen.getByRole('heading', { name: '其他工具' })).toBeInTheDocument();
     expect(screen.getByRole('article', { name: '日历待办' })).toBeInTheDocument();
     expect(screen.queryByRole('article', { name: '文本工作台' })).not.toBeInTheDocument();
-    expect(screen.getAllByRole('article')).toHaveLength(4);
+    expect(screen.getAllByRole('article')).toHaveLength(5);
   });
 
   it('opens travel notes and saves a quick entry in its own namespace', async () => {
@@ -132,14 +132,14 @@ describe('desktop shell', () => {
     expect(screen.getByRole('heading', { name: '没有匹配的工具' })).toBeInTheDocument();
   });
 
-  it('opens the empty life module and preserves the selected module', () => {
+  it('opens the life module and preserves the selected module', () => {
     const firstRender = render(<App />);
 
     fireEvent.click(screen.getByRole('tab', { name: '生活' }));
 
     expect(screen.getByRole('tab', { name: '生活' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('heading', { name: '生活模块已就绪' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '查看全部工具' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '收藏' })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: '桌游' })).toBeInTheDocument();
     expect(JSON.parse(window.localStorage.getItem('shell.workspace-state') ?? '')).toMatchObject({
       category: 'life',
     });
@@ -148,7 +148,41 @@ describe('desktop shell', () => {
     render(<App />);
 
     expect(screen.getByRole('tab', { name: '生活' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('heading', { name: '生活模块已就绪' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '收藏' })).toBeInTheDocument();
+  });
+
+  it('opens the board game collection from the life collection category and saves it', async () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('tab', { name: '生活' }));
+    expect(screen.getByRole('heading', { name: '收藏' })).toBeInTheDocument();
+    const boardGamesTool = screen.getByRole('article', { name: '桌游' });
+    fireEvent.click(within(boardGamesTool).getByRole('button', { name: '打开' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1, name: '桌游' })).toBeInTheDocument(),
+    );
+    const saveButton = screen.getByRole('button', { name: '保存收藏' });
+    expect(saveButton).toBeDisabled();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByRole('textbox', { name: '桌游名称' }), {
+      target: { value: '卡坦岛' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '加入收藏' }));
+    expect(screen.getByText('卡坦岛')).toBeInTheDocument();
+    expect(saveButton).not.toBeDisabled();
+    fireEvent.click(saveButton);
+
+    expect(screen.getByRole('status')).toHaveTextContent('收藏已保存');
+    expect(saveButton).toBeDisabled();
+    expect(window.localStorage.getItem('life.board-games.collection')).toContain('卡坦岛');
+
+    fireEvent.click(screen.getByRole('button', { name: '移除' }));
+    expect(screen.getByRole('heading', { name: '还没有收藏桌游' })).toBeInTheDocument();
+    expect(saveButton).not.toBeDisabled();
+    fireEvent.click(saveButton);
+    expect(saveButton).toBeDisabled();
+    expect(window.localStorage.getItem('life.board-games.collection')).toBe('[]');
   });
 
   it('groups a module by its second-level categories', () => {

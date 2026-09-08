@@ -19,6 +19,7 @@ describe('工具清单契约', () => {
   it('公开生活一级模块及其专属二级分类', () => {
     expect(toolCategories).toContain('life');
     expect(toolSubcategories.life).toEqual([
+      'collection',
       'daily-life',
       'health',
       'finance',

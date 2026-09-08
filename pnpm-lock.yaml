@@ -41,6 +41,9 @@ importers:
       '@allmytools/learning-note-review':
         specifier: workspace:*
         version: link:../../modules/learning/note-review
+      '@allmytools/life-board-games':
+        specifier: workspace:*
+        version: link:../../modules/life/board-games
       '@allmytools/platform-contracts':
         specifier: workspace:*
         version: link:../../packages/platform-contracts
@@ -123,6 +126,28 @@ importers:
         version: 3.2.7(jsdom@26.1.0)
 
   modules/learning/note-review:
+    dependencies:
+      '@allmytools/platform-contracts':
+        specifier: workspace:*
+        version: link:../../../packages/platform-contracts
+      '@allmytools/platform-services':
+        specifier: workspace:*
+        version: link:../../../packages/platform-services
+      '@allmytools/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
+    devDependencies:
+      '@types/react':
+        specifier: ^19.1.2
+        version: 19.2.18
+      react:
+        specifier: ^19.1.0
+        version: 19.2.8
+      vitest:
+        specifier: ^3.1.2
+        version: 3.2.7(jsdom@26.1.0)
+
+  modules/life/board-games:
     dependencies:
       '@allmytools/platform-contracts':
         specifier: workspace:*

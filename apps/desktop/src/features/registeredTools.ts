@@ -4,6 +4,7 @@ import { manifest as noteReviewManifest } from '@allmytools/learning-note-review
 import { manifest as sessionPickerManifest } from '@allmytools/entertainment-session-picker/manifest';
 import { manifest as calendarTodosManifest } from '@allmytools/tools-calendar-todos/manifest';
 import { manifest as travelNotesManifest } from '@allmytools/tools-travel-notes/manifest';
+import { manifest as boardGamesManifest } from '@allmytools/life-board-games/manifest';
 
 export type LoadedToolModule = Readonly<{
   ToolView: ComponentType<{ onClose?: () => void }>;
@@ -31,4 +32,9 @@ toolRegistry.register({
 toolRegistry.register({
   manifest: travelNotesManifest,
   load: () => import('@allmytools/tools-travel-notes'),
+});
+
+toolRegistry.register({
+  manifest: boardGamesManifest,
+  load: () => import('@allmytools/life-board-games'),
 });

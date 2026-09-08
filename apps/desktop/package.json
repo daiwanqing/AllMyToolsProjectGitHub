@@ -20,6 +20,7 @@
     "@allmytools/learning-note-review": "workspace:*",
     "@allmytools/tools-calendar-todos": "workspace:*",
     "@allmytools/tools-travel-notes": "workspace:*",
+    "@allmytools/life-board-games": "workspace:*",
     "@tauri-apps/api": "^2.5.0",
     "@tauri-apps/plugin-global-shortcut": "2.3.0",
     "lucide-react": "^0.468.0",

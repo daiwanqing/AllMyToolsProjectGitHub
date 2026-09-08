@@ -2077,6 +2077,58 @@ h2 {
   margin-top: var(--amt-space-4);
 }
 
+.board-games-workspace {
+  display: grid;
+  width: 100%;
+  max-width: var(--amt-dimension-workspace-tool-max-width);
+  gap: var(--amt-space-6);
+}
+
+.board-games-workspace > header {
+  display: grid;
+  gap: var(--amt-space-1);
+}
+
+.board-games-add-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--amt-space-3);
+  padding-bottom: var(--amt-space-5);
+  border-bottom: var(--amt-border-width-default) solid var(--amt-color-border-default);
+}
+
+.board-games-add-form .amt-button,
+.board-games-list-item .amt-button,
+.board-games-workspace > .amt-button {
+  margin-top: 0;
+}
+
+.board-games-list {
+  display: grid;
+  gap: var(--amt-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.board-games-list-item {
+  display: flex;
+  min-height: var(--amt-button-default-height);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--amt-space-4);
+  padding: var(--amt-space-2) var(--amt-space-3);
+  border: var(--amt-border-width-default) solid var(--amt-color-border-default);
+  border-radius: var(--amt-radius-control);
+  background: var(--amt-color-background-surface);
+}
+
+.board-games-list-item > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 900px) {
   .desktop-shell {
     grid-template-columns: calc(var(--amt-dimension-navigation-rail) - var(--amt-space-10)) minmax(
@@ -2142,6 +2194,10 @@ h2 {
   }
 
   .tool-tile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .board-games-add-form {
     grid-template-columns: 1fr;
   }
 
