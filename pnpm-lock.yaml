@@ -158,6 +158,9 @@ importers:
       '@allmytools/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
+      lucide-react:
+        specifier: ^0.468.0
+        version: 0.468.0(react@19.2.8)
     devDependencies:
       '@types/react':
         specifier: ^19.1.2

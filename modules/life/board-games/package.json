@@ -15,7 +15,8 @@
   "dependencies": {
     "@allmytools/platform-services": "workspace:*",
     "@allmytools/platform-contracts": "workspace:*",
-    "@allmytools/ui": "workspace:*"
+    "@allmytools/ui": "workspace:*",
+    "lucide-react": "^0.468.0"
   },
   "peerDependencies": {
     "react": "^19.0.0"

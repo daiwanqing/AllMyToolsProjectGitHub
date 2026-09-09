@@ -139,7 +139,7 @@ describe('desktop shell', () => {
 
     expect(screen.getByRole('tab', { name: '生活' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('heading', { name: '收藏' })).toBeInTheDocument();
-    expect(screen.getByRole('article', { name: '桌游' })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: '代代桌游馆' })).toBeInTheDocument();
     expect(JSON.parse(window.localStorage.getItem('shell.workspace-state') ?? '')).toMatchObject({
       category: 'life',
     });
@@ -151,25 +151,27 @@ describe('desktop shell', () => {
     expect(screen.getByRole('heading', { name: '收藏' })).toBeInTheDocument();
   });
 
-  it('opens the board game collection from the life collection category and saves it', async () => {
+  it('opens the board game house gallery, filters the collection, and saves favorites', async () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole('tab', { name: '生活' }));
     expect(screen.getByRole('heading', { name: '收藏' })).toBeInTheDocument();
-    const boardGamesTool = screen.getByRole('article', { name: '桌游' });
+    const boardGamesTool = screen.getByRole('article', { name: '代代桌游馆' });
     fireEvent.click(within(boardGamesTool).getByRole('button', { name: '打开' }));
 
     await waitFor(() =>
-      expect(screen.getByRole('heading', { level: 1, name: '桌游' })).toBeInTheDocument(),
+      expect(screen.getByRole('heading', { level: 1, name: '代代桌游馆' })).toBeInTheDocument(),
     );
+    expect(screen.getByRole('heading', { name: '馆藏' })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: '卡坦岛' })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: '璀璨宝石' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '卡坦岛 图片展示区' })).toBeInTheDocument();
+    expect(screen.getByRole('tablist', { name: '馆藏分类' })).toBeInTheDocument();
     const saveButton = screen.getByRole('button', { name: '保存收藏' });
     expect(saveButton).toBeDisabled();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
-    fireEvent.change(screen.getByRole('textbox', { name: '桌游名称' }), {
-      target: { value: '卡坦岛' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: '加入收藏' }));
-    expect(screen.getByText('卡坦岛')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '收藏 卡坦岛' }));
+    expect(screen.getByRole('button', { name: '取消收藏 卡坦岛' })).toBeInTheDocument();
     expect(saveButton).not.toBeDisabled();
     fireEvent.click(saveButton);
 
@@ -177,12 +179,62 @@ describe('desktop shell', () => {
     expect(saveButton).toBeDisabled();
     expect(window.localStorage.getItem('life.board-games.collection')).toContain('卡坦岛');
 
-    fireEvent.click(screen.getByRole('button', { name: '移除' }));
-    expect(screen.getByRole('heading', { name: '还没有收藏桌游' })).toBeInTheDocument();
-    expect(saveButton).not.toBeDisabled();
-    fireEvent.click(saveButton);
-    expect(saveButton).toBeDisabled();
-    expect(window.localStorage.getItem('life.board-games.collection')).toBe('[]');
+    fireEvent.click(screen.getByRole('tab', { name: '聚会' }));
+    expect(screen.getByRole('article', { name: '行动代号' })).toBeInTheDocument();
+    expect(screen.queryByRole('article', { name: '卡坦岛' })).not.toBeInTheDocument();
+  });
+
+  it('adds, edits, and deletes a board game before explicitly saving the collection', async () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('tab', { name: '生活' }));
+    fireEvent.click(
+      within(screen.getByRole('article', { name: '代代桌游馆' })).getByRole('button', {
+        name: '打开',
+      }),
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1, name: '代代桌游馆' })).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '添加桌游' }));
+    const addDialog = screen.getByRole('dialog', { name: '添加桌游' });
+    expect(addDialog).toHaveClass('board-game-editor-modal');
+    expect(addDialog.querySelector('.board-game-editor-panel')).toBeInTheDocument();
+    const cover = new File(['cover'], 'cover.png', { type: 'image/png' });
+    fireEvent.change(screen.getByLabelText('桌游图片'), { target: { files: [cover] } });
+    await waitFor(() => expect(screen.getByAltText('桌游封面预览')).toBeInTheDocument());
+    fireEvent.change(screen.getByRole('textbox', { name: '名称' }), {
+      target: { value: '新桌游' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: '人数' }), {
+      target: { value: '3–6 人' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: '时长' }), {
+      target: { value: '45 分钟' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: '详细介绍' }), {
+      target: { value: '适合朋友一起玩的新桌游。' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存桌游' }));
+    expect(screen.getByRole('article', { name: '新桌游' })).toBeInTheDocument();
+    expect(window.localStorage.getItem('life.board-games.collection') ?? '').not.toContain(
+      '新桌游',
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '编辑 新桌游' }));
+    expect(screen.getByRole('dialog', { name: '编辑桌游' })).toHaveClass('board-game-editor-modal');
+    fireEvent.change(screen.getByRole('textbox', { name: '名称' }), {
+      target: { value: '改名桌游' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存桌游' }));
+    expect(screen.getByRole('article', { name: '改名桌游' })).toBeInTheDocument();
+    expect(screen.queryByRole('article', { name: '新桌游' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '删除 改名桌游' }));
+    expect(screen.queryByRole('article', { name: '改名桌游' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '保存收藏' }));
+    expect(window.localStorage.getItem('life.board-games.collection')).not.toContain('改名桌游');
   });
 
   it('groups a module by its second-level categories', () => {
