@@ -1,4 +1,5 @@
 export {
+  businessColorNames,
   componentTokens,
   primitiveColorTokenNames,
   primitiveTokens,
@@ -8,6 +9,7 @@ export {
   themeNames,
   type ResolvedThemeTokens,
   type ColorTokenName,
+  type BusinessColorName,
   type PrimitiveColorTokenName,
   type SemanticColorTokenName,
   type ThemeName,

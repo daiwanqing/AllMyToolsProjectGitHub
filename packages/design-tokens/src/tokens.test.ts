@@ -1,5 +1,32 @@
 import { describe, expect, it } from 'vitest';
-import { primitiveTokens, resolveThemeTokens, semanticThemeTokens, themeNames } from './tokens';
+import {
+  businessColorNames,
+  primitiveTokens,
+  resolveThemeTokens,
+  semanticThemeTokens,
+  themeNames,
+} from './tokens';
+
+function contrastRatio(foreground: string, background: string) {
+  function luminance(hex: string) {
+    const channels = hex
+      .slice(1)
+      .match(/.{2}/g)
+      ?.map((channel) => Number.parseInt(channel, 16) / 255);
+    if (!channels || channels.length !== 3) {
+      throw new Error(`Expected a six-digit hex color, received ${hex}.`);
+    }
+    const [red, green, blue] = channels.map((channel) =>
+      channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
+    );
+    return red * 0.2126 + green * 0.7152 + blue * 0.0722;
+  }
+
+  const [lighter, darker] = [luminance(foreground), luminance(background)].sort(
+    (left, right) => right - left,
+  );
+  return (lighter + 0.05) / (darker + 0.05);
+}
 
 describe('设计 Token', () => {
   it('为全部内置主题解析相同的 Token 层结构', () => {
@@ -39,8 +66,37 @@ describe('设计 Token', () => {
     const light = resolveThemeTokens('light');
     const dark = resolveThemeTokens('dark');
 
-    expect(light.semantic['color.accent.calendar']).toBe(primitiveTokens['color.red.700']);
-    expect(dark.semantic['color.accent.calendar']).toBe(primitiveTokens['color.cyan.300']);
+    expect(light.semantic['color.accent.calendar']).toBe(primitiveTokens['color.blue.700']);
+    expect(dark.semantic['color.accent.calendar']).toBe(primitiveTokens['color.blue.300']);
+  });
+
+  it('keeps business identity colors separate from the red danger color', () => {
+    expect(businessColorNames).toEqual(['lime', 'blue', 'amber', 'violet']);
+    expect(Object.keys(semanticThemeTokens.light)).toEqual(
+      expect.arrayContaining([
+        'color.business.lime',
+        'color.business.blue',
+        'color.business.amber',
+        'color.business.violet',
+      ]),
+    );
+    expect(semanticThemeTokens.light['color.status.error']).toBe(primitiveTokens['color.red.700']);
+    expect(semanticThemeTokens.dark['color.status.error']).toBe(primitiveTokens['color.red.300']);
+  });
+
+  it('keeps light-theme status text readable while business marks remain vivid', () => {
+    const light = resolveThemeTokens('light');
+    const background = light.semantic['color.background.surface'];
+    for (const name of [
+      'color.status.info',
+      'color.status.success',
+      'color.status.warning',
+      'color.status.error',
+    ] as const) {
+      expect(contrastRatio(light.semantic[name], background)).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(light.semantic['color.business.lime']).toBe(primitiveTokens['color.lime.500']);
+    expect(light.semantic['color.business.amber']).toBe(primitiveTokens['color.amber.500']);
   });
 
   it('允许仅覆盖语义颜色并保留原始色阶和组件 Token', () => {
@@ -78,8 +134,8 @@ describe('设计 Token', () => {
   });
 
   it('提供工具台使用的共享排版层级', () => {
-    expect(primitiveTokens['typography.size.page-title']).toBe('24px');
-    expect(primitiveTokens['typography.size.tool-title']).toBe('20px');
+    expect(primitiveTokens['typography.size.page-title']).toBe('28px');
+    expect(primitiveTokens['typography.size.tool-title']).toBe('22px');
     expect(primitiveTokens['typography.size.body']).toBe('14px');
     expect(primitiveTokens['typography.line-height.body']).toBe('20px');
     expect(primitiveTokens['typography.weight.medium']).toBe('600');

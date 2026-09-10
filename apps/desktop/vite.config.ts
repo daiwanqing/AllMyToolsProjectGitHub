@@ -8,4 +8,8 @@ export default defineConfig({
     port: 1420,
     strictPort: true,
   },
+  optimizeDeps: {
+    // The repository contains an Edge profile snapshot with unrelated HTML and dynamic imports.
+    entries: ['index.html'],
+  },
 });

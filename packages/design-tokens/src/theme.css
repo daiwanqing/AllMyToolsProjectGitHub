@@ -1,21 +1,25 @@
 :root {
   --amt-primitive-color-neutral-0: #ffffff;
-  --amt-primitive-color-neutral-50: #f7f8f8;
-  --amt-primitive-color-neutral-100: #edf0f1;
-  --amt-primitive-color-neutral-300: #ced5d8;
-  --amt-primitive-color-neutral-500: #647079;
-  --amt-primitive-color-neutral-600: #3c464d;
-  --amt-primitive-color-neutral-750: #22272b;
-  --amt-primitive-color-neutral-850: #171a1d;
-  --amt-primitive-color-neutral-950: #0f1113;
-  --amt-primitive-color-cyan-300: #67e8f9;
-  --amt-primitive-color-cyan-700: #0891b2;
-  --amt-primitive-color-green-300: #86efac;
-  --amt-primitive-color-green-700: #16a34a;
-  --amt-primitive-color-amber-300: #fb923c;
-  --amt-primitive-color-amber-700: #ea580c;
-  --amt-primitive-color-red-300: #fb7185;
-  --amt-primitive-color-red-700: #e11d48;
+  --amt-primitive-color-neutral-50: #f7f7f4;
+  --amt-primitive-color-neutral-100: #ededeb;
+  --amt-primitive-color-neutral-300: #d0d0cc;
+  --amt-primitive-color-neutral-500: #777774;
+  --amt-primitive-color-neutral-600: #464644;
+  --amt-primitive-color-neutral-750: #292929;
+  --amt-primitive-color-neutral-850: #202020;
+  --amt-primitive-color-neutral-950: #111111;
+  --amt-primitive-color-lime-300: #d7ff4d;
+  --amt-primitive-color-lime-500: #b5f300;
+  --amt-primitive-color-lime-700: #5d7800;
+  --amt-primitive-color-blue-300: #88a0ff;
+  --amt-primitive-color-blue-700: #3156d4;
+  --amt-primitive-color-amber-300: #ffd166;
+  --amt-primitive-color-amber-500: #ffb800;
+  --amt-primitive-color-amber-700: #a55f00;
+  --amt-primitive-color-violet-300: #c2a7ff;
+  --amt-primitive-color-violet-700: #7450d7;
+  --amt-primitive-color-red-300: #ff8a80;
+  --amt-primitive-color-red-700: #d6352a;
   --amt-primitive-space-1: 4px;
   --amt-primitive-space-2: 8px;
   --amt-primitive-space-3: 12px;
@@ -25,28 +29,28 @@
   --amt-primitive-space-8: 32px;
   --amt-primitive-space-10: 40px;
   --amt-primitive-radius-1: 4px;
-  --amt-primitive-radius-2: 6px;
-  --amt-primitive-radius-3: 8px;
   --amt-primitive-border-width-default: 1px;
   --amt-primitive-focus-width-default: 2px;
   --amt-primitive-opacity-disabled: 0.56;
   --amt-primitive-dimension-control-compact: 32px;
   --amt-primitive-dimension-control-default: 40px;
   --amt-primitive-dimension-icon-default: 16px;
-  --amt-primitive-dimension-navigation-rail: 156px;
+  --amt-primitive-dimension-navigation-rail: 180px;
   --amt-primitive-dimension-window-min-width: 960px;
   --amt-primitive-dimension-window-min-height: 640px;
   --amt-primitive-dimension-workspace-tool-max-width: 880px;
   --amt-primitive-typography-font-family-sans:
     Inter, 'Microsoft YaHei UI', 'Microsoft YaHei', system-ui, sans-serif;
-  --amt-primitive-typography-size-page-title: 24px;
-  --amt-primitive-typography-size-tool-title: 20px;
+  --amt-primitive-typography-font-family-mono:
+    'Cascadia Mono', Consolas, 'SFMono-Regular', monospace;
+  --amt-primitive-typography-size-page-title: 28px;
+  --amt-primitive-typography-size-tool-title: 22px;
   --amt-primitive-typography-size-section-title: 16px;
   --amt-primitive-typography-size-body: 14px;
   --amt-primitive-typography-size-caption: 12px;
   --amt-primitive-typography-size-data: 13px;
-  --amt-primitive-typography-line-height-page-title: 32px;
-  --amt-primitive-typography-line-height-tool-title: 28px;
+  --amt-primitive-typography-line-height-page-title: 36px;
+  --amt-primitive-typography-line-height-tool-title: 30px;
   --amt-primitive-typography-line-height-section-title: 24px;
   --amt-primitive-typography-line-height-body: 20px;
   --amt-primitive-typography-line-height-caption: 16px;
@@ -68,8 +72,8 @@
   --amt-space-6: var(--amt-primitive-space-6);
   --amt-space-8: var(--amt-primitive-space-8);
   --amt-space-10: var(--amt-primitive-space-10);
-  --amt-radius-control: var(--amt-primitive-radius-2);
-  --amt-radius-surface: var(--amt-primitive-radius-3);
+  --amt-radius-control: var(--amt-primitive-radius-1);
+  --amt-radius-surface: var(--amt-primitive-radius-1);
   --amt-dimension-control-compact: var(--amt-primitive-dimension-control-compact);
   --amt-dimension-control-default: var(--amt-primitive-dimension-control-default);
   --amt-dimension-navigation-rail: var(--amt-primitive-dimension-navigation-rail);
@@ -77,6 +81,7 @@
   --amt-dimension-window-min-height: var(--amt-primitive-dimension-window-min-height);
   --amt-dimension-workspace-tool-max-width: var(--amt-primitive-dimension-workspace-tool-max-width);
   --amt-typography-font-family-sans: var(--amt-primitive-typography-font-family-sans);
+  --amt-typography-font-family-mono: var(--amt-primitive-typography-font-family-mono);
   --amt-typography-size-page-title: var(--amt-primitive-typography-size-page-title);
   --amt-typography-size-tool-title: var(--amt-primitive-typography-size-tool-title);
   --amt-typography-size-section-title: var(--amt-primitive-typography-size-section-title);
@@ -111,11 +116,15 @@
   --amt-color-action-primary: var(--amt-primitive-color-neutral-950);
   --amt-color-action-primary-text: var(--amt-primitive-color-neutral-0);
   --amt-color-focus-ring: var(--amt-primitive-color-neutral-600);
-  --amt-color-accent-calendar: var(--amt-primitive-color-red-700);
-  --amt-color-status-info: var(--amt-primitive-color-cyan-700);
-  --amt-color-status-success: var(--amt-primitive-color-green-700);
+  --amt-color-accent-calendar: var(--amt-primitive-color-blue-700);
+  --amt-color-status-info: var(--amt-primitive-color-blue-700);
+  --amt-color-status-success: var(--amt-primitive-color-lime-700);
   --amt-color-status-warning: var(--amt-primitive-color-amber-700);
   --amt-color-status-error: var(--amt-primitive-color-red-700);
+  --amt-color-business-lime: var(--amt-primitive-color-lime-500);
+  --amt-color-business-blue: var(--amt-primitive-color-blue-700);
+  --amt-color-business-amber: var(--amt-primitive-color-amber-500);
+  --amt-color-business-violet: var(--amt-primitive-color-violet-700);
 }
 
 :root[data-theme='dark'] {
@@ -130,11 +139,15 @@
   --amt-color-action-primary: var(--amt-primitive-color-neutral-50);
   --amt-color-action-primary-text: var(--amt-primitive-color-neutral-950);
   --amt-color-focus-ring: var(--amt-primitive-color-neutral-300);
-  --amt-color-accent-calendar: var(--amt-primitive-color-cyan-300);
-  --amt-color-status-info: var(--amt-primitive-color-cyan-300);
-  --amt-color-status-success: var(--amt-primitive-color-green-300);
+  --amt-color-accent-calendar: var(--amt-primitive-color-blue-300);
+  --amt-color-status-info: var(--amt-primitive-color-blue-300);
+  --amt-color-status-success: var(--amt-primitive-color-lime-300);
   --amt-color-status-warning: var(--amt-primitive-color-amber-300);
   --amt-color-status-error: var(--amt-primitive-color-red-300);
+  --amt-color-business-lime: var(--amt-primitive-color-lime-300);
+  --amt-color-business-blue: var(--amt-primitive-color-blue-300);
+  --amt-color-business-amber: var(--amt-primitive-color-amber-300);
+  --amt-color-business-violet: var(--amt-primitive-color-violet-300);
 }
 
 :root {

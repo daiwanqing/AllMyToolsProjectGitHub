@@ -303,8 +303,13 @@ function ToolTile({
   loading?: boolean;
 }>) {
   return (
-    <article className="tool-tile" aria-labelledby={`tool-${entry.id}`}>
+    <article
+      className="tool-tile"
+      aria-labelledby={`tool-${entry.id}`}
+      data-business-color={entry.businessColor}
+    >
       <div className="tool-tile-content">
+        <span className="tool-tile-accent" aria-hidden="true" />
         {showCategory ? (
           <p className="tool-tile-category">
             {categoryLabels[entry.category]} · {subcategoryLabels[entry.subcategory]}

@@ -21,6 +21,7 @@ import {
   TextAreaField,
   TextField,
 } from '@allmytools/ui';
+import type { BusinessColorName } from '@allmytools/design-tokens';
 import { manifest } from './manifest';
 import {
   loadTravelNotesWorkspace,
@@ -50,6 +51,10 @@ const expenseCategories = [
   { value: '其他', label: '其他' },
 ] as const;
 
+function businessColor(color: BusinessColorName) {
+  return `var(--amt-color-business-${color})`;
+}
+
 function formatDay(date: string) {
   const parsed = new Date(`${date}T12:00:00`);
   return new Intl.DateTimeFormat('zh-CN', {
@@ -63,7 +68,7 @@ function TripCover({ trip, compact = false }: Readonly<{ trip: TravelTrip; compa
   return (
     <div
       className={`travel-trip-cover ${compact ? 'travel-trip-cover-compact' : ''}`}
-      style={{ '--trip-accent': trip.accent } as CSSProperties}
+      style={{ '--trip-accent': businessColor(trip.accent) } as CSSProperties}
     >
       <img src={trip.coverImage} alt="" />
       <div className="travel-trip-cover-wash" />
@@ -80,7 +85,11 @@ function EntryCard({ entry }: Readonly<{ entry: TravelEntry }>) {
   return (
     <article
       className="travel-entry"
-      style={{ '--entry-accent': entry.mood === '惊喜' ? '#E8C45A' : '#E56B57' } as CSSProperties}
+      style={
+        {
+          '--entry-accent': businessColor(entry.mood === '惊喜' ? 'lime' : 'blue'),
+        } as CSSProperties
+      }
     >
       <div className="travel-entry-time">
         <span>{entry.time}</span>
@@ -162,7 +171,7 @@ export function ToolView({ onClose }: Readonly<{ onClose?: () => void }>) {
       endDate: draft.endDate,
       coverImage:
         'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=80',
-      accent: '#E56B57',
+      accent: 'blue',
       entries: [],
       expenses: [],
     };
@@ -269,7 +278,10 @@ export function ToolView({ onClose }: Readonly<{ onClose?: () => void }>) {
               className={`travel-trip-row ${trip.id === selectedTrip.id ? 'is-selected' : ''}`}
               onClick={() => setSelectedId(trip.id)}
             >
-              <span className="travel-trip-row-dot" style={{ background: trip.accent }} />
+              <span
+                className="travel-trip-row-dot"
+                style={{ background: businessColor(trip.accent) }}
+              />
               <span>
                 <strong>{trip.title}</strong>
                 <small>

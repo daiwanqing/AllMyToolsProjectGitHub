@@ -215,6 +215,9 @@ importers:
 
   modules/tools/travel-notes:
     dependencies:
+      '@allmytools/design-tokens':
+        specifier: workspace:*
+        version: link:../../../packages/design-tokens
       '@allmytools/platform-contracts':
         specifier: workspace:*
         version: link:../../../packages/platform-contracts

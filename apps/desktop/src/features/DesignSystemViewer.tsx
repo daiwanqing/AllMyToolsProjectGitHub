@@ -61,11 +61,15 @@ const semanticTokenDescriptions: Readonly<Record<string, string>> = {
   'color.action.primary': '主要操作控件的前景或填充颜色。',
   'color.action.primary-text': '主要操作控件上的反色文字。',
   'color.focus.ring': '键盘焦点可见环。',
-  'color.accent.calendar': '日历今天、当月和笔记圆点的主题强调色。',
+  'color.accent.calendar': '日历今天、当月和笔记圆点的蓝色工具强调色。',
   'color.status.info': '信息提示和中性进展状态。',
   'color.status.success': '成功、完成和正向结果状态。',
   'color.status.warning': '需要留意但可以继续的状态。',
   'color.status.error': '错误、失败和破坏性操作状态。',
+  'color.business.lime': '业务身份色：荧光绿。不可用于错误或危险操作。',
+  'color.business.blue': '业务身份色：钴蓝。不可用于错误或危险操作。',
+  'color.business.amber': '业务身份色：琥珀黄。不可用于错误或危险操作。',
+  'color.business.violet': '业务身份色：紫色。不可用于错误或危险操作。',
 };
 
 function describeToken(name: string): string {
@@ -77,14 +81,17 @@ function describeToken(name: string): string {
   if (name.startsWith('color.neutral.')) {
     return '黑白灰基础色阶，供主题语义颜色引用。';
   }
-  if (name.startsWith('color.cyan.')) {
-    return '青色多巴胺色阶，用于信息和冷色主题强调。';
+  if (name.startsWith('color.lime.')) {
+    return '荧光绿多巴胺色阶，用于业务身份和成功状态。';
   }
-  if (name.startsWith('color.green.')) {
-    return '绿色多巴胺色阶，用于成功和完成状态。';
+  if (name.startsWith('color.blue.')) {
+    return '钴蓝多巴胺色阶，用于业务身份、信息和日历强调。';
   }
   if (name.startsWith('color.amber.')) {
-    return '橙色多巴胺色阶，用于警告和待留意状态。';
+    return '琥珀黄多巴胺色阶，用于业务身份和待留意状态。';
+  }
+  if (name.startsWith('color.violet.')) {
+    return '紫色多巴胺色阶，用于可扩展的业务身份。';
   }
   if (name.startsWith('color.red.')) {
     return '玫红色多巴胺色阶，用于错误和危险操作。';

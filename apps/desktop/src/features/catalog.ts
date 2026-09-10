@@ -3,9 +3,11 @@ import {
   type ToolCategory,
   type ToolSubcategory,
 } from '@allmytools/platform-contracts';
+import type { BusinessColorName } from '@allmytools/design-tokens';
 import { toolRegistry } from './registeredTools';
 
 export type ToolCatalogEntry = Readonly<{
+  businessColor: BusinessColorName;
   category: ToolCategory;
   subcategory: ToolSubcategory;
   description: string;
@@ -13,6 +15,14 @@ export type ToolCatalogEntry = Readonly<{
   keywords: readonly string[];
   name: string;
 }>;
+
+const businessColorByToolId: Readonly<Record<string, BusinessColorName>> = {
+  'learning.note-review': 'lime',
+  'entertainment.session-picker': 'violet',
+  'tools.calendar-todos': 'blue',
+  'tools.travel-notes': 'amber',
+  'life.board-games': 'amber',
+};
 
 const keywordsByToolId: Readonly<Record<string, readonly string[]>> = {
   'learning.note-review': ['笔记', '复习', '学习'],
@@ -23,6 +33,7 @@ const keywordsByToolId: Readonly<Record<string, readonly string[]>> = {
 };
 
 export const toolCatalog: readonly ToolCatalogEntry[] = toolRegistry.list().map((manifest) => ({
+  businessColor: businessColorByToolId[manifest.id] ?? 'blue',
   id: manifest.id,
   name: manifest.name,
   description: manifest.description ?? '',

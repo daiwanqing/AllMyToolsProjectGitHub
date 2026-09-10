@@ -18,6 +18,14 @@ describe('desktop shell', () => {
     expect(screen.getByRole('heading', { name: '常用' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '其他工具' })).toBeInTheDocument();
     expect(screen.getByRole('article', { name: '日历待办' })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: '日历待办' })).toHaveAttribute(
+      'data-business-color',
+      'blue',
+    );
+    expect(screen.getByRole('article', { name: '旅行笔记' })).toHaveAttribute(
+      'data-business-color',
+      'amber',
+    );
     expect(screen.queryByRole('article', { name: '文本工作台' })).not.toBeInTheDocument();
     expect(screen.getAllByRole('article')).toHaveLength(5);
   });

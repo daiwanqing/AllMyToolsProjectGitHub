@@ -55,7 +55,7 @@ a:focus-visible {
 .navigation-rail {
   display: flex;
   flex-direction: column;
-  padding: var(--amt-space-4) var(--amt-space-3);
+  padding: var(--amt-space-5) var(--amt-space-4);
   border-right: var(--amt-border-width-default) solid var(--amt-color-border-default);
   background: var(--amt-color-background-surface);
 }
@@ -67,6 +67,8 @@ a:focus-visible {
   place-items: center;
   border: var(--amt-border-width-default) solid var(--amt-color-text-primary);
   border-radius: var(--amt-radius-control);
+  color: var(--amt-color-text-primary);
+  background: var(--amt-color-business-lime);
   font-size: var(--amt-space-3);
   font-weight: 700;
 }
@@ -101,6 +103,7 @@ a:focus-visible {
   gap: var(--amt-space-4);
   padding: var(--amt-space-6) var(--amt-space-8);
   border-bottom: var(--amt-border-width-default) solid var(--amt-color-border-default);
+  background: var(--amt-color-background-surface);
 }
 
 .tool-focus-toolbar {
@@ -334,7 +337,7 @@ h2 {
   border-radius: var(--amt-radius-control);
   color: var(--amt-color-text-primary);
   background: var(--amt-color-background-canvas);
-  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-family: var(--amt-typography-font-family-mono);
   font-size: var(--amt-space-3);
   line-height: var(--amt-space-5);
   white-space: pre-wrap;
@@ -382,7 +385,7 @@ h2 {
   border: var(--amt-border-width-default) solid var(--amt-color-border-default);
   border-radius: var(--amt-radius-control);
   background: var(--amt-color-background-canvas);
-  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-family: var(--amt-typography-font-family-mono);
   white-space: pre-wrap;
 }
 
@@ -485,6 +488,26 @@ h2 {
 
 .tool-tile-content {
   min-width: 0;
+}
+
+.tool-tile-accent {
+  display: block;
+  width: calc(var(--amt-space-8) + var(--amt-space-1));
+  height: var(--amt-space-1);
+  margin-bottom: var(--amt-space-3);
+  background: var(--amt-color-business-blue);
+}
+
+.tool-tile[data-business-color='lime'] .tool-tile-accent {
+  background: var(--amt-color-business-lime);
+}
+
+.tool-tile[data-business-color='amber'] .tool-tile-accent {
+  background: var(--amt-color-business-amber);
+}
+
+.tool-tile[data-business-color='violet'] .tool-tile-accent {
+  background: var(--amt-color-business-violet);
 }
 
 .tool-tile-category {
@@ -1517,12 +1540,10 @@ h2 {
 @keyframes calendar-view-zoom {
   from {
     opacity: 0;
-    transform: scale(0.98);
   }
 
   to {
     opacity: 1;
-    transform: scale(1);
   }
 }
 
@@ -1634,7 +1655,7 @@ h2 {
 
 .token-table code,
 .token-value code {
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
   font-size: var(--amt-space-3);
 }
 
@@ -1754,7 +1775,7 @@ h2 {
 
 .component-catalog-name code {
   color: var(--amt-color-text-primary);
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
   font-size: var(--amt-space-3);
   font-weight: 600;
 }
@@ -1938,7 +1959,7 @@ h2 {
 }
 
 .motion-token-list code {
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
   font-size: var(--amt-space-3);
 }
 
@@ -1975,7 +1996,7 @@ h2 {
 
 .motion-timeline-row code {
   color: var(--amt-color-text-primary);
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
   font-size: var(--amt-space-3);
 }
 
@@ -2573,7 +2594,7 @@ h2 {
 .travel-entry-type,
 .travel-trip-stamp {
   color: var(--amt-color-text-secondary);
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
   font-size: var(--amt-typography-size-caption);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2662,11 +2683,11 @@ h2 {
 
 .travel-notes-main {
   min-width: 0;
-  padding: var(--amt-space-8) clamp(var(--amt-space-5), 5vw, calc(var(--amt-space-10) * 2));
+  padding: var(--amt-space-8) calc(var(--amt-space-10) * 2);
 }
 .travel-trip-cover {
   position: relative;
-  height: clamp(180px, 24vw, 280px);
+  height: calc(var(--amt-space-10) * 6);
   overflow: hidden;
   border-radius: var(--amt-radius-surface);
   background: var(--amt-color-background-selected);
@@ -2707,7 +2728,7 @@ h2 {
   display: block;
   margin-top: var(--amt-space-1);
   font-family: var(--amt-typography-font-family-sans);
-  font-size: clamp(28px, 4vw, 48px);
+  font-size: var(--amt-typography-size-page-title);
   font-weight: var(--amt-typography-weight-bold);
   line-height: 1.1;
 }
@@ -2717,7 +2738,7 @@ h2 {
 }
 .travel-notes-header h1 {
   font-family: var(--amt-typography-font-family-sans);
-  font-size: clamp(26px, 3vw, 38px);
+  font-size: var(--amt-typography-size-page-title);
   font-weight: var(--amt-typography-weight-bold);
   line-height: 1.15;
 }
@@ -2803,7 +2824,7 @@ h2 {
   gap: var(--amt-space-2);
 }
 .travel-stat-strip strong {
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
   font-size: 20px;
   font-weight: var(--amt-typography-weight-medium);
 }
@@ -2850,7 +2871,7 @@ h2 {
   background: var(--amt-color-background-surface);
 }
 .travel-review-grid strong {
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
   font-size: 24px;
   font-weight: var(--amt-typography-weight-medium);
 }
@@ -2872,7 +2893,7 @@ h2 {
 }
 .travel-review-item > span {
   color: var(--amt-color-status-warning);
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
 }
 .travel-review-item strong {
   font-weight: var(--amt-typography-weight-medium);
@@ -2883,7 +2904,7 @@ h2 {
 }
 .travel-review-item time {
   color: var(--amt-color-text-secondary);
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
   font-size: var(--amt-typography-size-caption);
 }
 .travel-expense-list {
@@ -2904,7 +2925,7 @@ h2 {
 }
 .travel-expense-total {
   color: var(--amt-color-status-warning);
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
   font-size: var(--amt-typography-size-data);
 }
 .travel-expense-row {
@@ -2921,10 +2942,10 @@ h2 {
   font-size: var(--amt-typography-size-caption);
 }
 .travel-expense-row time {
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
 }
 .travel-expense-row b {
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
   font-size: var(--amt-typography-size-data);
   font-weight: var(--amt-typography-weight-medium);
 }
@@ -2965,7 +2986,7 @@ h2 {
   border-radius: 50%;
   color: var(--amt-color-status-warning);
   background: var(--amt-color-background-canvas);
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
   font-size: var(--amt-typography-size-caption);
 }
 .travel-day h2 {
@@ -2976,7 +2997,7 @@ h2 {
 .travel-day header p {
   margin: var(--amt-space-1) 0 0;
   color: var(--amt-color-text-secondary);
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
   font-size: var(--amt-typography-size-caption);
 }
 .travel-day-rule {
@@ -2995,7 +3016,7 @@ h2 {
   position: relative;
   padding-top: var(--amt-space-2);
   color: var(--amt-color-text-secondary);
-  font-family: Consolas, 'Cascadia Code', monospace;
+  font-family: var(--amt-typography-font-family-mono);
   font-size: var(--amt-typography-size-caption);
 }
 .travel-entry-time i {

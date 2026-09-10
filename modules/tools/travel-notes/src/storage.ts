@@ -1,4 +1,5 @@
 import { writeStorage, type StorageWriteResult } from '@allmytools/platform-services';
+import { businessColorNames, type BusinessColorName } from '@allmytools/design-tokens';
 
 export const travelNotesStorageKey = 'tools.travel-notes.workspace';
 
@@ -21,7 +22,7 @@ export type TravelTrip = Readonly<{
   startDate: string;
   endDate: string;
   coverImage: string;
-  accent: string;
+  accent: BusinessColorName;
   entries: readonly TravelEntry[];
   expenses: readonly TravelExpense[];
 }>;
@@ -48,7 +49,7 @@ export const demoWorkspace: TravelNotesWorkspace = {
       endDate: '2025-06-18',
       coverImage:
         'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1200&q=80',
-      accent: '#E56B57',
+      accent: 'amber',
       expenses: [
         {
           id: 'expense-1',
@@ -124,7 +125,17 @@ function isExpense(value: unknown): value is TravelExpense {
   );
 }
 
-function isTrip(value: unknown): value is TravelTrip {
+type StoredTravelTrip = Omit<TravelTrip, 'accent'> & Readonly<{ accent: string }>;
+
+function isBusinessColorName(value: string): value is BusinessColorName {
+  return businessColorNames.includes(value as BusinessColorName);
+}
+
+function normalizeBusinessColor(value: string): BusinessColorName {
+  return isBusinessColorName(value) ? value : 'amber';
+}
+
+function isTrip(value: unknown): value is StoredTravelTrip {
   if (!value || typeof value !== 'object') return false;
   const trip = value as Record<string, unknown>;
   return (
@@ -155,10 +166,13 @@ export function loadTravelNotesWorkspace(storage: TravelNotesStorage): TravelNot
       typeof parsed === 'object' &&
       Array.isArray((parsed as Record<string, unknown>).trips)
     ) {
-      const trips = (parsed as { trips: unknown[] }).trips.filter(isTrip).map((trip) => ({
-        ...trip,
-        expenses: trip.expenses ?? [],
-      }));
+      const trips = (parsed as { trips: unknown[] }).trips
+        .filter(isTrip)
+        .map((trip): TravelTrip => ({
+          ...trip,
+          accent: normalizeBusinessColor(trip.accent),
+          expenses: trip.expenses ?? [],
+        }));
       return { trips };
     }
   } catch {
