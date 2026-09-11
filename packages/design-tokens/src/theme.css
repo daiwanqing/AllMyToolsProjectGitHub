@@ -1,24 +1,58 @@
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 900;
+  font-stretch: 75% 125%;
+  font-display: swap;
+  src: url('./fonts/archivo-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/dm-mono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./fonts/dm-mono-medium-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
 :root {
   --amt-primitive-color-neutral-0: #ffffff;
-  --amt-primitive-color-neutral-50: #f7f7f4;
-  --amt-primitive-color-neutral-100: #ededeb;
-  --amt-primitive-color-neutral-300: #d0d0cc;
-  --amt-primitive-color-neutral-500: #777774;
-  --amt-primitive-color-neutral-600: #464644;
-  --amt-primitive-color-neutral-750: #292929;
-  --amt-primitive-color-neutral-850: #202020;
+  --amt-primitive-color-neutral-50: #f5f5f2;
+  --amt-primitive-color-neutral-100: #eeeeea;
+  --amt-primitive-color-neutral-300: #c9c9c4;
+  --amt-primitive-color-neutral-500: #6f6f6a;
+  --amt-primitive-color-neutral-600: #494947;
+  --amt-primitive-color-neutral-750: #242424;
+  --amt-primitive-color-neutral-850: #1b1b1b;
   --amt-primitive-color-neutral-950: #111111;
-  --amt-primitive-color-lime-300: #d7ff4d;
-  --amt-primitive-color-lime-500: #b5f300;
+  --amt-primitive-color-lime-300: #d9ff00;
+  --amt-primitive-color-lime-500: #aee300;
   --amt-primitive-color-lime-700: #5d7800;
-  --amt-primitive-color-blue-300: #88a0ff;
-  --amt-primitive-color-blue-700: #3156d4;
+  --amt-primitive-color-blue-300: #4b6dff;
+  --amt-primitive-color-blue-700: #2854f5;
   --amt-primitive-color-amber-300: #ffd166;
   --amt-primitive-color-amber-500: #ffb800;
   --amt-primitive-color-amber-700: #a55f00;
   --amt-primitive-color-violet-300: #c2a7ff;
   --amt-primitive-color-violet-700: #7450d7;
-  --amt-primitive-color-red-300: #ff8a80;
+  --amt-primitive-color-red-300: #ff5036;
   --amt-primitive-color-red-700: #d6352a;
   --amt-primitive-space-1: 4px;
   --amt-primitive-space-2: 8px;
@@ -40,23 +74,23 @@
   --amt-primitive-dimension-window-min-height: 640px;
   --amt-primitive-dimension-workspace-tool-max-width: 880px;
   --amt-primitive-typography-font-family-sans:
-    Inter, 'Microsoft YaHei UI', 'Microsoft YaHei', system-ui, sans-serif;
+    'Archivo', 'Microsoft YaHei UI', 'Microsoft YaHei', system-ui, sans-serif;
   --amt-primitive-typography-font-family-mono:
-    'Cascadia Mono', Consolas, 'SFMono-Regular', monospace;
-  --amt-primitive-typography-size-page-title: 28px;
-  --amt-primitive-typography-size-tool-title: 22px;
+    'DM Mono', 'Cascadia Mono', Consolas, 'SFMono-Regular', monospace;
+  --amt-primitive-typography-size-page-title: 32px;
+  --amt-primitive-typography-size-tool-title: 24px;
   --amt-primitive-typography-size-section-title: 16px;
   --amt-primitive-typography-size-body: 14px;
   --amt-primitive-typography-size-caption: 12px;
   --amt-primitive-typography-size-data: 13px;
-  --amt-primitive-typography-line-height-page-title: 36px;
-  --amt-primitive-typography-line-height-tool-title: 30px;
+  --amt-primitive-typography-line-height-page-title: 40px;
+  --amt-primitive-typography-line-height-tool-title: 32px;
   --amt-primitive-typography-line-height-section-title: 24px;
   --amt-primitive-typography-line-height-body: 20px;
   --amt-primitive-typography-line-height-caption: 16px;
   --amt-primitive-typography-weight-regular: 400;
   --amt-primitive-typography-weight-medium: 600;
-  --amt-primitive-typography-weight-bold: 700;
+  --amt-primitive-typography-weight-bold: 800;
   --amt-primitive-duration-fast: 120ms;
   --amt-primitive-duration-normal: 180ms;
   --amt-primitive-easing-standard: cubic-bezier(0.2, 0, 0, 1);

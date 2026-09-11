@@ -134,11 +134,24 @@ describe('设计 Token', () => {
   });
 
   it('提供工具台使用的共享排版层级', () => {
-    expect(primitiveTokens['typography.size.page-title']).toBe('28px');
-    expect(primitiveTokens['typography.size.tool-title']).toBe('22px');
+    expect(primitiveTokens['typography.font-family.sans']).toContain("'Archivo'");
+    expect(primitiveTokens['typography.font-family.mono']).toContain("'DM Mono'");
+    expect(primitiveTokens['typography.size.page-title']).toBe('32px');
+    expect(primitiveTokens['typography.size.tool-title']).toBe('24px');
     expect(primitiveTokens['typography.size.body']).toBe('14px');
     expect(primitiveTokens['typography.line-height.body']).toBe('20px');
-    expect(primitiveTokens['typography.weight.medium']).toBe('600');
+    expect(primitiveTokens['typography.weight.bold']).toBe('800');
+  });
+
+  it('提供示例工作台的高对比中性灰阶和鲜明身份色', () => {
+    expect(primitiveTokens['color.neutral.50']).toBe('#f5f5f2');
+    expect(primitiveTokens['color.neutral.600']).toBe('#494947');
+    expect(primitiveTokens['color.neutral.850']).toBe('#1b1b1b');
+    expect(primitiveTokens['color.lime.500']).toBe('#aee300');
+    expect(primitiveTokens['color.blue.700']).toBe('#2854f5');
+    expect(primitiveTokens['color.red.700']).not.toBe(
+      semanticThemeTokens.light['color.business.blue'],
+    );
   });
 
   it('提供返回操作统一且更紧凑的顶部间距', () => {
