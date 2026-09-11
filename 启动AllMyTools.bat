@@ -1,5 +1,7 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
+
+set "DEV_PORT=1420"
 
 cd /d "%~dp0"
 
@@ -59,11 +61,30 @@ if not exist "apps\desktop\node_modules\@allmytools\tools-calendar-todos\package
   )
 )
 
-netstat -ano | findstr /r /c:":1420 .*LISTENING" >nul
-if not errorlevel 1 (
-  echo Port 1420 is already in use. Stop the existing AllMyTools development server, then start again.
-  pause
-  exit /b 1
+set "PORT_PIDS="
+for /f "tokens=5" %%P in ('netstat -ano ^| findstr /r /c:":%DEV_PORT% .*LISTENING"') do (
+  set "PORT_PIDS=!PORT_PIDS! %%P"
+)
+
+if defined PORT_PIDS (
+  echo Port %DEV_PORT% is already in use by:
+  for %%P in (!PORT_PIDS!) do tasklist /fi "PID eq %%P" /fo table /nh
+  choice /c YN /n /m "Terminate the listening process and restart AllMyTools? [Y/N] "
+  if errorlevel 2 (
+    echo Existing process was left running. The desktop app was not started.
+    pause
+    exit /b 1
+  )
+
+  for %%P in (!PORT_PIDS!) do taskkill /pid %%P /t /f >nul 2>nul
+  timeout /t 1 /nobreak >nul
+  netstat -ano | findstr /r /c:":%DEV_PORT% .*LISTENING" >nul
+  if not errorlevel 1 (
+    echo Port %DEV_PORT% is still in use. The existing process could not be stopped.
+    pause
+    exit /b 1
+  )
+  echo Port %DEV_PORT% was released.
 )
 
 echo Starting the AllMyTools desktop development environment...
