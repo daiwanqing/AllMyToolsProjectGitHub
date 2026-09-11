@@ -59,10 +59,16 @@ describe('设计 Token', () => {
     expect(light.semantic['color.action.primary']).toBe(primitiveTokens['color.neutral.950']);
     expect(light.semantic['color.focus.ring']).toBe(primitiveTokens['color.neutral.600']);
     expect(light.semantic['color.background.navigation']).toBe(primitiveTokens['color.neutral.0']);
+    expect(light.semantic['color.background.navigation-selected']).toBe(
+      primitiveTokens['color.neutral.200'],
+    );
     expect(light.semantic['color.text.navigation']).toBe(primitiveTokens['color.neutral.950']);
     expect(dark.semantic['color.action.primary']).toBe(primitiveTokens['color.neutral.50']);
     expect(dark.semantic['color.focus.ring']).toBe(primitiveTokens['color.neutral.300']);
     expect(dark.semantic['color.background.navigation']).toBe(primitiveTokens['color.neutral.950']);
+    expect(dark.semantic['color.background.navigation-selected']).toBe(
+      primitiveTokens['color.neutral.700'],
+    );
     expect(dark.semantic['color.text.navigation']).toBe(primitiveTokens['color.neutral.50']);
   });
 

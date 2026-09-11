@@ -5,9 +5,9 @@
   font-stretch: 75% 125%;
   font-display: swap;
   src: url('./fonts/archivo-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
-    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
-    U+FEFF, U+FFFD;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
@@ -16,9 +16,9 @@
   font-weight: 400;
   font-display: swap;
   src: url('./fonts/dm-mono-regular-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
-    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
-    U+FEFF, U+FFFD;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
@@ -27,18 +27,20 @@
   font-weight: 500;
   font-display: swap;
   src: url('./fonts/dm-mono-medium-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
-    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
-    U+FEFF, U+FFFD;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 :root {
   --amt-primitive-color-neutral-0: #ffffff;
   --amt-primitive-color-neutral-50: #f5f5f2;
   --amt-primitive-color-neutral-100: #eeeeea;
+  --amt-primitive-color-neutral-200: #e2e2de;
   --amt-primitive-color-neutral-300: #c9c9c4;
   --amt-primitive-color-neutral-500: #6f6f6a;
   --amt-primitive-color-neutral-600: #494947;
+  --amt-primitive-color-neutral-700: #393938;
   --amt-primitive-color-neutral-750: #242424;
   --amt-primitive-color-neutral-850: #1b1b1b;
   --amt-primitive-color-neutral-950: #111111;
@@ -143,6 +145,7 @@
   --amt-color-background-canvas: var(--amt-primitive-color-neutral-50);
   --amt-color-background-surface: var(--amt-primitive-color-neutral-0);
   --amt-color-background-selected: var(--amt-primitive-color-neutral-100);
+  --amt-color-background-navigation-selected: var(--amt-primitive-color-neutral-200);
   --amt-color-background-navigation: var(--amt-primitive-color-neutral-0);
   --amt-color-text-primary: var(--amt-primitive-color-neutral-950);
   --amt-color-text-secondary: var(--amt-primitive-color-neutral-500);
@@ -168,6 +171,7 @@
   --amt-color-background-canvas: var(--amt-primitive-color-neutral-850);
   --amt-color-background-surface: var(--amt-primitive-color-neutral-750);
   --amt-color-background-selected: var(--amt-primitive-color-neutral-600);
+  --amt-color-background-navigation-selected: var(--amt-primitive-color-neutral-700);
   --amt-color-background-navigation: var(--amt-primitive-color-neutral-950);
   --amt-color-text-primary: var(--amt-primitive-color-neutral-50);
   --amt-color-text-secondary: var(--amt-primitive-color-neutral-300);

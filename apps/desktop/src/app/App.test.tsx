@@ -19,13 +19,22 @@ describe('desktop shell', () => {
     expect(within(navigationRail).getByText('已注册工具')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '学习' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '生活' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '常用' })).toBeInTheDocument();
+    const frequentHeading = screen.getByRole('heading', { name: '常用' });
+    expect(frequentHeading).toBeInTheDocument();
+    expect(frequentHeading.parentElement).toHaveClass('section-heading-frequent');
     expect(screen.getByRole('heading', { name: '其他工具' })).toBeInTheDocument();
     expect(screen.getByRole('article', { name: '日历待办' })).toBeInTheDocument();
     expect(screen.getByRole('article', { name: '日历待办' })).toHaveAttribute(
       'data-business-color',
       'blue',
     );
+    expect(screen.getByRole('article', { name: '日历待办' })).not.toHaveTextContent(
+      '按日期安排待办，在月历中查看每天的计划。',
+    );
+    expect(screen.getByRole('article', { name: '日历待办' })).not.toHaveTextContent('工具 · 日程');
+    expect(
+      screen.getByRole('article', { name: '日历待办' }).querySelector('.tool-tile-marker'),
+    ).not.toBeNull();
     expect(screen.getByRole('article', { name: '旅行笔记' })).toHaveAttribute(
       'data-business-color',
       'amber',

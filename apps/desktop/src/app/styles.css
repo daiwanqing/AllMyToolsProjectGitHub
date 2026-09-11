@@ -140,15 +140,16 @@ a:focus-visible {
 }
 
 .navigation-rail .amt-tab-control-item:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--amt-color-text-navigation) 28%, transparent);
+  border-color: transparent;
   color: var(--amt-color-text-navigation);
-  background: color-mix(in srgb, var(--amt-color-text-navigation) 10%, transparent);
+  background: var(--amt-color-background-navigation-selected);
 }
 
 .navigation-rail .amt-tab-control-item[aria-selected='true'] {
   border-color: transparent;
-  color: var(--amt-color-background-navigation);
-  background: var(--amt-color-text-navigation);
+  color: var(--amt-color-text-navigation);
+  background: var(--amt-color-background-navigation-selected);
+  font-weight: var(--amt-typography-weight-bold);
 }
 
 .application-rail-footer {
@@ -282,6 +283,10 @@ h2 {
   margin: 0;
   overflow: auto;
   padding: var(--amt-space-8);
+}
+
+.catalog-workspace {
+  background: var(--amt-color-background-canvas);
 }
 
 .settings-dialog {
@@ -548,13 +553,23 @@ h2 {
   gap: var(--amt-space-2);
   margin-bottom: var(--amt-space-4);
   padding-bottom: var(--amt-space-2);
-  border-bottom: var(--amt-border-width-default) solid var(--amt-color-border-strong);
+  border-bottom: var(--amt-border-width-default) solid var(--amt-color-border-default);
 }
 
 .section-heading svg {
   width: var(--amt-primitive-dimension-icon-default);
   height: var(--amt-primitive-dimension-icon-default);
-  color: var(--amt-color-business-blue);
+  color: var(--amt-color-text-secondary);
+}
+
+.section-heading h2 {
+  font-weight: var(--amt-typography-weight-bold);
+}
+
+.section-heading-frequent {
+  margin-bottom: var(--amt-space-4);
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
 .tool-tile-grid {
@@ -565,7 +580,7 @@ h2 {
 
 .tool-tile {
   display: flex;
-  min-height: calc(var(--amt-space-10) * 5 + var(--amt-space-4));
+  min-height: calc(var(--amt-space-10) * 4 + var(--amt-space-4));
   flex-direction: column;
   justify-content: space-between;
   gap: var(--amt-space-6);
@@ -578,7 +593,11 @@ h2 {
     background-color var(--amt-motion-fast) var(--amt-motion-easing-standard);
 }
 
-.tool-tile:hover,
+.tool-tile:hover {
+  border-color: var(--amt-color-border-default);
+  background: var(--amt-color-background-selected);
+}
+
 .tool-tile:focus-within {
   border-color: var(--amt-color-border-strong);
   background: var(--amt-color-background-selected);
@@ -588,46 +607,35 @@ h2 {
   min-width: 0;
 }
 
-.tool-tile-accent {
-  display: block;
-  width: calc(var(--amt-space-8) + var(--amt-space-1));
-  height: var(--amt-space-1);
-  margin-bottom: var(--amt-space-3);
+.tool-tile-marker {
+  display: inline-block;
+  width: var(--amt-space-2);
+  height: var(--amt-space-2);
+  flex: none;
   background: var(--amt-color-business-blue);
 }
 
-.tool-tile[data-business-color='lime'] .tool-tile-accent {
+.tool-tile[data-business-color='lime'] .tool-tile-marker {
   background: var(--amt-color-business-lime);
 }
 
-.tool-tile[data-business-color='amber'] .tool-tile-accent {
+.tool-tile[data-business-color='amber'] .tool-tile-marker {
   background: var(--amt-color-business-amber);
 }
 
-.tool-tile[data-business-color='violet'] .tool-tile-accent {
+.tool-tile[data-business-color='violet'] .tool-tile-marker {
   background: var(--amt-color-business-violet);
 }
 
-.tool-tile-category {
-  margin-bottom: var(--amt-space-1);
-  color: var(--amt-color-text-secondary);
-  font-size: var(--amt-space-3);
-  font-family: var(--amt-typography-font-family-mono);
-}
-
 .tool-tile h3 {
-  margin-bottom: var(--amt-space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--amt-space-2);
+  margin-bottom: 0;
   font-size: var(--amt-typography-size-tool-title);
   line-height: var(--amt-typography-line-height-tool-title);
   font-weight: var(--amt-typography-weight-bold);
   font-variation-settings: 'wdth' 90;
-}
-
-.tool-tile-content > p:last-child {
-  margin-bottom: 0;
-  color: var(--amt-color-text-secondary);
-  font-size: var(--amt-typography-size-body);
-  line-height: var(--amt-typography-line-height-body);
 }
 
 .tool-tile-actions {

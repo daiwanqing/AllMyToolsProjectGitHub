@@ -51,7 +51,6 @@ import {
   categoryLabels,
   matchesToolSearch,
   subcategoriesForCategory,
-  subcategoryLabels,
   toolCatalog,
   type ToolCatalogEntry,
 } from '../features/catalog';
@@ -292,14 +291,12 @@ function ToolTile({
   favorite,
   onOpen,
   onToggleFavorite,
-  showCategory = false,
   loading = false,
 }: Readonly<{
   entry: ToolCatalogEntry;
   favorite: boolean;
   onOpen: (entry: ToolCatalogEntry) => void;
   onToggleFavorite: (id: string) => void;
-  showCategory?: boolean;
   loading?: boolean;
 }>) {
   return (
@@ -309,14 +306,10 @@ function ToolTile({
       data-business-color={entry.businessColor}
     >
       <div className="tool-tile-content">
-        <span className="tool-tile-accent" aria-hidden="true" />
-        {showCategory ? (
-          <p className="tool-tile-category">
-            {categoryLabels[entry.category]} · {subcategoryLabels[entry.subcategory]}
-          </p>
-        ) : null}
-        <h3 id={`tool-${entry.id}`}>{entry.name}</h3>
-        <p>{entry.description}</p>
+        <h3 id={`tool-${entry.id}`}>
+          <span className="tool-tile-marker" aria-hidden="true" />
+          <span>{entry.name}</span>
+        </h3>
       </div>
       <div className="tool-tile-actions">
         <IconButton
@@ -1061,7 +1054,7 @@ export function App() {
             ) : null}
             {category === 'all' && !isSearchActive && frequentTools.length ? (
               <section aria-labelledby="frequent-heading">
-                <div className="section-heading">
+                <div className="section-heading section-heading-frequent">
                   <Clock3 aria-hidden="true" />
                   <h2 id="frequent-heading">常用</h2>
                 </div>
@@ -1074,7 +1067,6 @@ export function App() {
                       onOpen={openTool}
                       onToggleFavorite={toggleFavorite}
                       loading={loadingToolId === entry.id}
-                      showCategory
                     />
                   ))}
                 </div>
@@ -1098,7 +1090,6 @@ export function App() {
                           onOpen={openTool}
                           onToggleFavorite={toggleFavorite}
                           loading={loadingToolId === entry.id}
-                          showCategory={category === 'all'}
                         />
                       ))}
                     </div>

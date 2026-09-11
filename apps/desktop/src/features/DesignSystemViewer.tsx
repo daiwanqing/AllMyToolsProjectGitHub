@@ -54,6 +54,7 @@ const semanticTokenDescriptions: Readonly<Record<string, string>> = {
   'color.background.canvas': '页面最底层画布背景。',
   'color.background.surface': '卡片、面板和输入区域的表面背景。',
   'color.background.selected': '悬停、选中和轻量强调状态的背景。',
+  'color.background.navigation-selected': '一级导航悬停和选中状态的中性表面。',
   'color.background.navigation': '桌面主导航轨道的高对比背景。',
   'color.text.primary': '标题、正文和主要内容文字。',
   'color.text.secondary': '辅助说明、元数据和次要文字。',
