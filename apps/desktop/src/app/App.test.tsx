@@ -13,6 +13,10 @@ describe('desktop shell', () => {
     render(<App />);
 
     expect(screen.getByRole('navigation', { name: '主导航' })).toBeInTheDocument();
+    const navigationRail = screen.getByRole('complementary');
+    expect(within(navigationRail).getByText('AllMyTools')).toBeInTheDocument();
+    expect(within(navigationRail).getByText('工具空间')).toBeInTheDocument();
+    expect(within(navigationRail).getByText('已注册工具')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '学习' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '生活' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '常用' })).toBeInTheDocument();

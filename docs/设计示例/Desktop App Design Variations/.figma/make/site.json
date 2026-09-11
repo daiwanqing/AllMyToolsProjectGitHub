@@ -1,0 +1,10 @@
+{
+  "description": "Explore and design desktop applications with a focus on black and white themes enhanced by dopamine colors, offering a solid, minimalistic user experience.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

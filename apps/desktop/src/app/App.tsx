@@ -928,17 +928,23 @@ export function App() {
         data-debug-source="apps/desktop/src/app/App.tsx:758"
         data-debug-code={'<aside className="navigation-rail">...'}
       >
-        <div className="application-mark" aria-hidden="true">
-          AT
+        <div className="application-brand">
+          <div className="application-mark" aria-hidden="true">
+            AT
+          </div>
+          <div className="application-brand-copy">
+            <strong>AllMyTools</strong>
+            <span>工具平台</span>
+          </div>
         </div>
         <nav aria-label="主导航" className="navigation-groups">
+          <p className="application-nav-label">工具空间</p>
           <VerticalTabs
             ariaLabel="工作区导航"
             className="workspace-navigation-tabs"
-            items={workspaceNavigation.map(({ id, label, icon: Icon }) => ({
+            items={workspaceNavigation.map(({ id, label }) => ({
               id,
               label,
-              icon: <Icon />,
             }))}
             value={category}
             onChange={(value) => {
@@ -949,6 +955,11 @@ export function App() {
             }}
           />
         </nav>
+        <footer className="application-rail-footer">
+          <span>已注册工具</span>
+          <strong>{toolCatalog.length}</strong>
+          <span>个活动工具</span>
+        </footer>
       </aside>
       <section
         className="workspace"

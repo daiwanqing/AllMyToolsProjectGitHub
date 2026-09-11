@@ -58,8 +58,12 @@ describe('设计 Token', () => {
 
     expect(light.semantic['color.action.primary']).toBe(primitiveTokens['color.neutral.950']);
     expect(light.semantic['color.focus.ring']).toBe(primitiveTokens['color.neutral.600']);
+    expect(light.semantic['color.background.navigation']).toBe(primitiveTokens['color.neutral.0']);
+    expect(light.semantic['color.text.navigation']).toBe(primitiveTokens['color.neutral.950']);
     expect(dark.semantic['color.action.primary']).toBe(primitiveTokens['color.neutral.50']);
     expect(dark.semantic['color.focus.ring']).toBe(primitiveTokens['color.neutral.300']);
+    expect(dark.semantic['color.background.navigation']).toBe(primitiveTokens['color.neutral.950']);
+    expect(dark.semantic['color.text.navigation']).toBe(primitiveTokens['color.neutral.50']);
   });
 
   it('为日历提供按主题色温变化的共享强调色', () => {
@@ -121,6 +125,7 @@ describe('设计 Token', () => {
   it('提供桌面窗口和工作区的稳定尺寸 Token', () => {
     expect(primitiveTokens['dimension.window.min-width']).toBe('960px');
     expect(primitiveTokens['dimension.window.min-height']).toBe('640px');
+    expect(primitiveTokens['dimension.navigation.rail']).toBe('200px');
     expect(primitiveTokens['dimension.workspace.tool-max-width']).toBe('880px');
   });
 

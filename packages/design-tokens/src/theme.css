@@ -69,7 +69,7 @@
   --amt-primitive-dimension-control-compact: 32px;
   --amt-primitive-dimension-control-default: 40px;
   --amt-primitive-dimension-icon-default: 16px;
-  --amt-primitive-dimension-navigation-rail: 180px;
+  --amt-primitive-dimension-navigation-rail: 200px;
   --amt-primitive-dimension-window-min-width: 960px;
   --amt-primitive-dimension-window-min-height: 640px;
   --amt-primitive-dimension-workspace-tool-max-width: 880px;
@@ -143,8 +143,10 @@
   --amt-color-background-canvas: var(--amt-primitive-color-neutral-50);
   --amt-color-background-surface: var(--amt-primitive-color-neutral-0);
   --amt-color-background-selected: var(--amt-primitive-color-neutral-100);
+  --amt-color-background-navigation: var(--amt-primitive-color-neutral-0);
   --amt-color-text-primary: var(--amt-primitive-color-neutral-950);
   --amt-color-text-secondary: var(--amt-primitive-color-neutral-500);
+  --amt-color-text-navigation: var(--amt-primitive-color-neutral-950);
   --amt-color-border-default: var(--amt-primitive-color-neutral-300);
   --amt-color-border-strong: var(--amt-primitive-color-neutral-600);
   --amt-color-action-primary: var(--amt-primitive-color-neutral-950);
@@ -166,8 +168,10 @@
   --amt-color-background-canvas: var(--amt-primitive-color-neutral-850);
   --amt-color-background-surface: var(--amt-primitive-color-neutral-750);
   --amt-color-background-selected: var(--amt-primitive-color-neutral-600);
+  --amt-color-background-navigation: var(--amt-primitive-color-neutral-950);
   --amt-color-text-primary: var(--amt-primitive-color-neutral-50);
   --amt-color-text-secondary: var(--amt-primitive-color-neutral-300);
+  --amt-color-text-navigation: var(--amt-primitive-color-neutral-50);
   --amt-color-border-default: var(--amt-primitive-color-neutral-600);
   --amt-color-border-strong: var(--amt-primitive-color-neutral-300);
   --amt-color-action-primary: var(--amt-primitive-color-neutral-50);

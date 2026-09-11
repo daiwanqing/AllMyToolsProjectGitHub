@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,100..900&family=DM+Mono:wght@400;500&family=Pixelify+Sans:wght@400..700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-display: "Archivo", "Arial Narrow", sans-serif;
+  --font-mono: "DM Mono", monospace;
+  --font-pixel: "Pixelify Sans", sans-serif;
+}
+
+:root {
+  font-family: "Archivo", Arial, sans-serif;
+  background: #101010;
+  font-synthesis: none;
+}
+
+html, body, #root { min-height: 100%; }
+
+button,
+article { border-radius: 4px; }
+
+button { cursor: pointer; }
+
+::selection { background: #d9ff00; color: #101010; }
+
+.theme-app {
+  --app-canvas: #f5f5f2;
+  --app-surface: #ffffff;
+  --app-muted-surface: #eeeeea;
+  --app-panel: #f0f0ed;
+  --app-ink: #171717;
+  --app-line: #c9c9c4;
+  --app-faint: rgba(23, 23, 23, 0.48);
+  --accent-yellow: #aee300;
+  --accent-blue: #2854f5;
+  --accent-red: #f14425;
+  background: var(--app-canvas);
+  color: var(--app-ink);
+  transition: background-color 220ms ease, color 220ms ease;
+}
+
+.theme-dark {
+  --app-canvas: #bdbdb8;
+  --app-surface: #202020;
+  --app-muted-surface: #2d2d2d;
+  --app-panel: #242424;
+  --app-ink: #f5f5f1;
+  --app-line: #494947;
+  --app-faint: rgba(245, 245, 241, 0.5);
+  --accent-yellow: #d9ff00;
+  --accent-blue: #4b6dff;
+  --accent-red: #ff5036;
+}
+
+.app-sidebar { background: var(--app-surface); border-color: var(--app-line); color: var(--app-ink); }
+.app-sidebar .app-muted, .app-muted { color: var(--app-faint); }
+.app-sidebar .app-outline, .app-outline { border-color: var(--app-line); color: var(--app-ink); }
+.app-nav button, .app-projects button { color: color-mix(in srgb, var(--app-ink) 64%, transparent); }
+.app-nav button:hover, .app-projects button:hover { background: var(--app-muted-surface); color: var(--app-ink); }
+.theme-light .app-nav .is-active { background: #e2e2de; color: #171717; }
+.theme-dark .app-nav .is-active { background: #393938; color: #f7f7f3; }
+.app-load { border-color: var(--app-line); }
+.app-header { background: var(--app-surface); border-color: var(--app-line); }
+.app-header .app-outline:hover { background: var(--app-ink); color: var(--app-surface); }
+.app-content { background: var(--app-canvas); }
+.calendar-grid { border-color: var(--app-line); }
+.calendar-weekday { background: var(--app-muted-surface); border-color: var(--app-line); color: color-mix(in srgb, var(--app-ink) 60%, transparent); }
+.date-cell { background: var(--app-surface); border-color: var(--app-line); color: var(--app-ink); }
+.date-cell:hover { background: var(--app-muted-surface); }
+.date-cell.is-muted { color: color-mix(in srgb, var(--app-ink) 20%, transparent); }
+.theme-light .date-cell.is-selected { background: #f3f3f0; color: #171717; box-shadow: inset 0 0 0 1px #171717; }
+.theme-dark .app-content { background: #202020; }
+.theme-dark .calendar-grid { background: #202020; border-color: #494947; }
+.theme-dark .calendar-weekday { background: #292929; border-color: #424242; color: rgba(255, 255, 255, 0.56); }
+.theme-dark .date-cell { background: #242424; border-color: #424242; color: #f7f7f3; }
+.theme-dark .date-cell:hover { background: #2d2d2d; }
+.theme-dark .date-cell.is-muted { color: #777774; }
+.theme-dark .date-cell.is-selected { background: #343434; color: #fff; box-shadow: inset 0 0 0 1px #fff; }
+.theme-dark .app-summary { background: #292929; border-color: #494947; color: #f7f7f3; }
+.theme-dark .app-agenda { background: #242424; border-color: #494947; color: #f7f7f3; }
+.theme-dark .app-agenda-head, .theme-dark .app-tomorrow { border-color: #424242; }
+.theme-dark .app-agenda .app-muted, .theme-dark .app-summary .app-muted { color: rgba(255, 255, 255, 0.5); }
+.theme-dark .task-card, .theme-dark .tomorrow-card { background: #292929; border-color: #464646; color: #f7f7f3; }
+.theme-dark .task-card.is-done { background: #242424; color: rgba(255, 255, 255, 0.4); }
+.theme-dark .tomorrow-card:hover { background: #303030; }
+.theme-dark .add-task { background: #f7f7f3; color: #171717; }
+.app-summary { background: var(--app-surface); border-color: var(--app-line); }
+.app-agenda { background: var(--app-panel); border-color: var(--app-line); }
+.app-agenda-head, .app-tomorrow { border-color: var(--app-line); }
+.task-card, .tomorrow-card { background: var(--app-surface); border-color: var(--app-line); color: var(--app-ink); }
+.task-card.is-done { background: var(--app-muted-surface); color: color-mix(in srgb, var(--app-ink) 42%, transparent); }
+.tomorrow-card:hover { background: var(--app-muted-surface); }
+.add-task { background: var(--app-ink); color: var(--app-surface); }
+.add-task:hover { background: var(--accent-blue); }
+.empty-state { border-color: var(--app-line); }
+
+/* Tool view follows the month grid: rules do the grouping, color only marks state. */
+.tools-page { color: var(--app-ink); }
+.tools-toolbar { background: var(--app-surface); border-color: var(--app-line); }
+.tools-search { color: var(--app-ink); }
+.tools-search input { color: var(--app-ink); }
+.tools-search-icon { font-family: Arial, sans-serif; font-weight: 700; line-height: 1; }
+.tools-total { border-color: var(--app-line); color: var(--app-faint); }
+.tools-total strong { color: var(--app-ink); font-family: var(--font-display); font-size: 1.25rem; font-weight: 900; letter-spacing: -.08em; }
+.tools-categories button { width: 100%; border: 1px solid transparent; color: var(--app-faint); }
+.tools-categories button:hover { background: var(--app-muted-surface); color: var(--app-ink); }
+.tools-categories .is-active { border-color: var(--app-ink); background: var(--app-muted-surface); color: var(--app-ink); }
+.tools-page h2, .tools-page h3 { color: var(--app-ink); }
+.tools-page .border-b, .tools-page .border-t, .tool-grid { border-color: var(--app-line); }
+.tool-card { background: var(--app-surface); border-color: var(--app-line); color: var(--app-ink); transition: background-color 150ms ease; }
+.tool-card:hover { background: var(--app-muted-surface); }
+.tool-star { color: var(--app-faint); }
+.tool-star:hover, .tool-star.is-saved { color: var(--app-ink); }
+.tool-open { color: var(--app-ink); }
+.tool-open:hover { color: var(--accent-blue); }
+
+.theme-dark .tools-page { background: #202020; }
+.theme-dark .tools-toolbar { background: #292929; border-color: #494947; }
+.theme-dark .tools-search, .theme-dark .tools-search input { color: #f7f7f3; }
+.theme-dark .tools-total { border-color: #494947; color: rgba(255, 255, 255, .5); }
+.theme-dark .tools-total strong { color: #f7f7f3; }
+.theme-dark .tools-categories button { color: rgba(255, 255, 255, .5); }
+.theme-dark .tools-categories button:hover { background: #292929; color: #f7f7f3; }
+.theme-dark .tools-categories .is-active { border-color: #f7f7f3; background: #343434; color: #fff; }
+.theme-dark .tools-page .border-b, .theme-dark .tools-page .border-t, .theme-dark .tool-grid { border-color: #494947; }
+.theme-dark .tool-card { background: #242424; border-color: #424242; color: #f7f7f3; }
+.theme-dark .tool-card:hover { background: #2d2d2d; }
+.theme-dark .tool-star { color: rgba(255, 255, 255, .5); }
+.theme-dark .tool-star:hover, .theme-dark .tool-star.is-saved, .theme-dark .tool-open { color: #f7f7f3; }
