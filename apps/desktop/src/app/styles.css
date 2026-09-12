@@ -496,7 +496,6 @@ h2 {
   gap: var(--amt-space-6);
   width: 100%;
   padding-bottom: var(--amt-space-4);
-  border-bottom: var(--amt-border-width-default) solid var(--amt-color-border-default);
 }
 
 .search-field {
