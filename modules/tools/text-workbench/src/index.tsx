@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Button,
-  HorizontalTabs,
+  ChoiceGroup,
   Disclosure,
   EmptyState,
   FloatingNotice,
@@ -173,9 +173,9 @@ export function ToolView() {
             {textOperationDefinitions.find((item) => item.id === operation)?.label}
           </StatusBadge>
         </div>
-        <HorizontalTabs
+        <ChoiceGroup
           ariaLabel="文本处理方式"
-          items={textOperationDefinitions.map((item) => ({
+          options={textOperationDefinitions.map((item) => ({
             id: item.id,
             label: item.label,
             description: item.description,

@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import type { InputHTMLAttributes } from 'react';
+import type { InputHTMLAttributes, ReactNode } from 'react';
 
 export type TextFieldProps = Readonly<
   Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> & {
@@ -7,6 +7,7 @@ export type TextFieldProps = Readonly<
     error?: string;
     id?: string;
     label: string;
+    leadingIcon?: ReactNode;
   }
 >;
 
@@ -17,6 +18,7 @@ export function TextField({
   error,
   id: suppliedId,
   label,
+  leadingIcon,
   ...inputProps
 }: TextFieldProps) {
   const generatedId = useId();
@@ -30,13 +32,24 @@ export function TextField({
       <label className="amt-field-label" htmlFor={id}>
         {label}
       </label>
-      <input
-        {...inputProps}
-        id={id}
-        className={['amt-field-input', className].filter(Boolean).join(' ')}
-        aria-invalid={Boolean(error) || undefined}
-        aria-describedby={describedBy}
-      />
+      <span
+        className={['amt-field-control', leadingIcon ? 'amt-field-control-with-icon' : '']
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {leadingIcon ? (
+          <span className="amt-field-leading-icon" aria-hidden="true">
+            {leadingIcon}
+          </span>
+        ) : null}
+        <input
+          {...inputProps}
+          id={id}
+          className={['amt-field-input', className].filter(Boolean).join(' ')}
+          aria-invalid={Boolean(error) || undefined}
+          aria-describedby={describedBy}
+        />
+      </span>
       {description ? (
         <span className="amt-field-description" id={descriptionId}>
           {description}

@@ -187,7 +187,9 @@ describe('desktop shell', () => {
     expect(screen.getByRole('article', { name: '卡坦岛' })).toBeInTheDocument();
     expect(screen.getByRole('article', { name: '璀璨宝石' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: '卡坦岛 图片展示区' })).toBeInTheDocument();
-    expect(screen.getByRole('tablist', { name: '馆藏分类' })).toBeInTheDocument();
+    const categoryGroup = screen.getByRole('group', { name: '馆藏分类' });
+    expect(categoryGroup).toBeInTheDocument();
+    expect(screen.queryByRole('tablist', { name: '馆藏分类' })).not.toBeInTheDocument();
     const saveButton = screen.getByRole('button', { name: '保存收藏' });
     expect(saveButton).toBeDisabled();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
@@ -200,7 +202,7 @@ describe('desktop shell', () => {
     expect(saveButton).toBeDisabled();
     expect(window.localStorage.getItem('life.board-games.collection')).toContain('卡坦岛');
 
-    fireEvent.click(screen.getByRole('tab', { name: '聚会' }));
+    fireEvent.click(within(categoryGroup).getByRole('button', { name: '聚会' }));
     expect(screen.getByRole('article', { name: '行动代号' })).toBeInTheDocument();
     expect(screen.queryByRole('article', { name: '卡坦岛' })).not.toBeInTheDocument();
   });
@@ -333,9 +335,10 @@ describe('desktop shell', () => {
     await waitFor(() =>
       expect(screen.getByRole('heading', { level: 1, name: '活动选择器' })).toBeInTheDocument(),
     );
-    fireEvent.click(screen.getByRole('tab', { name: '玩一局游戏' }));
-    expect(screen.getByRole('tab', { name: '玩一局游戏' })).toHaveAttribute(
-      'aria-selected',
+    const sessionGroup = screen.getByRole('group', { name: '候选活动' });
+    fireEvent.click(within(sessionGroup).getByRole('button', { name: '玩一局游戏' }));
+    expect(within(sessionGroup).getByRole('button', { name: '玩一局游戏' })).toHaveAttribute(
+      'aria-pressed',
       'true',
     );
     fireEvent.click(screen.getByRole('button', { name: '保存选择' }));
@@ -644,7 +647,9 @@ describe('desktop shell', () => {
     expect(screen.queryByRole('tab', { name: '设置' })).not.toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: '设置' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '外观' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('tablist', { name: '主题设置' })).toBeInTheDocument();
+    const themeGroup = screen.getByRole('group', { name: '主题设置' });
+    expect(themeGroup).toBeInTheDocument();
+    expect(screen.queryByRole('tablist', { name: '主题设置' })).not.toBeInTheDocument();
     expect(screen.queryByText('按功能整理偏好设置，切换后立即生效。')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: '快捷键' }));
@@ -689,6 +694,9 @@ describe('desktop shell', () => {
     expect(showcaseToggle).toHaveAttribute('aria-pressed', 'false');
     fireEvent.click(showcaseToggle);
     expect(showcaseToggle).toHaveAttribute('aria-pressed', 'true');
+    const stateToggle = screen.getByRole('button', { name: '示例开关' });
+    expect(stateToggle).toHaveClass('amt-toggle-button');
+    expect(stateToggle).toHaveAttribute('aria-pressed', 'false');
     const directionTablist = screen.getByRole('tablist', { name: '查看方向' });
     fireEvent.click(within(directionTablist).getByRole('tab', { name: '详情' }));
     expect(within(directionTablist).getByRole('tab', { name: '详情' })).toHaveAttribute(
@@ -701,8 +709,13 @@ describe('desktop shell', () => {
       }),
     );
     expect(screen.getByText('在同一工作区查看补充信息。')).toBeVisible();
-    fireEvent.click(screen.getByRole('tab', { name: '紧凑' }));
-    expect(screen.getByRole('tab', { name: '紧凑' })).toHaveAttribute('aria-selected', 'true');
+    const densityGroup = screen.getByRole('group', { name: '密度选择' });
+    expect(screen.queryByRole('tablist', { name: '密度选择' })).not.toBeInTheDocument();
+    fireEvent.click(within(densityGroup).getByRole('button', { name: '紧凑' }));
+    expect(within(densityGroup).getByRole('button', { name: '紧凑' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     fireEvent.click(screen.getByRole('checkbox', { name: '启用同步' }));
     expect(screen.getByRole('checkbox', { name: '启用同步' })).toBeChecked();
     expect(screen.getByRole('button', { name: '创建视图' })).toBeInTheDocument();
@@ -738,10 +751,10 @@ describe('desktop shell', () => {
     );
 
     fireEvent.click(screen.getByRole('tab', { name: '外观' }));
-    fireEvent.click(screen.getByRole('tab', { name: '使用深色主题' }));
+    fireEvent.click(screen.getByRole('button', { name: '使用深色主题' }));
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
-    expect(screen.getByRole('tab', { name: '使用深色主题' })).toHaveAttribute(
-      'aria-selected',
+    expect(screen.getByRole('button', { name: '使用深色主题' })).toHaveAttribute(
+      'aria-pressed',
       'true',
     );
   });
@@ -855,7 +868,7 @@ describe('desktop shell', () => {
     fireEvent.change(screen.getByRole('textbox', { name: '搜索工具' }), {
       target: { value: '笔记' },
     });
-    fireEvent.click(screen.getByRole('tab', { name: '深色' }));
+    fireEvent.click(screen.getByRole('button', { name: '深色' }));
     firstRender.unmount();
 
     render(<App />);

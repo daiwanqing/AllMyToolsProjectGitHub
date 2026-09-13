@@ -46,23 +46,25 @@ export const uiComponentCatalog: readonly UiComponentDefinition[] = [
   },
   {
     name: 'Tabs',
-    category: '复合控件',
-    contract: '统一 tablist/tab/tabpanel ARIA 关联与键盘导航。',
+    category: '页签控件',
+    contract: '带内容面板的受控 tablist/tab/tabpanel，负责页签视图切换与键盘导航。',
   },
   {
     name: 'HorizontalTabs',
-    category: '导航控件',
-    contract: '横向 tablist、选中状态、方向键和 Home/End 导航。',
+    category: '页签控件',
+    contract:
+      '无外框横向 tablist，负责同级页签/导航切换；整行文字项、浅灰选中态、方向键和 Home/End 导航。',
   },
   {
     name: 'VerticalTabs',
-    category: '导航控件',
-    contract: '竖向 tablist、选中状态、方向键和 Home/End 导航。',
+    category: '页签控件',
+    contract:
+      '填满父容器的无外框竖向 tablist，负责同级页签/导航切换；整行文字项、浅灰选中态、方向键和 Home/End 导航。',
   },
   {
     name: 'ChoiceGroup',
-    category: '复合控件',
-    contract: '组合选项、说明和 aria-pressed 选中状态。',
+    category: '状态控件',
+    contract: '互斥状态选择组，使用独立边界、aria-pressed 和键盘可达按钮；不输出 tablist 语义。',
   },
   {
     name: 'ToggleField',

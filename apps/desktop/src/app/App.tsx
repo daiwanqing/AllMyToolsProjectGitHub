@@ -18,8 +18,8 @@ import {
 } from '@allmytools/design-tokens';
 import {
   Button,
+  ChoiceGroup,
   FloatingNotice,
-  HorizontalTabs,
   VerticalTabs,
   EmptyState,
   IconButton,
@@ -729,9 +729,9 @@ export function App() {
     appearance: (
       <div className="settings-section">
         <SettingRow label="主题">
-          <HorizontalTabs
+          <ChoiceGroup
             ariaLabel="主题设置"
-            items={themes.map(({ id, label }) => ({ id, label: `使用${label}主题` }))}
+            options={themes.map(({ id, label }) => ({ id, label: `使用${label}主题` }))}
             value={theme}
             onChange={(value) => {
               if (value === 'light' || value === 'dark') {
@@ -842,9 +842,9 @@ export function App() {
           </div>
           <div className="tool-focus-actions">
             <div className="theme-switcher">
-              <HorizontalTabs
+              <ChoiceGroup
                 ariaLabel="界面主题"
-                items={themes}
+                options={themes}
                 value={theme}
                 onChange={(value) => {
                   if (value === 'light' || value === 'dark') setTheme(value);
@@ -977,9 +977,9 @@ export function App() {
           </div>
           <div className="toolbar-actions">
             <div className="theme-switcher">
-              <HorizontalTabs
+              <ChoiceGroup
                 ariaLabel="界面主题"
-                items={themes}
+                options={themes}
                 value={theme}
                 onChange={(value) => {
                   if (value === 'light' || value === 'dark') setTheme(value);

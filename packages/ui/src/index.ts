@@ -18,7 +18,7 @@ export { IconButton, type IconButtonProps } from './IconButton';
 export { InlineMessage, type InlineMessageProps, type InlineMessageTone } from './InlineMessage';
 export { NavigationItem, type NavigationItemProps } from './NavigationItem';
 export { Modal, type ModalProps } from './Modal';
-export { ProgressBar, type ProgressBarProps } from './ProgressBar';
+export { ProgressBar, type ProgressBarProps, type ProgressBarTone } from './ProgressBar';
 export { SettingRow, type SettingRowProps } from './SettingRow';
 export { SelectField, type SelectFieldProps, type SelectOption } from './SelectField';
 export { StatusBadge, type StatusBadgeProps, type StatusBadgeTone } from './StatusBadge';

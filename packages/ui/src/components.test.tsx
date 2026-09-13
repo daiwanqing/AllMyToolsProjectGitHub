@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useState } from 'react';
 import { Button } from './Button';
@@ -131,6 +131,13 @@ describe('TextField', () => {
 
     expect(screen.getByRole('textbox', { name: '工具名称' })).toBeDisabled();
   });
+
+  it('supports a leading icon without changing the input label contract', () => {
+    render(<TextField label="搜索任务" leadingIcon={<span>i</span>} placeholder="搜索任务" />);
+
+    expect(screen.getByRole('textbox', { name: '搜索任务' })).toHaveClass('amt-field-input');
+    expect(document.querySelector('.amt-field-leading-icon')).toBeInTheDocument();
+  });
 });
 
 describe('TextAreaField', () => {
@@ -170,6 +177,19 @@ describe('content states', () => {
     expect(screen.getByRole('heading', { name: '尚未添加工具' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '创建工具' })).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent('请检查输入后重试。');
+  });
+
+  it('supports framed empty states and status markers', () => {
+    render(
+      <>
+        <EmptyState title="暂无安排" description="下一步再来看看。" framed icon={<span>+</span>} />
+        <InlineMessage title="同步状态">正在同步。</InlineMessage>
+      </>,
+    );
+
+    expect(screen.getByRole('region', { name: '暂无安排' })).toHaveClass('amt-empty-state-framed');
+    expect(document.querySelector('.amt-empty-state-icon')).toBeInTheDocument();
+    expect(document.querySelector('.amt-inline-message-mark')).toBeInTheDocument();
   });
 
   it('keeps title associations unique when multiple empty states render', () => {
@@ -279,6 +299,12 @@ describe('composite controls', () => {
       '可访问性与交互',
       '状态和响应式',
     ]);
+    expect(uiComponentCatalog.find((component) => component.name === 'Tabs')?.contract).toContain(
+      'tabpanel',
+    );
+    expect(
+      uiComponentCatalog.find((component) => component.name === 'ChoiceGroup')?.contract,
+    ).toContain('不输出 tablist');
   });
 
   it('uses modal semantics and restores focus after closing', async () => {
@@ -315,8 +341,11 @@ describe('composite controls', () => {
       />,
     );
 
-    expect(screen.getByRole('group', { name: '主题设置' })).toBeInTheDocument();
+    const group = screen.getByRole('group', { name: '主题设置' });
+    expect(group).toBeInTheDocument();
+    expect(screen.queryByRole('tablist', { name: '主题设置' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '浅色' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: '浅色' })).not.toHaveClass('amt-toggle-button');
     fireEvent.click(screen.getByRole('button', { name: '深色' }));
     expect(onChange).toHaveBeenCalledWith('dark');
   });
@@ -330,6 +359,7 @@ describe('composite controls', () => {
           items={[
             { id: 'one', label: '一' },
             { id: 'two', label: '二' },
+            { id: 'disabled', label: '禁用', disabled: true },
           ]}
           value="one"
           onChange={onChange}
@@ -346,14 +376,24 @@ describe('composite controls', () => {
       </>,
     );
 
-    expect(screen.getByRole('tablist', { name: '横向页签' })).toHaveAttribute(
-      'aria-orientation',
-      'horizontal',
+    const horizontalTablist = screen.getByRole('tablist', { name: '横向页签' });
+    const verticalTablist = screen.getByRole('tablist', { name: '竖向页签' });
+    expect(horizontalTablist).toHaveClass('amt-tab-control', 'amt-tab-control-horizontal');
+    expect(verticalTablist).toHaveClass('amt-tab-control', 'amt-tab-control-vertical');
+    expect(within(horizontalTablist).getByRole('tab', { name: '一' })).toHaveAttribute(
+      'aria-selected',
+      'true',
     );
-    expect(screen.getByRole('tablist', { name: '竖向页签' })).toHaveAttribute(
-      'aria-orientation',
-      'vertical',
+    expect(within(verticalTablist).getByRole('tab', { name: '二' })).toHaveAttribute(
+      'tabindex',
+      '-1',
     );
+    const disabledTab = within(horizontalTablist).getByRole('tab', { name: '禁用' });
+    expect(disabledTab).toBeDisabled();
+    fireEvent.click(disabledTab);
+    expect(onChange).not.toHaveBeenCalledWith('disabled');
+    expect(horizontalTablist).toHaveAttribute('aria-orientation', 'horizontal');
+    expect(verticalTablist).toHaveAttribute('aria-orientation', 'vertical');
     fireEvent.keyDown(screen.getAllByRole('tab', { name: '一' })[0], { key: 'ArrowRight' });
     expect(onChange).toHaveBeenCalledWith('two');
   });
@@ -447,5 +487,8 @@ describe('extended controls', () => {
       'aria-valuenow',
       '64',
     );
+    expect(
+      screen.getByRole('progressbar', { name: '同步进度' }).querySelector('.amt-progress-value'),
+    ).toHaveClass('amt-progress-value-info');
   });
 });

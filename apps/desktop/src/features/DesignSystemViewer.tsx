@@ -9,14 +9,13 @@ import {
 } from '@allmytools/design-tokens';
 import {
   Button,
-  HorizontalTabs,
+  ChoiceGroup,
   VerticalTabs,
   Disclosure,
   EmptyState,
   FloatingNotice,
   IconButton,
   InlineMessage,
-  NavigationItem,
   ProgressBar,
   SettingRow,
   SelectField,
@@ -36,7 +35,9 @@ import {
   Code2,
   Copy,
   Gauge,
+  Plus,
   Palette,
+  Search,
   Settings2,
   type LucideIcon,
 } from 'lucide-react';
@@ -307,11 +308,11 @@ export function DesignSystemViewer({
   const [activeView, setActiveView] = useState<DeveloperView>('tokens');
   const [previewTab, setPreviewTab] = useState('overview');
   const [previewDirection, setPreviewDirection] = useState('overview');
-  const [previewNavigation, setPreviewNavigation] = useState('home');
   const [previewDensity, setPreviewDensity] = useState('comfortable');
   const [previewEnabled, setPreviewEnabled] = useState(false);
   const [previewNotifications, setPreviewNotifications] = useState(false);
   const [previewDebug, setPreviewDebug] = useState(false);
+  const [previewToggle, setPreviewToggle] = useState(false);
   const [previewMode, setPreviewMode] = useState('system');
   const [previewCount, setPreviewCount] = useState(3);
   const [motionPreviewVersion, setMotionPreviewVersion] = useState(0);
@@ -517,28 +518,62 @@ export function DesignSystemViewer({
     ),
     components: (
       <div className="component-preview" aria-labelledby="component-preview-heading">
+        <div className="component-preview-heading">
+          <h3 id="component-preview-heading">公共组件状态</h3>
+          <ToggleButton
+            variant="secondary"
+            pressed={previewDebug}
+            onClick={() => setPreviewDebug((current) => !current)}
+          >
+            调试状态
+          </ToggleButton>
+        </div>
         <div className="component-catalog" aria-labelledby="component-catalog-heading">
-          <h3 id="component-catalog-heading">公共组件</h3>
-          <div className="component-catalog-list">
+          <div className="component-catalog-heading">
+            <h3 id="component-catalog-heading">公共组件</h3>
+            <span>{uiComponentCatalog.length} 个组件</span>
+          </div>
+          <div className="component-catalog-list" role="list">
             {uiComponentCatalog.map((component) => (
-              <div className="component-catalog-item" key={component.name}>
-                <div className="component-catalog-name">
-                  <code>{component.name}</code>
-                  <span>{component.category}</span>
-                </div>
-                <p>{component.contract}</p>
+              <div className="component-catalog-item" key={component.name} role="listitem">
+                <code>{component.name}</code>
               </div>
             ))}
           </div>
         </div>
         <div className="component-showcase" aria-labelledby="component-showcase-heading">
-          <h3 id="component-showcase-heading">组件展厅</h3>
-          <p className="component-showcase-intro">
-            通过真实控件组合检查统一布局、交互状态和可访问性契约。
-          </p>
-          <div className="component-showcase-grid">
+          <div className="component-showcase-heading">
+            <h3 id="component-showcase-heading">组件展厅</h3>
+            <span>13 个示例</span>
+          </div>
+          <div className="component-showcase-grid component-board">
+            <section className="component-showcase-group" aria-labelledby="showcase-button-heading">
+              <h4 id="showcase-button-heading">BUTTON / ACTION</h4>
+              <div className="component-button-row">
+                <Button variant="primary">新建任务</Button>
+                <Button variant="secondary">取消</Button>
+                <IconButton label="添加任务">
+                  <Plus aria-hidden="true" />
+                </IconButton>
+              </div>
+              <p className="component-showcase-note">主操作与选中态共用灰阶层级。</p>
+            </section>
+            <section className="component-showcase-group" aria-labelledby="showcase-input-heading">
+              <h4 id="showcase-input-heading">INPUT / SEARCH</h4>
+              <TextField label="搜索任务" placeholder="搜索任务" leadingIcon={<Search />} />
+              <p className="component-showcase-note">浅色表面配细边框，聚焦时仅强化黑白反差。</p>
+            </section>
+            <section className="component-showcase-group" aria-labelledby="showcase-status-heading">
+              <h4 id="showcase-status-heading">TAG / STATUS</h4>
+              <div className="showcase-status-row">
+                <StatusBadge tone="success">高优先级</StatusBadge>
+                <StatusBadge tone="info">进行中</StatusBadge>
+                <StatusBadge tone="error">截止今天</StatusBadge>
+              </div>
+              <p className="component-showcase-note">颜色只落在小色标，文字保持中性可扫描。</p>
+            </section>
             <section className="component-showcase-group" aria-labelledby="showcase-tabs-heading">
-              <h4 id="showcase-tabs-heading">Tabs 页签</h4>
+              <h4 id="showcase-tabs-heading">TAB / CONTENT</h4>
               <Tabs
                 ariaLabel="组件展厅页签"
                 className="showcase-tabs"
@@ -550,32 +585,59 @@ export function DesignSystemViewer({
                   { id: 'details', label: '详情', panel: <p>在同一工作区查看补充信息。</p> },
                 ]}
               />
+              <p className="component-showcase-note">选中态使用浅灰表面和边界共同表达。</p>
             </section>
-            <section
-              className="component-showcase-group"
-              aria-labelledby="showcase-navigation-heading"
-            >
-              <h4 id="showcase-navigation-heading">NavigationItem 导航项</h4>
-              <div className="showcase-navigation-list">
-                <NavigationItem
-                  active={previewNavigation === 'home'}
-                  icon={<Code2 aria-hidden="true" />}
-                  label="工具首页"
-                  onClick={() => setPreviewNavigation('home')}
+            <section className="component-showcase-group" aria-labelledby="showcase-toggle-heading">
+              <h4 id="showcase-toggle-heading">TOGGLE / STATE</h4>
+              <ToggleButton
+                variant="secondary"
+                pressed={previewToggle}
+                onClick={() => setPreviewToggle((current) => !current)}
+              >
+                示例开关
+              </ToggleButton>
+              <p className="component-showcase-note">
+                二态开关只表达独立状态，使用圆点和 aria-pressed 反馈。
+              </p>
+            </section>
+            <section className="component-showcase-group" aria-labelledby="showcase-select-heading">
+              <h4 id="showcase-select-heading">CONTROL / SELECT</h4>
+              <SelectField
+                label="视图密度"
+                options={[
+                  { value: 'system', label: '舒适' },
+                  { value: 'home', label: '紧凑' },
+                  { value: 'settings', label: '自动' },
+                ]}
+                value={previewMode}
+                onChange={(event) => setPreviewMode(event.target.value)}
+              />
+              <ToggleField
+                label="启用同步"
+                checked={previewEnabled}
+                onChange={(event) => setPreviewEnabled(event.target.checked)}
+              />
+            </section>
+            <section className="component-showcase-group" aria-labelledby="showcase-notice-heading">
+              <h4 id="showcase-notice-heading">NOTICE / PROGRESS</h4>
+              <InlineMessage title="本周还有 03 项待完成">保持当前节奏即可完成计划。</InlineMessage>
+              <ProgressBar label="完成进度" value={68} />
+            </section>
+            <section className="component-showcase-group" aria-labelledby="showcase-row-heading">
+              <h4 id="showcase-row-heading">ROW / TASK</h4>
+              <SettingRow label="桌面通知" description="在重要状态变化时显示提示。">
+                <ToggleField
+                  label="启用通知"
+                  checked={previewNotifications}
+                  onChange={(event) => setPreviewNotifications(event.target.checked)}
                 />
-                <NavigationItem
-                  active={previewNavigation === 'settings'}
-                  icon={<Settings2 aria-hidden="true" />}
-                  label="设置"
-                  onClick={() => setPreviewNavigation('settings')}
-                />
-              </div>
+              </SettingRow>
             </section>
             <section className="component-showcase-group" aria-labelledby="showcase-choice-heading">
-              <h4 id="showcase-choice-heading">横向页签</h4>
-              <HorizontalTabs
+              <h4 id="showcase-choice-heading">FILTER / CHIP</h4>
+              <ChoiceGroup
                 ariaLabel="密度选择"
-                items={[
+                options={[
                   { id: 'compact', label: '紧凑' },
                   { id: 'comfortable', label: '舒适' },
                   { id: 'auto', label: '自动' },
@@ -583,12 +645,13 @@ export function DesignSystemViewer({
                 value={previewDensity}
                 onChange={setPreviewDensity}
               />
+              <p className="component-showcase-note">筛选项只改变当前视图，不承担业务状态。</p>
             </section>
             <section
               className="component-showcase-group"
               aria-labelledby="showcase-vertical-tabs-heading"
             >
-              <h4 id="showcase-vertical-tabs-heading">竖向页签</h4>
+              <h4 id="showcase-vertical-tabs-heading">NAV / STACK</h4>
               <VerticalTabs
                 ariaLabel="查看方向"
                 items={[
@@ -599,52 +662,21 @@ export function DesignSystemViewer({
                 onChange={setPreviewDirection}
               />
             </section>
-            <section className="component-showcase-group" aria-labelledby="showcase-toggle-heading">
-              <h4 id="showcase-toggle-heading">ToggleField 开关</h4>
-              <ToggleField
-                label="启用同步"
-                description="允许在设备之间同步设置。"
-                checked={previewEnabled}
-                onChange={(event) => setPreviewEnabled(event.target.checked)}
-              />
-            </section>
-            <section className="component-showcase-group" aria-labelledby="showcase-row-heading">
-              <h4 id="showcase-row-heading">SettingRow 设置行</h4>
-              <SettingRow label="桌面通知" description="在重要状态变化时显示提示。">
-                <ToggleField
-                  label="启用通知"
-                  checked={previewNotifications}
-                  onChange={(event) => setPreviewNotifications(event.target.checked)}
-                />
-              </SettingRow>
-            </section>
             <section className="component-showcase-group" aria-labelledby="showcase-empty-heading">
-              <h4 id="showcase-empty-heading">EmptyState 空内容</h4>
+              <h4 id="showcase-empty-heading">EMPTY / BLANK</h4>
               <EmptyState
-                title="暂无保存的视图"
-                description="创建一个视图后，它会显示在这里。"
+                title="暂无安排"
+                description="下一步再来看看。"
+                framed
+                icon={<Plus />}
                 action={<Button variant="secondary">创建视图</Button>}
-              />
-            </section>
-            <section className="component-showcase-group" aria-labelledby="showcase-select-heading">
-              <h4 id="showcase-select-heading">SelectField 下拉选择</h4>
-              <SelectField
-                label="启动模式"
-                description="选择应用启动时打开的工作区。"
-                options={[
-                  { value: 'system', label: '跟随系统' },
-                  { value: 'home', label: '工具首页' },
-                  { value: 'settings', label: '设置页' },
-                ]}
-                value={previewMode}
-                onChange={(event) => setPreviewMode(event.target.value)}
               />
             </section>
             <section
               className="component-showcase-group"
               aria-labelledby="showcase-stepper-heading"
             >
-              <h4 id="showcase-stepper-heading">StepperField 步进输入</h4>
+              <h4 id="showcase-stepper-heading">FIELD / STEPPER</h4>
               <StepperField
                 label="保留最近工具数"
                 description="使用按钮或键盘输入调整数量。"
@@ -654,51 +686,16 @@ export function DesignSystemViewer({
                 onChange={setPreviewCount}
               />
             </section>
-            <section className="component-showcase-group" aria-labelledby="showcase-status-heading">
-              <h4 id="showcase-status-heading">StatusBadge 与 ProgressBar</h4>
-              <div className="showcase-status-row">
-                <StatusBadge tone="success">已同步</StatusBadge>
-                <StatusBadge tone="warning">等待处理</StatusBadge>
-                <StatusBadge tone="error">需要关注</StatusBadge>
-              </div>
-              <ProgressBar label="同步进度" value={64} />
-            </section>
             <section
               className="component-showcase-group"
               aria-labelledby="showcase-disclosure-heading"
             >
-              <h4 id="showcase-disclosure-heading">Disclosure 折叠面板</h4>
+              <h4 id="showcase-disclosure-heading">DISCLOSURE / PANEL</h4>
               <Disclosure title="显示高级选项" defaultOpen>
                 可将不常用的设置收纳在面板中，同时保留明确的展开状态。
               </Disclosure>
             </section>
           </div>
-        </div>
-        <div className="component-state-preview">
-          <h3 id="component-preview-heading">公共组件状态</h3>
-          <div className="component-preview-row">
-            <ToggleButton
-              variant="secondary"
-              pressed={previewDebug}
-              onClick={() => setPreviewDebug((current) => !current)}
-            >
-              调试状态
-            </ToggleButton>
-            <Button variant="primary">主要操作</Button>
-            <Button variant="secondary">次要操作</Button>
-            <Button variant="danger">危险操作</Button>
-            <Button loading>加载中</Button>
-            <Button disabled>不可用</Button>
-          </div>
-          <div className="component-preview-fields">
-            <TextField label="默认输入" placeholder="输入内容" />
-            <TextField label="错误输入" error="请输入有效内容。" value="无效示例" readOnly />
-            <TextField label="禁用输入" value="不可编辑" disabled readOnly />
-          </div>
-          <InlineMessage title="信息状态">这是来自公共组件的原位提示。</InlineMessage>
-          <InlineMessage title="错误状态" tone="error">
-            这是来自公共组件的可恢复错误提示。
-          </InlineMessage>
         </div>
       </div>
     ),

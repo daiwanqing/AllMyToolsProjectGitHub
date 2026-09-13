@@ -1,12 +1,21 @@
+export type ProgressBarTone = 'neutral' | 'info' | 'success' | 'warning' | 'error';
+
 export type ProgressBarProps = Readonly<{
   value: number;
   max?: number;
   label: string;
   showValue?: boolean;
+  tone?: ProgressBarTone;
 }>;
 
 /** 带可访问进度语义和数值反馈的统一进度条。 */
-export function ProgressBar({ label, max = 100, showValue = true, value }: ProgressBarProps) {
+export function ProgressBar({
+  label,
+  max = 100,
+  showValue = true,
+  tone = 'info',
+  value,
+}: ProgressBarProps) {
   const boundedValue = Math.min(Math.max(value, 0), max);
   const percentage = max === 0 ? 0 : Math.round((boundedValue / max) * 100);
 
@@ -24,7 +33,10 @@ export function ProgressBar({ label, max = 100, showValue = true, value }: Progr
         aria-valuemax={max}
         aria-valuenow={boundedValue}
       >
-        <span className="amt-progress-value" style={{ width: `${percentage}%` }} />
+        <span
+          className={`amt-progress-value amt-progress-value-${tone}`}
+          style={{ width: `${percentage}%` }}
+        />
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
 import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import {
   Button,
+  ChoiceGroup,
   FloatingNotice,
-  HorizontalTabs,
   IconButton,
   InlineMessage,
   Modal,
@@ -347,9 +347,9 @@ export function ToolView() {
           <h3 id="board-games-shelf-title">馆藏</h3>
         </div>
         <div className="board-games-shelf-controls">
-          <HorizontalTabs
+          <ChoiceGroup
             ariaLabel="馆藏分类"
-            items={categoryTabs}
+            options={categoryTabs}
             value={category}
             onChange={(value) => {
               if (value === '全部' || value === '策略' || value === '聚会' || value === '双人') {

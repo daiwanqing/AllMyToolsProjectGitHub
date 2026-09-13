@@ -15,6 +15,7 @@ import {
   Button,
   EmptyState,
   FloatingNotice,
+  HorizontalTabs,
   Modal,
   SelectField,
   StatusBadge,
@@ -321,24 +322,20 @@ export function ToolView({ onClose }: Readonly<{ onClose?: () => void }>) {
           </Button>
         </header>
         <div className="travel-view-tools">
-          <div className="travel-view-tabs" role="tablist" aria-label="旅行视图">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeView === 'timeline'}
-              onClick={() => setActiveView('timeline')}
-            >
-              时间线
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeView === 'review'}
-              onClick={() => setActiveView('review')}
-            >
-              回顾
-            </button>
-          </div>
+          <HorizontalTabs
+            className="travel-view-tabs"
+            ariaLabel="旅行视图"
+            items={[
+              { id: 'timeline', label: '时间线' },
+              { id: 'review', label: '回顾' },
+            ]}
+            value={activeView}
+            onChange={(value) => {
+              if (value === 'timeline' || value === 'review') {
+                setActiveView(value);
+              }
+            }}
+          />
           <label className="travel-search-field">
             <Search size={16} aria-hidden="true" />
             <span className="visually-hidden">搜索这段旅程</span>

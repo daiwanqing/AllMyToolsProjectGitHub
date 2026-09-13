@@ -15,6 +15,7 @@ export function InlineMessage({ children, title, tone = 'info' }: InlineMessageP
       className={`amt-inline-message amt-inline-message-${tone}`}
       role={tone === 'error' ? 'alert' : 'status'}
     >
+      <span className="amt-inline-message-mark" aria-hidden="true" />
       <strong>{title}</strong>
       <p>{children}</p>
     </section>
