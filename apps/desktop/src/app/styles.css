@@ -1020,14 +1020,9 @@ h2 {
 }
 
 .calendar-year-month[data-current-month='true'] {
-  border: var(--amt-border-width-default) solid var(--amt-color-accent-calendar);
+  border: var(--amt-border-width-default) solid var(--amt-color-border-strong);
   border-radius: var(--amt-radius-surface);
   background: var(--amt-color-background-selected);
-}
-
-.calendar-year-month[data-current-month='true'] > .amt-button {
-  color: var(--amt-color-accent-calendar);
-  font-weight: 800;
 }
 
 .calendar-weekdays,
@@ -1096,11 +1091,6 @@ h2 {
   background: var(--amt-color-background-selected);
   font-weight: 800;
   box-shadow: inset 0 0 0 var(--amt-border-width-default) var(--amt-color-accent-calendar);
-}
-
-.calendar-year-month[data-current-month='true'] .calendar-mini-day span {
-  color: var(--amt-color-accent-calendar);
-  font-weight: 700;
 }
 
 .calendar-year-grid .calendar-mini-day[aria-current='date'] span {

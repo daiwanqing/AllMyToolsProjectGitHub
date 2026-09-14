@@ -373,6 +373,22 @@ describe('desktop shell', () => {
     expect(
       document.querySelectorAll('.calendar-year-month[data-current-month="true"]'),
     ).toHaveLength(1);
+    const currentYearMonthPanel = document.querySelector(
+      '.calendar-year-month[data-current-month="true"]',
+    );
+    if (!currentYearMonthPanel) {
+      throw new Error('Expected the current year month panel to be present.');
+    }
+    expect(
+      currentYearMonthPanel.querySelectorAll(
+        '.calendar-mini-day:not([data-outside-month="true"]) > span:first-child',
+      ).length,
+    ).toBeGreaterThan(0);
+    expect(
+      currentYearMonthPanel.querySelectorAll(
+        '.calendar-mini-day[data-outside-month="true"] > span:first-child',
+      ).length,
+    ).toBeGreaterThan(0);
     const currentYearMonth = screen
       .getAllByRole('button', { name: /进入\d+年8月/ })
       .find((button) =>
