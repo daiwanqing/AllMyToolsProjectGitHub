@@ -72,7 +72,7 @@ describe('设计 Token', () => {
     expect(dark.semantic['color.text.navigation']).toBe(primitiveTokens['color.neutral.50']);
   });
 
-  it('为日历提供按主题色温变化的共享强调色', () => {
+  it('为日历提供按主题明度变化的珊瑚橙共享强调色', () => {
     const light = resolveThemeTokens('light');
     const dark = resolveThemeTokens('dark');
 
@@ -94,19 +94,25 @@ describe('设计 Token', () => {
     expect(semanticThemeTokens.dark['color.status.error']).toBe(primitiveTokens['color.red.300']);
   });
 
-  it('keeps light-theme status text readable while business marks remain vivid', () => {
-    const light = resolveThemeTokens('light');
-    const background = light.semantic['color.background.surface'];
-    for (const name of [
-      'color.status.info',
-      'color.status.success',
-      'color.status.warning',
-      'color.status.error',
-    ] as const) {
-      expect(contrastRatio(light.semantic[name], background)).toBeGreaterThanOrEqual(4.5);
+  it('keeps status text readable across themes while business marks remain vivid', () => {
+    for (const theme of themeNames) {
+      const resolved = resolveThemeTokens(theme);
+      const background = resolved.semantic['color.background.surface'];
+      for (const name of [
+        'color.status.info',
+        'color.status.success',
+        'color.status.warning',
+        'color.status.error',
+      ] as const) {
+        expect(contrastRatio(resolved.semantic[name], background)).toBeGreaterThanOrEqual(4.5);
+      }
     }
-    expect(light.semantic['color.business.lime']).toBe(primitiveTokens['color.lime.500']);
-    expect(light.semantic['color.business.amber']).toBe(primitiveTokens['color.amber.500']);
+    expect(semanticThemeTokens.light['color.business.lime']).toBe(
+      primitiveTokens['color.lime.500'],
+    );
+    expect(semanticThemeTokens.light['color.business.amber']).toBe(
+      primitiveTokens['color.amber.500'],
+    );
   });
 
   it('允许仅覆盖语义颜色并保留原始色阶和组件 Token', () => {
@@ -159,7 +165,8 @@ describe('设计 Token', () => {
     expect(primitiveTokens['color.neutral.600']).toBe('#494947');
     expect(primitiveTokens['color.neutral.850']).toBe('#1b1b1b');
     expect(primitiveTokens['color.lime.500']).toBe('#aee300');
-    expect(primitiveTokens['color.blue.700']).toBe('#2854f5');
+    expect(primitiveTokens['color.blue.700']).toBe('#b84200');
+    expect(primitiveTokens['color.blue.300']).toBe('#ffad70');
     expect(primitiveTokens['color.red.700']).not.toBe(
       semanticThemeTokens.light['color.business.blue'],
     );

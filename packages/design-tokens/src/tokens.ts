@@ -22,8 +22,9 @@ export const primitiveTokens = {
   'color.lime.300': '#d9ff00',
   'color.lime.500': '#aee300',
   'color.lime.700': '#5d7800',
-  'color.blue.300': '#4b6dff',
-  'color.blue.700': '#2854f5',
+  // Keep the established token keys for compatibility; the visual family is coral orange.
+  'color.blue.300': '#ffad70',
+  'color.blue.700': '#b84200',
   'color.amber.300': '#ffd166',
   'color.amber.500': '#ffb800',
   'color.amber.700': '#a55f00',

@@ -31,7 +31,7 @@ button { cursor: pointer; }
   --app-line: #c9c9c4;
   --app-faint: rgba(23, 23, 23, 0.48);
   --accent-yellow: #aee300;
-  --accent-blue: #2854f5;
+  --accent-blue: #b84200;
   --accent-red: #f14425;
   background: var(--app-canvas);
   color: var(--app-ink);
@@ -47,7 +47,7 @@ button { cursor: pointer; }
   --app-line: #494947;
   --app-faint: rgba(245, 245, 241, 0.5);
   --accent-yellow: #d9ff00;
-  --accent-blue: #4b6dff;
+  --accent-blue: #ffad70;
   --accent-red: #ff5036;
 }
 
