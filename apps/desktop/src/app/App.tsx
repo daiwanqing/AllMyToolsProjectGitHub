@@ -20,6 +20,7 @@ import {
   Button,
   ChoiceGroup,
   FloatingNotice,
+  HorizontalTabs,
   VerticalTabs,
   EmptyState,
   IconButton,
@@ -153,6 +154,28 @@ type PersistedWorkspaceState = Readonly<{
 
 type PersistedThemeColorOverrides = Readonly<Record<ThemeName, ThemeColorOverrides>>;
 type RuntimeLog = Readonly<{ id: number; message: string }>;
+
+const mobileLayoutQuery = '(max-width: 720px)';
+
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(
+    () => typeof window.matchMedia === 'function' && window.matchMedia(query).matches,
+  );
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia(query);
+    const updateMatches = () => setMatches(mediaQuery.matches);
+    updateMatches();
+    mediaQuery.addEventListener('change', updateMatches);
+    return () => mediaQuery.removeEventListener('change', updateMatches);
+  }, [query]);
+
+  return matches;
+}
 
 function isHexColor(value: unknown): value is string {
   return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value);
@@ -356,6 +379,7 @@ function RuntimeConsole({
 }
 
 export function App() {
+  const isMobileLayout = useMediaQuery(mobileLayoutQuery);
   const [initialWorkspaceState] = useState(() => readWorkspaceState(window.localStorage));
   const [initialThemeColorOverrides] = useState(() => readThemeColorOverrides(window.localStorage));
   const [theme, setTheme] = useState<ThemeName>(initialWorkspaceState?.theme ?? 'light');
@@ -819,6 +843,7 @@ export function App() {
     icon: <Icon aria-hidden="true" />,
     panel: settingsPanels[id],
   }));
+  const WorkspaceTabs = isMobileLayout ? HorizontalTabs : VerticalTabs;
 
   if (activeTool?.module) {
     const activeToolName = toolCatalog.find((entry) => entry.id === activeTool.id)?.name;
@@ -906,6 +931,7 @@ export function App() {
   return (
     <main
       className="desktop-shell"
+      data-layout={isMobileLayout ? 'mobile' : 'desktop'}
       aria-labelledby="application-title"
       data-debug-target="true"
       data-debug-kind="区域"
@@ -932,12 +958,13 @@ export function App() {
         </div>
         <nav aria-label="主导航" className="navigation-groups">
           <p className="application-nav-label">工具空间</p>
-          <VerticalTabs
+          <WorkspaceTabs
             ariaLabel="工作区导航"
             className="workspace-navigation-tabs"
-            items={workspaceNavigation.map(({ id, label }) => ({
+            items={workspaceNavigation.map(({ id, label, icon: Icon }) => ({
               id,
               label,
+              icon: <Icon aria-hidden="true" />,
             }))}
             value={category}
             onChange={(value) => {

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import '@allmytools/design-tokens/theme.css';
 import '@allmytools/ui/styles.css';
 import { App } from './app/App';
+import { registerPwaServiceWorker } from './pwa';
 import './app/styles.css';
 
 const root = document.getElementById('root');
@@ -16,3 +17,5 @@ createRoot(root).render(
     <App />
   </StrictMode>,
 );
+
+void registerPwaServiceWorker();

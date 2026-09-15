@@ -43,6 +43,41 @@ describe('desktop shell', () => {
     expect(screen.getAllByRole('article')).toHaveLength(5);
   });
 
+  it('uses an accessible bottom navigation layout on mobile viewports', () => {
+    const originalMatchMedia = Object.getOwnPropertyDescriptor(window, 'matchMedia');
+    const mobileMediaQuery = {
+      matches: true,
+      media: '(max-width: 720px)',
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    };
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn(() => mobileMediaQuery),
+    });
+
+    try {
+      render(<App />);
+
+      expect(screen.getByRole('main')).toHaveAttribute('data-layout', 'mobile');
+      const navigation = screen.getByRole('tablist', { name: '工作区导航' });
+      expect(navigation).toHaveAttribute('aria-orientation', 'horizontal');
+      fireEvent.click(within(navigation).getByRole('tab', { name: '生活' }));
+      expect(screen.getByRole('heading', { name: '收藏' })).toBeInTheDocument();
+    } finally {
+      cleanup();
+      if (originalMatchMedia) {
+        Object.defineProperty(window, 'matchMedia', originalMatchMedia);
+      } else {
+        Reflect.deleteProperty(window, 'matchMedia');
+      }
+    }
+  });
+
   it('opens travel notes and saves a quick entry in its own namespace', async () => {
     render(<App />);
 
