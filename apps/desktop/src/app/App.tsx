@@ -421,8 +421,8 @@ export function App() {
   const debugRegistrationLoggedRef = useRef<string | undefined>(undefined);
   const runtimeConsoleRegistrationLoggedRef = useRef<string | undefined>(undefined);
   const [debugLogs, setDebugLogs] = useState<readonly RuntimeLog[]>([]);
-  const [runtimeConsoleVisible, setRuntimeConsoleVisible] = useState(true);
-  const runtimeConsoleVisibleRef = useRef(true);
+  const [runtimeConsoleVisible, setRuntimeConsoleVisible] = useState(false);
+  const runtimeConsoleVisibleRef = useRef(false);
   const toolContentRef = useRef<HTMLElement>(null);
   const [toolContentElement, setToolContentElement] = useState<HTMLElement | null>(null);
   const workspaceRef = useRef<HTMLElement>(null);
@@ -705,8 +705,8 @@ export function App() {
     debugModeRef.current = false;
     setDebugMode(false);
     setDebugLogs([]);
-    runtimeConsoleVisibleRef.current = true;
-    setRuntimeConsoleVisible(true);
+    runtimeConsoleVisibleRef.current = false;
+    setRuntimeConsoleVisible(false);
   }
 
   async function toggleQuickToggleShortcut() {

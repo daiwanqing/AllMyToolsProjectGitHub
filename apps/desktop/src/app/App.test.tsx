@@ -148,30 +148,16 @@ describe('desktop shell', () => {
     expect(screen.queryByRole('dialog', { name: '设置' })).not.toBeInTheDocument();
   });
 
-  it('shows the runtime console and toggles debug mode from the host toolbar', () => {
+  it('keeps the runtime console hidden by default and toggles it from the host toolbar', () => {
     render(<App />);
 
-    expect(screen.getByRole('region', { name: '运行输出台' })).toBeInTheDocument();
-    const consoleButton = screen.getByRole('button', { name: '输出台' });
-    expect(consoleButton).toHaveAttribute('aria-pressed', 'true');
-    fireEvent.click(consoleButton);
     expect(screen.queryByRole('region', { name: '运行输出台' })).not.toBeInTheDocument();
-    fireEvent.keyDown(window, { key: '1', ctrlKey: true, altKey: true });
+    const consoleButton = screen.getByRole('button', { name: '输出台' });
+    expect(consoleButton).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(consoleButton);
     expect(screen.getByRole('region', { name: '运行输出台' })).toBeInTheDocument();
-    const debugButton = screen.getByRole('button', { name: '调试' });
-    fireEvent.click(debugButton);
-    expect(debugButton).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.queryByText('调试模式已开启。')).toBeInTheDocument();
-    expect(screen.queryByRole('status', { name: '调试模式' })).not.toBeInTheDocument();
-
-    const workspace = screen.getByRole('region', { name: '工具目录' }).parentElement;
-    expect(workspace).not.toBeNull();
-    fireEvent.pointerMove(screen.getByRole('heading', { name: '工具工作台' }));
-    expect(screen.getByText(/悬浮 文本：/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('heading', { name: '工具工作台' }));
-    expect(screen.getByRole('dialog', { name: '元素源码定位' })).toHaveTextContent(
-      'apps/desktop/src/app/App.tsx',
-    );
+    fireEvent.keyDown(window, { key: '1', ctrlKey: true, altKey: true });
+    expect(screen.queryByRole('region', { name: '运行输出台' })).not.toBeInTheDocument();
   });
 
   it('filters tools by category and search query', () => {
@@ -818,9 +804,6 @@ describe('desktop shell', () => {
       expect(screen.getByRole('heading', { level: 1, name: '复习笔记' })).toBeInTheDocument(),
     );
 
-    const consoleButton = screen.getByRole('button', { name: '输出台' });
-    fireEvent.click(consoleButton);
-    expect(screen.queryByRole('region', { name: '运行输出台' })).not.toBeInTheDocument();
     fireEvent.keyDown(window, { key: '1', ctrlKey: true, altKey: true });
     expect(screen.getByRole('region', { name: '运行输出台' })).toBeInTheDocument();
 
@@ -843,7 +826,7 @@ describe('desktop shell', () => {
     expect(screen.queryByRole('dialog', { name: '元素源码定位' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '调试' })).toHaveAttribute('aria-pressed', 'false');
     fireEvent.click(screen.getByRole('button', { name: '返回工具台' }));
-    expect(screen.getByRole('region', { name: '运行输出台' })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: '运行输出台' })).not.toBeInTheDocument();
   });
 
   it('switches settings tabs with keyboard and restores the selected tab', () => {
