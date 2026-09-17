@@ -796,6 +796,107 @@ describe('desktop shell', () => {
     );
   });
 
+  it('exports tool data as a downloadable JSON backup', () => {
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    const originalAnchorClick = HTMLAnchorElement.prototype.click;
+    const createObjectURL = vi.fn((blob: Blob) => {
+      void blob;
+      return 'blob:allmytools-backup';
+    });
+    const revokeObjectURL = vi.fn();
+    const anchorClick = vi.fn();
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: createObjectURL,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      value: revokeObjectURL,
+    });
+    Object.defineProperty(HTMLAnchorElement.prototype, 'click', {
+      configurable: true,
+      value: anchorClick,
+    });
+
+    try {
+      window.localStorage.setItem('tools.text-workbench.draft', 'draft');
+      window.localStorage.setItem('shell.workspace-state', 'shell state');
+      render(<App />);
+      fireEvent.click(screen.getByRole('button', { name: '打开设置' }));
+      fireEvent.click(screen.getByRole('tab', { name: '数据' }));
+      fireEvent.click(screen.getByRole('button', { name: '导出数据' }));
+
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
+      const blob = createObjectURL.mock.calls[0]?.[0];
+      expect(blob).toBeInstanceOf(Blob);
+      expect(blob).toHaveProperty('type', 'application/json');
+      expect(screen.getByText(/备份文件已生成/)).toBeInTheDocument();
+    } finally {
+      Object.defineProperty(URL, 'createObjectURL', {
+        configurable: true,
+        value: originalCreateObjectURL,
+      });
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        configurable: true,
+        value: originalRevokeObjectURL,
+      });
+      Object.defineProperty(HTMLAnchorElement.prototype, 'click', {
+        configurable: true,
+        value: originalAnchorClick,
+      });
+    }
+  });
+
+  it('previews a valid import, supports cancellation, and applies confirmed tool data', async () => {
+    window.localStorage.setItem('tools.text-workbench.draft', 'old');
+    window.localStorage.setItem('life.board-games.collection', 'keep');
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: '打开设置' }));
+    fireEvent.click(screen.getByRole('tab', { name: '数据' }));
+    const fileInput = screen.getByLabelText('选择 AllMyTools 备份文件');
+    const backup = JSON.stringify({
+      format: 'allmytools-tool-data',
+      version: 1,
+      exportedAt: '2026-09-17T00:00:00.000Z',
+      entries: { 'tools.text-workbench.draft': 'new' },
+    });
+    const file = new File([backup], 'allmytools-backup.json', { type: 'application/json' });
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    await waitFor(() =>
+      expect(screen.getByRole('dialog', { name: '确认导入数据' })).toBeInTheDocument(),
+    );
+    expect(window.localStorage.getItem('tools.text-workbench.draft')).toBe('old');
+    fireEvent.click(screen.getByRole('button', { name: '取消' }));
+    expect(screen.queryByRole('dialog', { name: '确认导入数据' })).not.toBeInTheDocument();
+    expect(window.localStorage.getItem('tools.text-workbench.draft')).toBe('old');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    await waitFor(() =>
+      expect(screen.getByRole('dialog', { name: '确认导入数据' })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: '确认导入' }));
+    expect(window.localStorage.getItem('tools.text-workbench.draft')).toBe('new');
+    expect(window.localStorage.getItem('life.board-games.collection')).toBe('keep');
+    expect(screen.getByText(/已导入 1 项工具数据/)).toBeInTheDocument();
+  });
+
+  it('reports an invalid import file without changing local data', async () => {
+    window.localStorage.setItem('tools.text-workbench.draft', 'old');
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: '打开设置' }));
+    fireEvent.click(screen.getByRole('tab', { name: '数据' }));
+    const invalidFile = new File(['not json'], 'invalid.json', { type: 'application/json' });
+
+    fireEvent.change(screen.getByLabelText('选择 AllMyTools 备份文件'), {
+      target: { files: [invalidFile] },
+    });
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('有效的 JSON'));
+    expect(screen.queryByRole('dialog', { name: '确认导入数据' })).not.toBeInTheDocument();
+    expect(window.localStorage.getItem('tools.text-workbench.draft')).toBe('old');
+  });
+
   it('toggles debug mode with the default shortcut and opens source details for a tool element', async () => {
     render(<App />);
     const reviewTool = screen.getByRole('article', { name: '复习笔记' });

@@ -1,5 +1,6 @@
 import {
   Component,
+  type ChangeEvent,
   type ErrorInfo,
   type ReactNode,
   useCallback,
@@ -37,6 +38,8 @@ import {
   Bug,
   Code2,
   Clock3,
+  Database,
+  Download,
   Grid2X2,
   Home,
   Keyboard,
@@ -45,6 +48,7 @@ import {
   Sparkles,
   Star,
   Terminal,
+  Upload,
   Wrench,
   type LucideIcon,
 } from 'lucide-react';
@@ -58,6 +62,13 @@ import {
 import { toolRegistry, type ActiveToolSession } from '../features/registeredTools';
 import { DesignSystemViewer } from '../features/DesignSystemViewer';
 import { DebugOverlay } from '../features/DebugOverlay';
+import {
+  applyDataBackup,
+  createDataBackup,
+  parseDataBackup,
+  serializeDataBackup,
+  type DataBackup,
+} from './dataTransfer';
 import {
   debugShortcutEventName,
   defaultDebugShortcut,
@@ -74,7 +85,7 @@ import {
 } from '../native/globalShortcut';
 
 type WorkspaceView = 'home' | 'settings';
-type SettingsTab = 'appearance' | 'shortcuts' | 'developer';
+type SettingsTab = 'appearance' | 'shortcuts' | 'data' | 'developer';
 
 type ToolErrorBoundaryProps = Readonly<{
   children: ReactNode;
@@ -134,6 +145,7 @@ const settingsTabs: ReadonlyArray<Readonly<{ id: SettingsTab; label: string; ico
   [
     { id: 'appearance', label: '外观', icon: Palette },
     { id: 'shortcuts', label: '快捷键', icon: Keyboard },
+    { id: 'data', label: '数据', icon: Database },
     { id: 'developer', label: '开发者', icon: Code2 },
   ];
 
@@ -208,6 +220,19 @@ function shortcutMatches(event: ShortcutKeyboardEvent, shortcut: string): boolea
   );
 }
 
+function readFileText(file: File): Promise<string> {
+  if (typeof file.text === 'function') {
+    return file.text();
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => resolve(String(reader.result ?? '')));
+    reader.addEventListener('error', () => reject(reader.error ?? new Error('File read failed')));
+    reader.readAsText(file);
+  });
+}
+
 function readThemeColorOverrides(storage: Storage): PersistedThemeColorOverrides {
   const fallback: PersistedThemeColorOverrides = { light: {}, dark: {} };
   const stored = storage.getItem(themeColorOverridesStorageKey);
@@ -261,7 +286,9 @@ function isThemeName(value: unknown): value is ThemeName {
 }
 
 function isSettingsTab(value: unknown): value is SettingsTab {
-  return value === 'appearance' || value === 'shortcuts' || value === 'developer';
+  return (
+    value === 'appearance' || value === 'shortcuts' || value === 'data' || value === 'developer'
+  );
 }
 
 function isToolCategory(value: unknown): value is ToolCategory | 'all' {
@@ -402,6 +429,10 @@ export function App() {
   );
   const [shortcutMessage, setShortcutMessage] = useState<string>();
   const [shortcutNoticeVisible, setShortcutNoticeVisible] = useState(false);
+  const dataFileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingDataBackup, setPendingDataBackup] = useState<DataBackup>();
+  const [dataTransferError, setDataTransferError] = useState<string>();
+  const [dataTransferNotice, setDataTransferNotice] = useState<string>();
   const [debugShortcut, setDebugShortcut] = useState(
     () => window.localStorage.getItem(debugShortcutStorageKey) ?? defaultDebugShortcut,
   );
@@ -749,6 +780,81 @@ export function App() {
     setThemeColorOverrides((current) => ({ ...current, [theme]: {} }));
   }
 
+  function exportToolData() {
+    setDataTransferError(undefined);
+    try {
+      if (typeof URL.createObjectURL !== 'function') {
+        setDataTransferError('当前浏览器不支持下载备份文件，请换用最新版 Safari。');
+        return;
+      }
+
+      const backup = createDataBackup(
+        window.localStorage,
+        new Date().toISOString(),
+        window.location.origin,
+      );
+      const blob = new Blob([serializeDataBackup(backup)], { type: 'application/json' });
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `allmytools-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      link.rel = 'noopener';
+      document.body.append(link);
+      link.click();
+      link.remove();
+      const revokeObjectURL = URL.revokeObjectURL;
+      if (typeof revokeObjectURL === 'function') {
+        window.setTimeout(() => revokeObjectURL(downloadUrl), 0);
+      }
+      setDataTransferNotice('备份文件已生成，请在系统分享菜单中保存到“文件”或 iCloud Drive。');
+    } catch {
+      setDataTransferError('备份文件生成失败，请稍后重试。');
+    }
+  }
+
+  async function handleDataFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = '';
+    if (!file) return;
+
+    setPendingDataBackup(undefined);
+    setDataTransferError(undefined);
+    setDataTransferNotice(undefined);
+    try {
+      const result = parseDataBackup(await readFileText(file));
+      if (!result.ok) {
+        setDataTransferError(result.message);
+        return;
+      }
+      setPendingDataBackup(result.backup);
+    } catch {
+      setDataTransferError('备份文件读取失败，请重新选择文件。');
+    }
+  }
+
+  function cancelDataImport() {
+    setPendingDataBackup(undefined);
+    setDataTransferError(undefined);
+  }
+
+  function confirmDataImport() {
+    if (!pendingDataBackup) return;
+    const result = applyDataBackup(window.localStorage, pendingDataBackup);
+    if (!result.ok) {
+      setDataTransferError(result.message);
+      return;
+    }
+
+    setPendingDataBackup(undefined);
+    setDataTransferError(undefined);
+    setDataTransferNotice(`已导入 ${result.importedKeys} 项工具数据。`);
+  }
+
+  function closeSettings() {
+    setView('home');
+    cancelDataImport();
+  }
+
   const settingsPanels: Readonly<Record<SettingsTab, ReactNode>> = {
     appearance: (
       <div className="settings-section">
@@ -822,6 +928,51 @@ export function App() {
         {shortcutMessage && shortcutNoticeVisible ? (
           <FloatingNotice title="快捷键状态" onDismiss={() => setShortcutNoticeVisible(false)}>
             {shortcutMessage}
+          </FloatingNotice>
+        ) : null}
+      </div>
+    ),
+    data: (
+      <div className="settings-section data-transfer-section">
+        <SettingRow
+          label="工具数据"
+          description="导出或导入各工具保存在本机的数据，不包含主题和快捷键等平台设置。"
+        >
+          <div className="data-transfer-actions">
+            <Button onClick={exportToolData}>
+              <Download aria-hidden="true" />
+              导出数据
+            </Button>
+            <Button onClick={() => dataFileInputRef.current?.click()}>
+              <Upload aria-hidden="true" />
+              导入数据
+            </Button>
+            <input
+              ref={dataFileInputRef}
+              type="file"
+              accept=".json,application/json"
+              aria-label="选择 AllMyTools 备份文件"
+              hidden
+              onChange={(event) => void handleDataFileChange(event)}
+            />
+          </div>
+        </SettingRow>
+        <p>
+          导出的 JSON 文件可以通过 iPhone 的分享菜单保存到“文件”或 iCloud
+          Drive。换网址或换设备前，先导出；导入时只会覆盖备份中包含的同名工具数据。
+        </p>
+        {dataTransferError && !pendingDataBackup ? (
+          <InlineMessage title="数据操作失败" tone="error">
+            {dataTransferError}
+          </InlineMessage>
+        ) : null}
+        {dataTransferNotice ? (
+          <FloatingNotice
+            title="数据操作完成"
+            tone="success"
+            onDismiss={() => setDataTransferNotice(undefined)}
+          >
+            {dataTransferNotice}
           </FloatingNotice>
         ) : null}
       </div>
@@ -1151,7 +1302,7 @@ export function App() {
             className="settings-dialog"
             labelledBy="settings-dialog-title"
             open
-            onClose={() => setView('home')}
+            onClose={closeSettings}
             debugAttributes={{
               'data-debug-target': 'true',
               'data-debug-kind': '区域',
@@ -1163,7 +1314,7 @@ export function App() {
             <div className="settings-dialog-content">
               <header className="settings-dialog-header">
                 <h1 id="settings-dialog-title">设置</h1>
-                <Button variant="secondary" onClick={() => setView('home')}>
+                <Button variant="secondary" onClick={closeSettings}>
                   关闭
                 </Button>
               </header>
@@ -1178,6 +1329,37 @@ export function App() {
                   }
                 }}
               />
+            </div>
+          </Modal>
+        ) : null}
+        {pendingDataBackup ? (
+          <Modal
+            className="data-import-dialog"
+            labelledBy="data-import-dialog-title"
+            open
+            onClose={cancelDataImport}
+          >
+            <div className="data-import-dialog-content">
+              <header className="data-import-dialog-header">
+                <Database aria-hidden="true" />
+                <h2 id="data-import-dialog-title">确认导入数据</h2>
+              </header>
+              <p>
+                将覆盖备份中包含的同名工具数据，当前未包含在备份中的其他数据会保留。这个操作不能自动撤销，建议先导出当前数据。
+              </p>
+              {dataTransferError ? (
+                <InlineMessage title="导入失败" tone="error">
+                  {dataTransferError}
+                </InlineMessage>
+              ) : null}
+              <div className="data-import-dialog-actions">
+                <Button variant="secondary" onClick={cancelDataImport}>
+                  取消
+                </Button>
+                <Button variant="danger" onClick={confirmDataImport}>
+                  确认导入
+                </Button>
+              </div>
             </div>
           </Modal>
         ) : null}
