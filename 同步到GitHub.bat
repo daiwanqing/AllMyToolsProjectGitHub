@@ -106,40 +106,41 @@ rem GitHub 只作为部署接收端，不与工蜂 dev 合并；先读取 main �
 rem 再用 force-with-lease 覆盖，确保覆盖前 GitHub 没有被其他人悄悄改动。
 git ls-remote --exit-code --heads github main >nul 2>nul
 set "GITHUB_MAIN_LOOKUP_EXIT=!ERRORLEVEL!"
-if "!GITHUB_MAIN_LOOKUP_EXIT!"=="2" (
-  set "GITHUB_MAIN_SHA="
-  echo GitHub main 尚不存在，将创建这个分支。
-) else if not "!GITHUB_MAIN_LOOKUP_EXIT!"=="0" (
-  echo 读取 GitHub main 失败，未执行 GitHub 推送。
-  goto :failed
-) else (
-  git fetch --no-tags github main
-  if errorlevel 1 (
-    echo 读取 GitHub main 失败，未执行 GitHub 推送。
-    goto :failed
-  )
-  for /f "delims=" %%A in ('git rev-parse refs/remotes/github/main 2^>nul') do set "GITHUB_MAIN_SHA=%%A"
-  if not defined GITHUB_MAIN_SHA (
-    echo 无法确定 GitHub main 的当前提交，未执行 GitHub 推送。
-    goto :failed
-  )
-  echo GitHub main 当前提交：!GITHUB_MAIN_SHA!
-)
+if "!GITHUB_MAIN_LOOKUP_EXIT!"=="2" goto :github_main_missing
+if not "!GITHUB_MAIN_LOOKUP_EXIT!"=="0" goto :github_read_failed
+
+set "GITHUB_MAIN_SHA="
+git fetch --no-tags github main
+if errorlevel 1 goto :github_read_failed
+for /f "delims=" %%A in ('git rev-parse refs/remotes/github/main 2^>nul') do set "GITHUB_MAIN_SHA=%%A"
+if not defined GITHUB_MAIN_SHA goto :github_read_failed
+echo GitHub main 当前提交：!GITHUB_MAIN_SHA!
+goto :github_main_ready
+
+:github_main_missing
+set "GITHUB_MAIN_SHA="
+echo GitHub main 尚不存在，将创建这个分支。
+
+:github_main_ready
 
 echo 工蜂 dev 当前提交：
 git rev-parse dev
-if defined GITHUB_MAIN_SHA (
-  echo.
-  echo 这次同步会用工蜂 dev 的完整内容覆盖 GitHub main。
-  echo GitHub main 原提交只用于覆盖前的安全校验，不会合并回工蜂。
-  call :confirm "是否确认覆盖 GitHub main？GitHub main 的旧提交将不再作为部署内容。"
-  if errorlevel 1 goto :cancelled
-  git push --force-with-lease=refs/heads/main:!GITHUB_MAIN_SHA! github dev:main
-) else (
-  call :confirm "是否确认创建 GitHub main 并推送当前 dev？"
-  if errorlevel 1 goto :cancelled
-  git push github dev:main
-)
+if defined GITHUB_MAIN_SHA goto :github_overwrite
+
+call :confirm "是否确认创建 GitHub main 并推送当前 dev？"
+if errorlevel 1 goto :cancelled
+git push github dev:main
+goto :github_push_result
+
+:github_overwrite
+echo.
+echo 这次同步会用工蜂 dev 的完整内容覆盖 GitHub main。
+echo GitHub main 原提交只用于覆盖前的安全校验，不会合并回工蜂。
+call :confirm "是否确认覆盖 GitHub main？GitHub main 的旧提交将不再作为部署内容。"
+if errorlevel 1 goto :cancelled
+git push --force-with-lease=refs/heads/main:!GITHUB_MAIN_SHA! github dev:main
+
+:github_push_result
 if errorlevel 1 (
   echo 推送到 GitHub 失败。若提示远程分支已变化，请重新运行脚本读取最新状态；若提示分支受保护，请在 GitHub 仓库设置中允许维护者更新 main。
   goto :failed
@@ -149,6 +150,10 @@ echo.
 echo 同步完成：工蜂 dev 和 GitHub main 已更新。
 echo EdgeOne 会在 GitHub main 更新后自动构建；部署完成后再打开预览地址。
 goto :done
+
+:github_read_failed
+echo 读取 GitHub main 失败，未执行 GitHub 推送。
+goto :failed
 
 :confirm
 choice /c YN /n /m "%~1 [Y/N] "
