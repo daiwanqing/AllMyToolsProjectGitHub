@@ -2,6 +2,12 @@
 setlocal EnableExtensions EnableDelayedExpansion
 
 set "DEV_PORT=1420"
+set "DEV_TARGET=desktop"
+
+if /i "%~1"=="mobile" (
+  set "DEV_PORT=1422"
+  set "DEV_TARGET=mobile"
+)
 
 cd /d "%~dp0"
 
@@ -87,11 +93,20 @@ if defined PORT_PIDS (
   echo Port %DEV_PORT% was released.
 )
 
-echo Starting the AllMyTools desktop development environment...
-if "%PNPM_MODE%"=="direct" (
-  call pnpm.cmd desktop dev
-) else if "%PNPM_MODE%"=="npm" (
-  call npm.cmd exec --yes --package=pnpm@9.15.5 -- pnpm desktop dev
+if "%DEV_TARGET%"=="mobile" (
+  echo Starting the AllMyTools mobile preview on the local network...
+  if "%PNPM_MODE%"=="direct" (
+    call pnpm.cmd --filter @allmytools/desktop dev:mobile
+  ) else if "%PNPM_MODE%"=="npm" (
+    call npm.cmd exec --yes --package=pnpm@9.15.5 -- pnpm --filter @allmytools/desktop dev:mobile
+  )
+) else (
+  echo Starting the AllMyTools desktop development environment...
+  if "%PNPM_MODE%"=="direct" (
+    call pnpm.cmd desktop dev
+  ) else if "%PNPM_MODE%"=="npm" (
+    call npm.cmd exec --yes --package=pnpm@9.15.5 -- pnpm desktop dev
+  )
 )
 set "exitCode=%errorlevel%"
 
