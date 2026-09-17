@@ -37,7 +37,8 @@ if /i not "!ACTUAL_ORIGIN_URL!"=="%EXPECTED_ORIGIN_URL%" (
 
 git diff --name-only --diff-filter=U | findstr /r /c:"." >nul
 if not errorlevel 1 (
-  echo 当前仓库存在未解决的合并冲突，请先处理冲突，已停止。
+  echo 当前仓库存在未解决的本地合并冲突（不是 GitHub 同步冲突），为避免丢失开发内容已停止。
+  echo 请先在工蜂开发目录完成或撤销这次本地合并，再重新运行本脚本。
   goto :failed
 )
 
@@ -100,60 +101,47 @@ if /i not "!ACTUAL_GITHUB_URL!"=="%EXPECTED_GITHUB_URL%" (
 
 call :confirm "是否读取 GitHub main 的当前状态？"
 if errorlevel 1 goto :cancelled
-git fetch github main
-if errorlevel 1 (
+
+rem GitHub 只作为部署接收端，不与工蜂 dev 合并；先读取 main 的当前提交，
+rem 再用 force-with-lease 覆盖，确保覆盖前 GitHub 没有被其他人悄悄改动。
+git ls-remote --exit-code --heads github main >nul 2>nul
+set "GITHUB_MAIN_LOOKUP_EXIT=!ERRORLEVEL!"
+if "!GITHUB_MAIN_LOOKUP_EXIT!"=="2" (
+  set "GITHUB_MAIN_SHA="
+  echo GitHub main 尚不存在，将创建这个分支。
+) else if not "!GITHUB_MAIN_LOOKUP_EXIT!"=="0" (
   echo 读取 GitHub main 失败，未执行 GitHub 推送。
   goto :failed
-)
-
-git merge-base dev github/main >nul 2>nul
-if errorlevel 1 (
-  echo 这是首次合并：工蜂 dev 与 GitHub main 没有共同历史。
-  git show-ref --verify --quiet refs/heads/backup-before-github-sync
-  if errorlevel 1 (
-    git branch backup-before-github-sync
-    if errorlevel 1 goto :failed
-    echo 已创建本地保护分支 backup-before-github-sync。
-  ) else (
-    echo 已存在本地保护分支 backup-before-github-sync。
-  )
-
-  call :confirm "是否允许合并 GitHub main 的历史到工蜂 dev？"
-  if errorlevel 1 goto :cancelled
-  git merge github/main --allow-unrelated-histories -m "同步 GitHub 部署仓库"
-  if errorlevel 1 (
-    echo 首次合并出现冲突，正在撤销这次未完成合并。
-    git merge --abort >nul 2>nul
-    echo 未向 GitHub 推送任何内容。请把本窗口截图发给我。
-    goto :failed
-  )
-
-  call :confirm "合并成功。是否将合并后的 dev 推送回腾讯工蜂 origin/dev？"
-  if errorlevel 1 goto :cancelled
-  git push origin dev
-  if errorlevel 1 (
-    echo 合并后的 dev 未能推送到工蜂，GitHub 未执行推送。
-    goto :failed
-  )
 ) else (
-  set "AHEAD=0"
-  set "BEHIND=0"
-  for /f "tokens=1,2" %%A in ('git rev-list --left-right --count dev...github/main 2^>nul') do (
-    set "AHEAD=%%A"
-    set "BEHIND=%%B"
-  )
-  if not "!BEHIND!"=="0" (
-    echo GitHub main 存在不在工蜂 dev 中的独立提交，已停止，防止覆盖 GitHub 内容。
-    echo 请把本窗口截图发给我，不要使用 force push。
+  git fetch --no-tags github main
+  if errorlevel 1 (
+    echo 读取 GitHub main 失败，未执行 GitHub 推送。
     goto :failed
   )
+  for /f "delims=" %%A in ('git rev-parse refs/remotes/github/main 2^>nul') do set "GITHUB_MAIN_SHA=%%A"
+  if not defined GITHUB_MAIN_SHA (
+    echo 无法确定 GitHub main 的当前提交，未执行 GitHub 推送。
+    goto :failed
+  )
+  echo GitHub main 当前提交：!GITHUB_MAIN_SHA!
 )
 
-call :confirm "是否将当前 dev 推送到 GitHub main？这是唯一的 GitHub 同步动作。"
-if errorlevel 1 goto :cancelled
-git push github dev:main
+echo 工蜂 dev 当前提交：
+git rev-parse dev
+if defined GITHUB_MAIN_SHA (
+  echo.
+  echo 这次同步会用工蜂 dev 的完整内容覆盖 GitHub main。
+  echo GitHub main 原提交只用于覆盖前的安全校验，不会合并回工蜂。
+  call :confirm "是否确认覆盖 GitHub main？GitHub main 的旧提交将不再作为部署内容。"
+  if errorlevel 1 goto :cancelled
+  git push --force-with-lease=refs/heads/main:!GITHUB_MAIN_SHA! github dev:main
+) else (
+  call :confirm "是否确认创建 GitHub main 并推送当前 dev？"
+  if errorlevel 1 goto :cancelled
+  git push github dev:main
+)
 if errorlevel 1 (
-  echo 推送到 GitHub 失败。请检查 GitHub Token 或仓库权限。
+  echo 推送到 GitHub 失败。若提示远程分支已变化，请重新运行脚本读取最新状态；若提示分支受保护，请在 GitHub 仓库设置中允许维护者更新 main。
   goto :failed
 )
 
@@ -168,7 +156,7 @@ if errorlevel 2 exit /b 1
 exit /b 0
 
 :cancelled
-echo 已取消，后续远程操作未执行；如刚完成合并，合并提交仍保留在本地 dev。
+echo 已取消，后续远程操作未执行；工蜂 dev 未被 GitHub 历史反向修改。
 goto :done
 
 :failed
