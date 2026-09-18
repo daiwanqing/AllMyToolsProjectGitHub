@@ -45,6 +45,8 @@ describe('desktop shell', () => {
 
   it('uses an accessible bottom navigation layout on mobile viewports', () => {
     const originalMatchMedia = Object.getOwnPropertyDescriptor(window, 'matchMedia');
+    const originalScrollTo = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'scrollTo');
+    const scrollTo = vi.fn();
     const mobileMediaQuery = {
       matches: true,
       media: '(max-width: 720px)',
@@ -59,6 +61,10 @@ describe('desktop shell', () => {
       configurable: true,
       value: vi.fn(() => mobileMediaQuery),
     });
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: scrollTo,
+    });
 
     try {
       render(<App />);
@@ -66,7 +72,17 @@ describe('desktop shell', () => {
       expect(screen.getByRole('main')).toHaveAttribute('data-layout', 'mobile');
       const navigation = screen.getByRole('tablist', { name: '工作区导航' });
       expect(navigation).toHaveAttribute('aria-orientation', 'horizontal');
+      expect(within(navigation).getByRole('tab', { name: '全部工具' })).toHaveTextContent(
+        '全部工具',
+      );
+      expect(
+        within(navigation).getByRole('tab', { name: '全部工具' }).querySelector('svg'),
+      ).not.toBeNull();
+      expect(screen.getByRole('button', { name: '打开设置' })).toHaveClass(
+        'workspace-settings-button',
+      );
       fireEvent.click(within(navigation).getByRole('tab', { name: '生活' }));
+      expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
       expect(screen.getByRole('heading', { name: '收藏' })).toBeInTheDocument();
     } finally {
       cleanup();
@@ -74,6 +90,11 @@ describe('desktop shell', () => {
         Object.defineProperty(window, 'matchMedia', originalMatchMedia);
       } else {
         Reflect.deleteProperty(window, 'matchMedia');
+      }
+      if (originalScrollTo) {
+        Object.defineProperty(HTMLElement.prototype, 'scrollTo', originalScrollTo);
+      } else {
+        Reflect.deleteProperty(HTMLElement.prototype, 'scrollTo');
       }
     }
   });

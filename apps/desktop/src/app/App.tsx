@@ -45,6 +45,7 @@ import {
   Keyboard,
   Palette,
   Search,
+  Settings,
   Sparkles,
   Star,
   Terminal,
@@ -457,6 +458,7 @@ export function App() {
   const toolContentRef = useRef<HTMLElement>(null);
   const [toolContentElement, setToolContentElement] = useState<HTMLElement | null>(null);
   const workspaceRef = useRef<HTMLElement>(null);
+  const catalogRef = useRef<HTMLElement>(null);
   const [workspaceElement, setWorkspaceElement] = useState<HTMLElement | null>(null);
   const [activeTool, setActiveTool] = useState<ActiveToolSession>();
   const [toolLoadMessage, setToolLoadMessage] = useState<string>();
@@ -1122,6 +1124,7 @@ export function App() {
               if (isToolCategory(value)) {
                 setView('home');
                 setCategory(value);
+                catalogRef.current?.scrollTo?.({ top: 0 });
               }
             }}
           />
@@ -1188,20 +1191,21 @@ export function App() {
               <Terminal aria-hidden="true" />
               输出台
             </ToggleButton>
-            <Button
-              variant="secondary"
-              aria-label="打开设置"
+            <IconButton
+              className="workspace-settings-button"
+              label="打开设置"
               aria-haspopup="dialog"
               data-debug-source="apps/desktop/src/app/App.tsx:843"
-              data-debug-code={'<Button aria-label="打开设置">设置</Button>'}
+              data-debug-code={'<IconButton label="打开设置"><Settings /></IconButton>'}
               onClick={() => setView('settings')}
             >
-              设置
-            </Button>
+              <Settings aria-hidden="true" />
+            </IconButton>
           </div>
         </header>
         <section
           className="catalog-workspace"
+          ref={catalogRef}
           aria-label="工具目录"
           data-debug-target="true"
           data-debug-kind="区域"

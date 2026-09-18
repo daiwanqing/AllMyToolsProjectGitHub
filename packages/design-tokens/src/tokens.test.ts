@@ -176,4 +176,9 @@ describe('设计 Token', () => {
     expect(resolveThemeTokens('light').component['navigation.back-top-spacing']).toBe('8px');
     expect(resolveThemeTokens('dark').component['navigation.back-top-spacing']).toBe('8px');
   });
+
+  it('提供移动导航可复用的默认控件触控尺寸', () => {
+    expect(resolveThemeTokens('light').component['button.default.height']).toBe('40px');
+    expect(resolveThemeTokens('dark').component['button.default.height']).toBe('40px');
+  });
 });
