@@ -73,7 +73,7 @@ a:focus-visible {
   width: var(--amt-dimension-control-compact);
   height: var(--amt-dimension-control-compact);
   place-items: center;
-  border: var(--amt-border-width-default) solid var(--amt-color-text-navigation);
+  border: 0;
   border-radius: var(--amt-radius-control);
   color: var(--amt-color-background-navigation);
   background: var(--amt-color-business-lime);
@@ -583,21 +583,17 @@ h2 {
   min-width: 0;
   min-height: calc(var(--amt-space-10) * 4 + var(--amt-space-4));
   padding: 0;
-  border: var(--amt-border-width-default) solid var(--amt-color-border-default);
+  border: 0;
   border-radius: var(--amt-button-default-radius);
   background: var(--amt-color-background-surface);
-  transition:
-    border-color var(--amt-motion-fast) var(--amt-motion-easing-standard),
-    background-color var(--amt-motion-fast) var(--amt-motion-easing-standard);
+  transition: background-color var(--amt-motion-fast) var(--amt-motion-easing-standard);
 }
 
 .tool-tile:hover {
-  border-color: var(--amt-color-border-default);
   background: var(--amt-color-background-selected);
 }
 
 .tool-tile:focus-within {
-  border-color: var(--amt-color-border-strong);
   background: var(--amt-color-background-selected);
 }
 
