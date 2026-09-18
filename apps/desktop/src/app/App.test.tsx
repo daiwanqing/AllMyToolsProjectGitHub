@@ -41,6 +41,12 @@ describe('desktop shell', () => {
     );
     expect(screen.queryByRole('article', { name: '文本工作台' })).not.toBeInTheDocument();
     expect(screen.getAllByRole('article')).toHaveLength(5);
+    expect(screen.queryByRole('button', { name: '打开' })).not.toBeInTheDocument();
+    expect(
+      within(screen.getByRole('article', { name: '日历待办' })).getByRole('button', {
+        name: '日历待办',
+      }),
+    ).toHaveClass('tool-tile-open');
   });
 
   it('uses an accessible bottom navigation layout on mobile viewports', () => {
@@ -72,6 +78,10 @@ describe('desktop shell', () => {
       expect(screen.getByRole('main')).toHaveAttribute('data-layout', 'mobile');
       const navigation = screen.getByRole('tablist', { name: '工作区导航' });
       expect(navigation).toHaveAttribute('aria-orientation', 'horizontal');
+      const themeChoice = screen.getByRole('group', { name: '界面主题' });
+      expect(themeChoice).toHaveClass('mobile-theme-choice');
+      expect(within(themeChoice).getByRole('button', { name: '浅色' })).toBeInTheDocument();
+      expect(within(themeChoice).getByRole('button', { name: '深色' })).toBeInTheDocument();
       expect(within(navigation).getByRole('tab', { name: '全部工具' })).toHaveTextContent(
         '全部工具',
       );
@@ -103,7 +113,7 @@ describe('desktop shell', () => {
     render(<App />);
 
     const travelTool = screen.getByRole('article', { name: '旅行笔记' });
-    fireEvent.click(within(travelTool).getByRole('button', { name: '打开' }));
+    fireEvent.click(within(travelTool).getByRole('button', { name: '旅行笔记' }));
     await waitFor(() =>
       expect(screen.getByRole('heading', { name: '大理，慢下来' })).toBeInTheDocument(),
     );
@@ -122,7 +132,7 @@ describe('desktop shell', () => {
   it('searches a journey, records an expense, and opens its review', async () => {
     render(<App />);
     const travelTool = screen.getByRole('article', { name: '旅行笔记' });
-    fireEvent.click(within(travelTool).getByRole('button', { name: '打开' }));
+    fireEvent.click(within(travelTool).getByRole('button', { name: '旅行笔记' }));
     await waitFor(() =>
       expect(screen.getByRole('heading', { name: '大理，慢下来' })).toBeInTheDocument(),
     );
@@ -148,7 +158,7 @@ describe('desktop shell', () => {
   it('shows expense totals and switches between the timeline and review tabs', async () => {
     render(<App />);
     const travelTool = screen.getByRole('article', { name: '旅行笔记' });
-    fireEvent.click(within(travelTool).getByRole('button', { name: '打开' }));
+    fireEvent.click(within(travelTool).getByRole('button', { name: '旅行笔记' }));
     await waitFor(() =>
       expect(screen.getByRole('heading', { name: '大理，慢下来' })).toBeInTheDocument(),
     );
@@ -220,7 +230,7 @@ describe('desktop shell', () => {
     fireEvent.click(screen.getByRole('tab', { name: '生活' }));
     expect(screen.getByRole('heading', { name: '收藏' })).toBeInTheDocument();
     const boardGamesTool = screen.getByRole('article', { name: '代代桌游馆' });
-    fireEvent.click(within(boardGamesTool).getByRole('button', { name: '打开' }));
+    fireEvent.click(within(boardGamesTool).getByRole('button', { name: '代代桌游馆' }));
 
     await waitFor(() =>
       expect(screen.getByRole('heading', { level: 1, name: '代代桌游馆' })).toBeInTheDocument(),
@@ -255,7 +265,7 @@ describe('desktop shell', () => {
     fireEvent.click(screen.getByRole('tab', { name: '生活' }));
     fireEvent.click(
       within(screen.getByRole('article', { name: '代代桌游馆' })).getByRole('button', {
-        name: '打开',
+        name: '代代桌游馆',
       }),
     );
     await waitFor(() =>
@@ -331,7 +341,7 @@ describe('desktop shell', () => {
     render(<App />);
 
     const reviewTool = screen.getByRole('article', { name: '复习笔记' });
-    fireEvent.click(within(reviewTool).getByRole('button', { name: '打开' }));
+    fireEvent.click(within(reviewTool).getByRole('button', { name: '复习笔记' }));
     await waitFor(() =>
       expect(screen.getByRole('heading', { level: 1, name: '复习笔记' })).toBeInTheDocument(),
     );
@@ -355,7 +365,7 @@ describe('desktop shell', () => {
     render(<App />);
 
     const reviewTool = screen.getByRole('article', { name: '复习笔记' });
-    fireEvent.click(within(reviewTool).getByRole('button', { name: '打开' }));
+    fireEvent.click(within(reviewTool).getByRole('button', { name: '复习笔记' }));
 
     await waitFor(() =>
       expect(screen.getByRole('heading', { level: 1, name: '复习笔记' })).toBeInTheDocument(),
@@ -372,7 +382,7 @@ describe('desktop shell', () => {
     render(<App />);
 
     const sessionPicker = screen.getByRole('article', { name: '活动选择器' });
-    fireEvent.click(within(sessionPicker).getByRole('button', { name: '打开' }));
+    fireEvent.click(within(sessionPicker).getByRole('button', { name: '活动选择器' }));
 
     await waitFor(() =>
       expect(screen.getByRole('heading', { level: 1, name: '活动选择器' })).toBeInTheDocument(),
@@ -401,7 +411,7 @@ describe('desktop shell', () => {
     render(<App />);
 
     const calendarTool = screen.getByRole('article', { name: '日历待办' });
-    fireEvent.click(within(calendarTool).getByRole('button', { name: '打开' }));
+    fireEvent.click(within(calendarTool).getByRole('button', { name: '日历待办' }));
 
     await waitFor(() => expect(screen.getByLabelText('连续年历')).toBeInTheDocument());
     expect(scrollIntoView).toHaveBeenCalledWith({ block: 'center' });
@@ -635,7 +645,7 @@ describe('desktop shell', () => {
   it('creates and edits a timed task in the daily timeline', async () => {
     render(<App />);
     const calendarTool = screen.getByRole('article', { name: '日历待办' });
-    fireEvent.click(within(calendarTool).getByRole('button', { name: '打开' }));
+    fireEvent.click(within(calendarTool).getByRole('button', { name: '日历待办' }));
     await waitFor(() => expect(screen.getByLabelText('连续年历')).toBeInTheDocument());
     const todayCell = screen
       .getAllByRole('button')
@@ -921,7 +931,7 @@ describe('desktop shell', () => {
   it('toggles debug mode with the default shortcut and opens source details for a tool element', async () => {
     render(<App />);
     const reviewTool = screen.getByRole('article', { name: '复习笔记' });
-    fireEvent.click(within(reviewTool).getByRole('button', { name: '打开' }));
+    fireEvent.click(within(reviewTool).getByRole('button', { name: '复习笔记' }));
     await waitFor(() =>
       expect(screen.getByRole('heading', { level: 1, name: '复习笔记' })).toBeInTheDocument(),
     );

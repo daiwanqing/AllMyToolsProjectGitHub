@@ -48,6 +48,8 @@ import {
   Settings,
   Sparkles,
   Star,
+  Moon,
+  Sun,
   Terminal,
   Upload,
   Wrench,
@@ -140,6 +142,11 @@ const workspaceNavigation: ReadonlyArray<
 const themes: ReadonlyArray<Readonly<{ id: ThemeName; label: string }>> = [
   { id: 'light', label: '浅色' },
   { id: 'dark', label: '深色' },
+];
+
+const mobileThemes: ReadonlyArray<Readonly<{ id: ThemeName; label: string; icon: ReactNode }>> = [
+  { id: 'light', label: '浅色', icon: <Sun aria-hidden="true" /> },
+  { id: 'dark', label: '深色', icon: <Moon aria-hidden="true" /> },
 ];
 
 const settingsTabs: ReadonlyArray<Readonly<{ id: SettingsTab; label: string; icon: LucideIcon }>> =
@@ -356,24 +363,26 @@ function ToolTile({
       aria-labelledby={`tool-${entry.id}`}
       data-business-color={entry.businessColor}
     >
-      <div className="tool-tile-content">
+      <button
+        className="tool-tile-open"
+        type="button"
+        aria-busy={loading || undefined}
+        disabled={loading}
+        onClick={() => onOpen(entry)}
+      >
         <h3 id={`tool-${entry.id}`}>
           <span className="tool-tile-marker" aria-hidden="true" />
           <span>{entry.name}</span>
         </h3>
-      </div>
-      <div className="tool-tile-actions">
-        <IconButton
-          label={favorite ? `取消收藏 ${entry.name}` : `收藏 ${entry.name}`}
-          pressed={favorite}
-          onClick={() => onToggleFavorite(entry.id)}
-        >
-          <Star aria-hidden="true" fill={favorite ? 'currentColor' : 'none'} />
-        </IconButton>
-        <Button variant="secondary" loading={loading} onClick={() => onOpen(entry)}>
-          打开
-        </Button>
-      </div>
+      </button>
+      <IconButton
+        className="tool-tile-favorite"
+        label={favorite ? `取消收藏 ${entry.name}` : `收藏 ${entry.name}`}
+        pressed={favorite}
+        onClick={() => onToggleFavorite(entry.id)}
+      >
+        <Star aria-hidden="true" fill={favorite ? 'currentColor' : 'none'} />
+      </IconButton>
     </article>
   );
 }
@@ -1022,7 +1031,8 @@ export function App() {
             <div className="theme-switcher">
               <ChoiceGroup
                 ariaLabel="界面主题"
-                options={themes}
+                className={isMobileLayout ? 'mobile-theme-choice' : undefined}
+                options={isMobileLayout ? mobileThemes : themes}
                 value={theme}
                 onChange={(value) => {
                   if (value === 'light' || value === 'dark') setTheme(value);
@@ -1160,7 +1170,8 @@ export function App() {
             <div className="theme-switcher">
               <ChoiceGroup
                 ariaLabel="界面主题"
-                options={themes}
+                className={isMobileLayout ? 'mobile-theme-choice' : undefined}
+                options={isMobileLayout ? mobileThemes : themes}
                 value={theme}
                 onChange={(value) => {
                   if (value === 'light' || value === 'dark') setTheme(value);

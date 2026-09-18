@@ -573,17 +573,16 @@ h2 {
 
 .tool-tile-grid {
   display: grid;
+  min-width: 0;
   grid-template-columns: repeat(auto-fill, minmax(calc(var(--amt-space-10) * 7), 1fr));
   gap: var(--amt-space-4);
 }
 
 .tool-tile {
-  display: flex;
+  position: relative;
+  min-width: 0;
   min-height: calc(var(--amt-space-10) * 4 + var(--amt-space-4));
-  flex-direction: column;
-  justify-content: space-between;
-  gap: var(--amt-space-6);
-  padding: var(--amt-space-5);
+  padding: 0;
   border: var(--amt-border-width-default) solid var(--amt-color-border-default);
   border-radius: var(--amt-button-default-radius);
   background: var(--amt-color-background-surface);
@@ -602,7 +601,34 @@ h2 {
   background: var(--amt-color-background-selected);
 }
 
-.tool-tile-content {
+.tool-tile-open {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: calc(var(--amt-space-10) * 4 + var(--amt-space-4));
+  align-items: flex-start;
+  padding: var(--amt-space-5)
+    calc(var(--amt-space-5) + var(--amt-button-compact-height) + var(--amt-space-2))
+    var(--amt-space-5) var(--amt-space-5);
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.tool-tile-open:focus-visible {
+  outline: var(--amt-focus-ring-width) solid var(--amt-color-focus-ring);
+  outline-offset: calc(var(--amt-focus-ring-offset) * -1);
+}
+
+.tool-tile-open:disabled {
+  cursor: wait;
+  opacity: var(--amt-control-disabled-opacity);
+}
+
+.tool-tile-open h3 {
   min-width: 0;
 }
 
@@ -637,24 +663,17 @@ h2 {
   font-variation-settings: 'wdth' 90;
 }
 
-.tool-tile-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--amt-space-2);
-  padding-top: var(--amt-space-3);
-  border-top: var(--amt-border-width-default) solid var(--amt-color-border-default);
+.tool-tile h3 > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-.tool-tile-actions .amt-icon-button {
+.tool-tile-favorite.amt-icon-button {
+  position: absolute;
+  top: var(--amt-space-5);
+  right: var(--amt-space-5);
   width: var(--amt-button-compact-height);
   height: var(--amt-button-compact-height);
-}
-
-.tool-tile-actions .amt-button {
-  min-height: var(--amt-button-compact-height);
-  padding-right: var(--amt-button-compact-padding-x);
-  padding-left: var(--amt-button-compact-padding-x);
 }
 
 .text-workbench {
@@ -3435,8 +3454,11 @@ h2 {
   }
 
   .context-toolbar h1 {
+    overflow: hidden;
     font-size: var(--amt-typography-size-section-title);
     line-height: var(--amt-typography-line-height-section-title);
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .context-toolbar > div:first-child {
@@ -3454,6 +3476,28 @@ h2 {
 
   .toolbar-actions .theme-switcher {
     flex: none;
+  }
+
+  .mobile-theme-choice.amt-choice-group {
+    flex-wrap: nowrap;
+    gap: var(--amt-space-1);
+  }
+
+  .mobile-theme-choice .amt-choice-option.amt-button {
+    width: var(--amt-button-compact-height);
+    min-width: var(--amt-button-compact-height);
+    min-height: var(--amt-button-compact-height);
+    justify-content: center;
+    padding: 0;
+  }
+
+  .mobile-theme-choice .amt-choice-option-label {
+    font-size: 0;
+  }
+
+  .mobile-theme-choice .amt-choice-option-icon {
+    width: var(--amt-primitive-dimension-icon-default);
+    height: var(--amt-primitive-dimension-icon-default);
   }
 
   .workspace-settings-button.amt-icon-button {
@@ -3486,18 +3530,32 @@ h2 {
   }
 
   .tool-tile {
-    min-height: calc(var(--amt-space-10) * 3);
+    min-height: calc(var(--amt-button-default-height) + var(--amt-button-compact-height));
+  }
+
+  .tool-tile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--amt-space-3);
-    padding: var(--amt-space-4);
+  }
+
+  .tool-tile-open {
+    min-height: calc(var(--amt-button-default-height) + var(--amt-button-compact-height));
+    align-items: center;
+    padding: var(--amt-space-2)
+      calc(var(--amt-space-2) + var(--amt-button-compact-height) + var(--amt-space-2))
+      var(--amt-space-2) var(--amt-space-2);
   }
 
   .tool-tile h3 {
-    font-size: var(--amt-typography-size-section-title);
-    line-height: var(--amt-typography-line-height-section-title);
+    align-items: center;
+    font-size: var(--amt-typography-size-body);
+    line-height: var(--amt-typography-line-height-body);
   }
 
-  .tool-tile-actions {
-    padding-top: var(--amt-space-2);
+  .tool-tile-favorite.amt-icon-button {
+    top: 50%;
+    right: var(--amt-space-2);
+    transform: translateY(-50%);
   }
 
   .tool-focus-shell {
