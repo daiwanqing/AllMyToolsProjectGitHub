@@ -100,6 +100,8 @@ export const semanticThemeTokens = {
   light: {
     'color.background.canvas': primitiveTokens['color.neutral.50'],
     'color.background.surface': primitiveTokens['color.neutral.0'],
+    'color.background.tool-tile': primitiveTokens['color.neutral.0'],
+    'color.background.tool-tile-hover': primitiveTokens['color.neutral.100'],
     'color.background.selected': primitiveTokens['color.neutral.100'],
     'color.background.control-selected': primitiveTokens['color.neutral.100'],
     'color.background.hover': primitiveTokens['color.neutral.200'],
@@ -133,6 +135,8 @@ export const semanticThemeTokens = {
   dark: {
     'color.background.canvas': primitiveTokens['color.neutral.850'],
     'color.background.surface': primitiveTokens['color.neutral.750'],
+    'color.background.tool-tile': primitiveTokens['color.neutral.750'],
+    'color.background.tool-tile-hover': primitiveTokens['color.neutral.700'],
     'color.background.selected': primitiveTokens['color.neutral.700'],
     'color.background.control-selected': primitiveTokens['color.neutral.700'],
     'color.background.hover': primitiveTokens['color.neutral.600'],
@@ -166,6 +170,8 @@ export const semanticThemeTokens = {
   dopamine: {
     'color.background.canvas': primitiveTokens['color.neutral.0'],
     'color.background.surface': primitiveTokens['color.neutral.0'],
+    'color.background.tool-tile': primitiveTokens['color.gray.50'],
+    'color.background.tool-tile-hover': primitiveTokens['color.gray.100'],
     'color.background.selected': primitiveTokens['color.gray.100'],
     'color.background.control-selected': primitiveTokens['color.gray.100'],
     'color.background.hover': primitiveTokens['color.gray.200'],
@@ -216,6 +222,8 @@ const semanticPrimitiveSources: Readonly<
   light: {
     'color.background.canvas': 'color.neutral.50',
     'color.background.surface': 'color.neutral.0',
+    'color.background.tool-tile': 'color.neutral.0',
+    'color.background.tool-tile-hover': 'color.neutral.100',
     'color.background.selected': 'color.neutral.100',
     'color.background.control-selected': 'color.neutral.100',
     'color.background.hover': 'color.neutral.200',
@@ -248,6 +256,8 @@ const semanticPrimitiveSources: Readonly<
   dark: {
     'color.background.canvas': 'color.neutral.850',
     'color.background.surface': 'color.neutral.750',
+    'color.background.tool-tile': 'color.neutral.750',
+    'color.background.tool-tile-hover': 'color.neutral.700',
     'color.background.selected': 'color.neutral.700',
     'color.background.control-selected': 'color.neutral.700',
     'color.background.hover': 'color.neutral.600',
@@ -280,6 +290,8 @@ const semanticPrimitiveSources: Readonly<
   dopamine: {
     'color.background.canvas': 'color.neutral.0',
     'color.background.surface': 'color.neutral.0',
+    'color.background.tool-tile': 'color.gray.50',
+    'color.background.tool-tile-hover': 'color.gray.100',
     'color.background.selected': 'color.gray.100',
     'color.background.control-selected': 'color.gray.100',
     'color.background.hover': 'color.gray.200',
@@ -381,6 +393,8 @@ export function resolveThemeTokens(
       ['color.background.navigation-hover', 'color.background.hover'],
       ['color.background.navigation-pressed', 'color.background.pressed'],
       ['color.focus.navigation', 'color.focus.ring'],
+      ['color.background.tool-tile', 'color.background.surface'],
+      ['color.background.tool-tile-hover', 'color.background.selected'],
     ] as const) {
       if (!colorOverrides[target] && colorOverrides[source]) {
         (semantic as Record<string, string>)[target] = semantic[source];

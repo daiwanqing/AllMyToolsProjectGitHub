@@ -29,6 +29,46 @@ function contrastRatio(foreground: string, background: string) {
 }
 
 describe('设计 Token', () => {
+  it('工具块在三主题中与画布分离，反馈状态和文字焦点保持可辨识', () => {
+    for (const theme of themeNames) {
+      const { semantic } = resolveThemeTokens(theme);
+      expect(semantic['color.background.tool-tile']).not.toBe(semantic['color.background.canvas']);
+      expect(semantic['color.background.tool-tile-hover']).not.toBe(
+        semantic['color.background.tool-tile'],
+      );
+      for (const background of [
+        'color.background.tool-tile',
+        'color.background.tool-tile-hover',
+      ] as const) {
+        expect(
+          contrastRatio(semantic['color.text.primary'], semantic[background]),
+        ).toBeGreaterThanOrEqual(4.5);
+        expect(
+          contrastRatio(semantic['color.focus.ring'], semantic[background]),
+        ).toBeGreaterThanOrEqual(3);
+      }
+    }
+    expect(resolveThemeTokens('dopamine').semantic['color.background.tool-tile']).toBe('#f5f5f5');
+  });
+
+  it('工具块保留浅深主题旧覆盖，新主题支持独立原始和语义颜色编辑', () => {
+    for (const theme of ['light', 'dark'] as const) {
+      const { semantic } = resolveThemeTokens(theme, {
+        'color.background.surface': '#123456',
+        'color.background.selected': '#234567',
+      });
+      expect(semantic['color.background.tool-tile']).toBe('#123456');
+      expect(semantic['color.background.tool-tile-hover']).toBe('#234567');
+    }
+    const { semantic } = resolveThemeTokens('dopamine', {
+      'color.gray.50': '#123456',
+      'color.gray.100': '#234567',
+      'color.background.tool-tile-hover': '#345678',
+    });
+    expect(semantic['color.background.tool-tile']).toBe('#123456');
+    expect(semantic['color.background.tool-tile-hover']).toBe('#345678');
+  });
+
   it('多巴胺以黑色导航与白色工作区搭配，交互保持中性色', () => {
     expect(themeNames).toEqual(['light', 'dark', 'dopamine']);
     const { semantic } = resolveThemeTokens('dopamine');

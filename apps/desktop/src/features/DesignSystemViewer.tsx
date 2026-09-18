@@ -56,6 +56,8 @@ type TokenRow = Readonly<{
 const semanticTokenDescriptions: Readonly<Record<string, string>> = {
   'color.background.canvas': '页面最底层画布背景。',
   'color.background.surface': '卡片、面板和输入区域的表面背景。',
+  'color.background.tool-tile': '工具目录块面；多巴胺使用浅灰，与白色工作区区分。',
+  'color.background.tool-tile-hover': '工具目录悬停和键盘聚焦的反馈底色。',
   'color.background.selected': '输入区、内容占位和工具内部使用的中性浅层表面。',
   'color.background.control-selected': '选项、页签和状态按钮的中性持久选中底。',
   'color.background.hover': '鼠标悬停反馈，与持久选中态分开。',

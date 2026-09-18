@@ -156,6 +156,8 @@
   color-scheme: light;
   --amt-color-background-canvas: var(--amt-primitive-color-neutral-50);
   --amt-color-background-surface: var(--amt-primitive-color-neutral-0);
+  --amt-color-background-tool-tile: var(--amt-color-background-surface);
+  --amt-color-background-tool-tile-hover: var(--amt-color-background-selected);
   --amt-color-background-selected: var(--amt-primitive-color-neutral-100);
   --amt-color-background-control-selected: var(--amt-color-background-selected);
   --amt-color-background-hover: var(--amt-primitive-color-neutral-200);
@@ -190,6 +192,8 @@
   color-scheme: dark;
   --amt-color-background-canvas: var(--amt-primitive-color-neutral-850);
   --amt-color-background-surface: var(--amt-primitive-color-neutral-750);
+  --amt-color-background-tool-tile: var(--amt-color-background-surface);
+  --amt-color-background-tool-tile-hover: var(--amt-color-background-selected);
   --amt-color-background-selected: var(--amt-primitive-color-neutral-700);
   --amt-color-background-control-selected: var(--amt-color-background-selected);
   --amt-color-background-hover: var(--amt-primitive-color-neutral-600);
@@ -224,6 +228,8 @@
   color-scheme: light;
   --amt-color-background-canvas: var(--amt-primitive-color-neutral-0);
   --amt-color-background-surface: var(--amt-primitive-color-neutral-0);
+  --amt-color-background-tool-tile: var(--amt-primitive-color-gray-50);
+  --amt-color-background-tool-tile-hover: var(--amt-primitive-color-gray-100);
   --amt-color-background-selected: var(--amt-primitive-color-gray-100);
   --amt-color-background-control-selected: var(--amt-primitive-color-gray-100);
   --amt-color-background-hover: var(--amt-primitive-color-gray-200);
