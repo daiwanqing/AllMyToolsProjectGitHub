@@ -14,7 +14,8 @@ export const uiComponentCatalog: readonly UiComponentDefinition[] = [
   {
     name: 'Button',
     category: '基础操作',
-    contract: '主、次、危险红色；区分悬停与按下，加载保留尺寸及名称且不可重复触发。',
+    contract:
+      '主命令使用独立背景/文字 Token，次命令与危险红色分离；区分悬停与按下，加载保留尺寸及名称。',
   },
   {
     name: 'ToggleButton',
@@ -112,7 +113,8 @@ export const uiGuidelineGroups: readonly UiGuidelineGroup[] = [
     title: 'Token 和主题',
     rules: [
       '组件只读取语义样式变量，不在业务页面重新定义颜色或间距。',
-      '浅色与深色由主题语义值切换，不修改组件代码。',
+      '浅色、深色与多巴胺由主题语义值切换，不修改组件代码。',
+      '多巴胺采用黑色导航与白色工作区搭配，按钮和选中态保持黑白灰，亮色仅用于小色标和局部强调。',
       '暖灰画布、白色或炭黑表面与轻结构线建立层级；自定义控件无描边，焦点环保留。',
       '业务身份色仅使用绿、蓝、黄、紫等业务 Token；红色只表示错误和危险操作。',
       '按钮、输入、菜单、面板和图片裁切统一使用 4px 圆角；圆形标记除外。',

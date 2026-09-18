@@ -30,6 +30,7 @@ export function ChoiceGroup({ ariaLabel, className, onChange, options, value }: 
           key={option.id}
           className="amt-choice-option"
           variant="secondary"
+          title={option.icon && typeof option.label === 'string' ? option.label : undefined}
           aria-pressed={value === option.id}
           disabled={option.disabled}
           onClick={() => onChange(option.id)}

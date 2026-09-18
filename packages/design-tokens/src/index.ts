@@ -7,6 +7,7 @@ export {
   semanticColorTokenNames,
   semanticThemeTokens,
   themeNames,
+  themeLabels,
   type ResolvedThemeTokens,
   type ColorTokenName,
   type BusinessColorName,

@@ -27,8 +27,8 @@
 }
 
 .amt-button-primary {
-  color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-selected);
+  color: var(--amt-color-action-button-text);
+  background: var(--amt-color-action-button-background);
 }
 
 .amt-button-danger {
@@ -62,7 +62,7 @@
 
 .amt-toggle-button[aria-pressed='true'] {
   color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-selected);
+  background: var(--amt-color-background-control-selected);
 }
 
 .amt-toggle-button::before {
@@ -124,7 +124,7 @@
 
 .amt-icon-button[aria-pressed='true'] {
   color: var(--amt-color-action-primary);
-  background: var(--amt-color-background-selected);
+  background: var(--amt-color-background-control-selected);
 }
 
 .amt-icon-button:focus-visible {
@@ -164,7 +164,7 @@
 
 .amt-navigation-item[aria-current='page'] {
   color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-selected);
+  background: var(--amt-color-background-control-selected);
 }
 
 .amt-navigation-item-icon {
@@ -237,7 +237,7 @@
 
 .amt-tab-control-item[aria-selected='true'] {
   color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-selected);
+  background: var(--amt-color-background-control-selected);
   font-weight: var(--amt-typography-weight-medium);
 }
 
@@ -276,7 +276,7 @@
 
 .amt-tab[aria-selected='true'] {
   color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-selected);
+  background: var(--amt-color-background-control-selected);
 }
 
 .amt-tab:focus-visible {
@@ -349,7 +349,7 @@
 
 .amt-choice-option.amt-button[aria-pressed='true'] {
   color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-selected);
+  background: var(--amt-color-background-control-selected);
   font-weight: var(--amt-typography-weight-medium);
 }
 

@@ -144,7 +144,7 @@ a:focus-visible {
   .navigation-rail .amt-tab-control-item:hover:not(:disabled) {
     border-color: transparent;
     color: var(--amt-color-text-navigation);
-    background: var(--amt-color-background-hover);
+    background: var(--amt-color-background-navigation-hover);
   }
 }
 
@@ -156,7 +156,12 @@ a:focus-visible {
 }
 
 .navigation-rail .amt-tab-control-item:active:not(:disabled) {
-  background: var(--amt-color-background-pressed);
+  color: var(--amt-color-text-navigation);
+  background: var(--amt-color-background-navigation-pressed);
+}
+
+.navigation-rail .amt-tab-control-item:focus-visible {
+  outline-color: var(--amt-color-focus-navigation);
 }
 
 .application-rail-footer {

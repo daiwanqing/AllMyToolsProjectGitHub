@@ -87,6 +87,12 @@ describe('desktop shell', () => {
       expect(screen.getByRole('heading', { name: '常用' })).toBeInTheDocument();
       fireEvent.click(within(themeChoice).getByRole('button', { name: '深色' }));
       expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+      fireEvent.click(within(themeChoice).getByRole('button', { name: '多巴胺' }));
+      expect(document.documentElement).toHaveAttribute('data-theme', 'dopamine');
+      expect(within(themeChoice).getByRole('button', { name: '多巴胺' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
       fireEvent.click(screen.getByRole('button', { name: '收藏 旅行笔记' }));
       expect(screen.getByRole('button', { name: '取消收藏 旅行笔记' })).toHaveAttribute(
         'aria-pressed',
@@ -1062,6 +1068,7 @@ describe('desktop shell', () => {
       expect(JSON.parse(window.localStorage.getItem('shell.theme-color-overrides') ?? '')).toEqual({
         light: { 'color.background.canvas': '#123456' },
         dark: {},
+        dopamine: {},
       }),
     );
     const primitiveColorField = screen.getByRole('textbox', {
@@ -1083,6 +1090,80 @@ describe('desktop shell', () => {
     fireEvent.click(screen.getByRole('button', { name: '恢复默认颜色' }));
     expect(document.documentElement.style.getPropertyValue('--amt-color-background-canvas')).toBe(
       '',
+    );
+  });
+
+  it('恢复多巴胺主题并在设置和工具工作区共享选择', async () => {
+    const firstRender = render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: '多巴胺' }));
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dopamine');
+    firstRender.unmount();
+    render(<App />);
+    expect(screen.getByRole('button', { name: '多巴胺' })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: '打开设置' }));
+    expect(screen.getByRole('button', { name: '使用多巴胺主题' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    fireEvent.click(screen.getByRole('button', { name: '使用深色主题' }));
+    fireEvent.click(screen.getByRole('button', { name: '使用多巴胺主题' }));
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dopamine');
+    fireEvent.click(screen.getByRole('tab', { name: '开发者' }));
+    fireEvent.click(screen.getByRole('tab', { name: '主题对比' }));
+    expect(screen.getByRole('columnheader', { name: '多巴胺' })).toBeInTheDocument();
+    const row = within(screen.getByRole('tabpanel', { name: '主题对比' }))
+      .getByText('color.action.button-background')
+      .closest('tr');
+    expect(row).toHaveTextContent('#111111');
+    fireEvent.click(screen.getByRole('button', { name: '关闭' }));
+    fireEvent.click(screen.getByRole('button', { name: '复习笔记' }));
+    await screen.findByRole('textbox', { name: '待复习内容' });
+    expect(screen.getByRole('button', { name: '多巴胺' })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: '浅色' }));
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light');
+  });
+
+  it('兼容旧颜色设置并隔离多巴胺编辑、非法草稿和恢复默认', async () => {
+    window.localStorage.setItem(
+      'shell.theme-color-overrides',
+      JSON.stringify({
+        light: { 'color.background.canvas': '#abcdef' },
+        dark: {},
+      }),
+    );
+    const firstRender = render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: '多巴胺' }));
+    expect(document.documentElement.style.getPropertyValue('--amt-color-background-canvas')).toBe(
+      '',
+    );
+    fireEvent.click(screen.getByRole('button', { name: '打开设置' }));
+    fireEvent.click(screen.getByRole('tab', { name: '开发者' }));
+    const field = screen.getByRole('textbox', { name: '编辑 color.background.canvas' });
+    fireEvent.change(field, { target: { value: '#123456' } });
+    await waitFor(() =>
+      expect(
+        JSON.parse(window.localStorage.getItem('shell.theme-color-overrides') ?? '').dopamine,
+      ).toEqual({ 'color.background.canvas': '#123456' }),
+    );
+    fireEvent.change(field, { target: { value: '#invalid' } });
+    expect(document.documentElement.style.getPropertyValue('--amt-color-background-canvas')).toBe(
+      '#123456',
+    );
+    firstRender.unmount();
+    render(<App />);
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dopamine');
+    expect(document.documentElement.style.getPropertyValue('--amt-color-background-canvas')).toBe(
+      '#123456',
+    );
+    fireEvent.click(screen.getByRole('button', { name: '打开设置' }));
+    fireEvent.click(screen.getByRole('button', { name: '恢复默认颜色' }));
+    expect(document.documentElement.style.getPropertyValue('--amt-color-background-canvas')).toBe(
+      '',
+    );
+    fireEvent.click(screen.getByRole('tab', { name: '外观' }));
+    fireEvent.click(screen.getByRole('button', { name: '使用浅色主题' }));
+    expect(document.documentElement.style.getPropertyValue('--amt-color-background-canvas')).toBe(
+      '#abcdef',
     );
   });
 

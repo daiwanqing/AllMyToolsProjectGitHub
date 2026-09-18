@@ -29,6 +29,144 @@ function contrastRatio(foreground: string, background: string) {
 }
 
 describe('设计 Token', () => {
+  it('多巴胺以黑色导航与白色工作区搭配，交互保持中性色', () => {
+    expect(themeNames).toEqual(['light', 'dark', 'dopamine']);
+    const { semantic } = resolveThemeTokens('dopamine');
+    for (const name of [
+      'color.background.canvas',
+      'color.background.surface',
+      'color.background.navigation',
+      'color.text.primary',
+      'color.text.secondary',
+      'color.border.default',
+      'color.background.control-selected',
+      'color.action.primary',
+      'color.action.button-background',
+      'color.focus.ring',
+    ] as const) {
+      const color = semantic[name];
+      expect(color.slice(1, 3)).toBe(color.slice(3, 5));
+      expect(color.slice(3, 5)).toBe(color.slice(5, 7));
+    }
+    expect(semantic['color.background.selected']).toBe(primitiveTokens['color.gray.100']);
+    expect(semantic['color.background.canvas']).toBe('#ffffff');
+    expect(semantic['color.background.navigation']).toBe('#111111');
+    expect(semantic['color.text.navigation']).toBe('#ffffff');
+    expect(semantic['color.background.control-selected']).toBe(primitiveTokens['color.gray.100']);
+    expect(semantic['color.action.button-background']).toBe(primitiveTokens['color.neutral.950']);
+    expect(semantic['color.business.violet']).toBe(primitiveTokens['color.pink.500']);
+    expect(semantic['color.status.error']).toBe(semanticThemeTokens.light['color.status.error']);
+    expect(new Set(businessColorNames.map((name) => semantic[`color.business.${name}`])).size).toBe(
+      4,
+    );
+  });
+
+  it('全部主题的主命令、局部强调和焦点保持可读对比度', () => {
+    for (const theme of themeNames) {
+      const { semantic } = resolveThemeTokens(theme);
+      expect(
+        contrastRatio(
+          semantic['color.action.button-text'],
+          semantic['color.action.button-background'],
+        ),
+      ).toBeGreaterThanOrEqual(4.5);
+      for (const foreground of [
+        'color.text.primary',
+        'color.text.secondary',
+        'color.action.primary',
+      ] as const) {
+        expect(
+          contrastRatio(semantic[foreground], semantic['color.background.control-selected']),
+        ).toBeGreaterThanOrEqual(4.5);
+      }
+      for (const background of [
+        'color.background.canvas',
+        'color.background.surface',
+        'color.background.selected',
+      ] as const) {
+        expect(
+          contrastRatio(semantic['color.accent.calendar'], semantic[background]),
+        ).toBeGreaterThanOrEqual(4.5);
+        expect(
+          contrastRatio(semantic['color.focus.ring'], semantic[background]),
+        ).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
+
+  it('多巴胺原始色覆盖沿引用传播，语义覆盖优先且不污染其他主题', () => {
+    const resolved = resolveThemeTokens('dopamine', {
+      'color.gray.500': '#123456',
+      'color.action.button-background': '#234567',
+    });
+    expect(resolved.semantic['color.text.secondary']).toBe('#123456');
+    expect(resolved.semantic['color.focus.ring']).toBe('#123456');
+    expect(resolved.semantic['color.action.button-background']).toBe('#234567');
+    expect(resolveThemeTokens('dopamine').semantic['color.action.primary']).toBe('#111111');
+    for (const theme of ['light', 'dark'] as const) {
+      const { semantic } = resolveThemeTokens(theme);
+      expect(semantic['color.action.button-background']).toBe(
+        semantic['color.background.selected'],
+      );
+      expect(semantic['color.action.button-text']).toBe(semantic['color.text.primary']);
+    }
+  });
+
+  it('保留浅深主题原有语义覆盖，并允许单独覆盖新角色', () => {
+    for (const theme of ['light', 'dark'] as const) {
+      const { semantic } = resolveThemeTokens(theme, {
+        'color.background.selected': '#123456',
+        'color.text.primary': '#abcdef',
+        'color.action.button-background': '#234567',
+      });
+      expect(semantic['color.background.control-selected']).toBe('#123456');
+      expect(semantic['color.action.button-background']).toBe('#234567');
+      expect(semantic['color.action.button-text']).toBe('#abcdef');
+    }
+    expect(
+      resolveThemeTokens('dopamine', { 'color.background.selected': '#123456' }).semantic[
+        'color.background.control-selected'
+      ],
+    ).toBe('#ededed');
+  });
+
+  it('导航在默认、选中、悬停、按下和焦点状态保持对比度及独立覆盖', () => {
+    for (const theme of themeNames) {
+      const { semantic } = resolveThemeTokens(theme);
+      for (const background of [
+        'color.background.navigation',
+        'color.background.navigation-selected',
+        'color.background.navigation-hover',
+        'color.background.navigation-pressed',
+      ] as const) {
+        expect(
+          contrastRatio(semantic['color.text.navigation'], semantic[background]),
+        ).toBeGreaterThanOrEqual(4.5);
+        expect(
+          contrastRatio(semantic['color.focus.navigation'], semantic[background]),
+        ).toBeGreaterThanOrEqual(3);
+      }
+      expect(
+        resolveThemeTokens(theme, { 'color.background.navigation-hover': '#123456' }).semantic[
+          'color.background.navigation-hover'
+        ],
+      ).toBe('#123456');
+    }
+    for (const theme of ['light', 'dark'] as const) {
+      const { semantic } = resolveThemeTokens(theme, {
+        'color.background.hover': '#123456',
+        'color.focus.ring': '#abcdef',
+      });
+      expect(semantic['color.background.navigation-hover']).toBe('#123456');
+      expect(semantic['color.focus.navigation']).toBe('#abcdef');
+    }
+    expect(
+      resolveThemeTokens('dopamine', { 'color.background.hover': '#123456' }).semantic[
+        'color.background.navigation-hover'
+      ],
+    ).toBe('#393938');
+  });
+
   it('分离悬停、按下和选中，并保持交互前景对比度和颜色覆盖', () => {
     for (const theme of themeNames) {
       const { semantic, component } = resolveThemeTokens(theme);

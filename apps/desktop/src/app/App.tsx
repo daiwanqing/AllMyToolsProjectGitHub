@@ -13,6 +13,8 @@ import type { ToolCategory } from '@allmytools/platform-contracts';
 import {
   primitiveColorTokenNames,
   semanticColorTokenNames,
+  themeNames,
+  themeLabels,
   type ColorTokenName,
   type ThemeColorOverrides,
   type ThemeName,
@@ -139,14 +141,12 @@ const workspaceNavigation: ReadonlyArray<
   { id: 'life', label: categoryLabels.life, icon: Home },
 ];
 
-const themes: ReadonlyArray<Readonly<{ id: ThemeName; label: string }>> = [
-  { id: 'light', label: '浅色' },
-  { id: 'dark', label: '深色' },
-];
+const themes = themeNames.map((id) => ({ id, label: themeLabels[id] }));
 
 const mobileThemes: ReadonlyArray<Readonly<{ id: ThemeName; label: string; icon: ReactNode }>> = [
   { id: 'light', label: '浅色', icon: <Sun aria-hidden="true" /> },
   { id: 'dark', label: '深色', icon: <Moon aria-hidden="true" /> },
+  { id: 'dopamine', label: themeLabels.dopamine, icon: <Palette aria-hidden="true" /> },
 ];
 
 const settingsTabs: ReadonlyArray<Readonly<{ id: SettingsTab; label: string; icon: LucideIcon }>> =
@@ -242,7 +242,7 @@ function readFileText(file: File): Promise<string> {
 }
 
 function readThemeColorOverrides(storage: Storage): PersistedThemeColorOverrides {
-  const fallback: PersistedThemeColorOverrides = { light: {}, dark: {} };
+  const fallback: PersistedThemeColorOverrides = { light: {}, dark: {}, dopamine: {} };
   const stored = storage.getItem(themeColorOverridesStorageKey);
   if (!stored) {
     return fallback;
@@ -258,6 +258,7 @@ function readThemeColorOverrides(storage: Storage): PersistedThemeColorOverrides
     return {
       light: readThemeColorOverrideLayer(parsed.light),
       dark: readThemeColorOverrideLayer(parsed.dark),
+      dopamine: readThemeColorOverrideLayer(parsed.dopamine),
     };
   } catch {
     return fallback;
@@ -290,7 +291,7 @@ function isWorkspaceView(value: unknown): value is WorkspaceView {
 }
 
 function isThemeName(value: unknown): value is ThemeName {
-  return value === 'light' || value === 'dark';
+  return themeNames.some((name) => name === value);
 }
 
 function isSettingsTab(value: unknown): value is SettingsTab {
@@ -881,7 +882,7 @@ export function App() {
             options={themes.map(({ id, label }) => ({ id, label: `使用${label}主题` }))}
             value={theme}
             onChange={(value) => {
-              if (value === 'light' || value === 'dark') {
+              if (isThemeName(value)) {
                 setTheme(value);
               }
             }}
@@ -1041,7 +1042,7 @@ export function App() {
                 options={isMobileLayout ? mobileThemes : themes}
                 value={theme}
                 onChange={(value) => {
-                  if (value === 'light' || value === 'dark') setTheme(value);
+                  if (isThemeName(value)) setTheme(value);
                 }}
               />
             </div>
@@ -1180,7 +1181,7 @@ export function App() {
                 options={isMobileLayout ? mobileThemes : themes}
                 value={theme}
                 onChange={(value) => {
-                  if (value === 'light' || value === 'dark') setTheme(value);
+                  if (isThemeName(value)) setTheme(value);
                 }}
               />
             </div>

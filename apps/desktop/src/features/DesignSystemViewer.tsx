@@ -3,6 +3,8 @@ import {
   resolveThemeTokens,
   primitiveColorTokenNames,
   semanticColorTokenNames,
+  themeNames,
+  themeLabels,
   type ColorTokenName,
   type ThemeColorOverrides,
   type ThemeName,
@@ -54,10 +56,14 @@ type TokenRow = Readonly<{
 const semanticTokenDescriptions: Readonly<Record<string, string>> = {
   'color.background.canvas': '页面最底层画布背景。',
   'color.background.surface': '卡片、面板和输入区域的表面背景。',
-  'color.background.selected': '持久选中和主命令的中性表面，不用于临时悬停或按下。',
+  'color.background.selected': '输入区、内容占位和工具内部使用的中性浅层表面。',
+  'color.background.control-selected': '选项、页签和状态按钮的中性持久选中底。',
   'color.background.hover': '鼠标悬停反馈，与持久选中态分开。',
   'color.background.pressed': '指针按下期间的反馈，松开后恢复。',
   'color.background.navigation-selected': '一级导航悬停和选中状态的中性表面。',
+  'color.background.navigation-hover': '导航悬停底色，适配黑白分区的导航表面。',
+  'color.background.navigation-pressed': '导航按下底色，适配黑白分区的导航表面。',
+  'color.focus.navigation': '导航键盘焦点环，多巴胺黑色导航使用白色。',
   'color.background.navigation': '桌面导航轨道与手机底栏共用的背景。',
   'color.text.primary': '标题、正文和主要内容文字。',
   'color.text.secondary': '辅助说明、元数据和次要文字。',
@@ -66,16 +72,18 @@ const semanticTokenDescriptions: Readonly<Record<string, string>> = {
   'color.border.strong': '需要更高对比度的边界和分隔线。',
   'color.action.primary': '主要操作控件的前景或填充颜色。',
   'color.action.primary-text': '主要操作控件上的反色文字。',
+  'color.action.button-background': '主命令背景；浅深主题为中性表面，多巴胺为炭黑。',
+  'color.action.button-text': '主命令文字，与主命令背景保持可读对比度。',
   'color.focus.ring': '键盘焦点可见环。',
-  'color.accent.calendar': '日历今天、选中日期和笔记圆点的珊瑚橙工具强调色。',
+  'color.accent.calendar': '日历今天、选中日期和笔记圆点；多巴胺为深粉，浅深主题为珊瑚橙。',
   'color.status.info': '信息提示和中性进展状态。',
   'color.status.success': '成功、完成和正向结果状态。',
   'color.status.warning': '需要留意但可以继续的状态。',
   'color.status.error': '错误、失败和破坏性操作状态。',
-  'color.business.lime': '业务身份色：荧光绿。不可用于错误或危险操作。',
-  'color.business.blue': '业务身份色：珊瑚橙。不可用于错误或危险操作。',
-  'color.business.amber': '业务身份色：琥珀黄。不可用于错误或危险操作。',
-  'color.business.violet': '业务身份色：紫色。不可用于错误或危险操作。',
+  'color.business.lime': '业务身份色：荧光绿，多巴胺为鲜绿。不可用于错误或危险操作。',
+  'color.business.blue': '业务身份色：珊瑚橙，多巴胺为电光蓝。不可用于错误或危险操作。',
+  'color.business.amber': '业务身份色：琥珀黄，多巴胺为明黄。不可用于错误或危险操作。',
+  'color.business.violet': '业务身份色：紫色，多巴胺为亮粉。不可用于错误或危险操作。',
 };
 
 function describeToken(name: string): string {
@@ -91,8 +99,20 @@ function describeToken(name: string): string {
     return semanticDescription;
   }
 
-  if (name.startsWith('color.neutral.')) {
+  if (name.startsWith('color.neutral.') || name.startsWith('color.gray.')) {
     return '黑白灰基础色阶，供主题语义颜色引用。';
+  }
+  if (name.startsWith('color.electric.')) {
+    return '多巴胺电光蓝，仅用于信息和小面积业务色标。';
+  }
+  if (name.startsWith('color.pink.')) {
+    return '多巴胺粉色阶：亮粉业务色标、深粉日历强调，不用于错误。';
+  }
+  if (name.startsWith('color.green.')) {
+    return '多巴胺鲜绿，仅用于小面积业务色标。';
+  }
+  if (name.startsWith('color.yellow.')) {
+    return '多巴胺明黄，仅用于小面积业务色标。';
   }
   if (name.startsWith('color.lime.')) {
     return '荧光绿多巴胺色阶，用于业务身份和成功状态。';
@@ -107,7 +127,7 @@ function describeToken(name: string): string {
     return '紫色多巴胺色阶，用于可扩展的业务身份。';
   }
   if (name.startsWith('color.red.')) {
-    return '玫红色多巴胺色阶，用于错误和危险操作。';
+    return '红色色阶，仅用于错误和危险操作。';
   }
   if (name.startsWith('space.')) {
     return '全局间距刻度，用于组件间隙和内边距。';
@@ -335,12 +355,12 @@ export function DesignSystemViewer({
     () => tokenRows(theme, colorOverrides[theme]),
     [colorOverrides, theme],
   );
-  const lightSemantic = useMemo(
-    () => resolveThemeTokens('light', colorOverrides.light).semantic,
-    [colorOverrides],
-  );
-  const darkSemantic = useMemo(
-    () => resolveThemeTokens('dark', colorOverrides.dark).semantic,
+  const themeComparisons = useMemo(
+    () =>
+      themeNames.map((id) => ({
+        id,
+        semantic: resolveThemeTokens(id, colorOverrides[id]).semantic,
+      })),
     [colorOverrides],
   );
   const motionTokens = useMemo(() => resolveThemeTokens(theme).component, [theme]);
@@ -501,12 +521,15 @@ export function DesignSystemViewer({
               <tr>
                 <th scope="col">Token</th>
                 <th scope="col">用途说明</th>
-                <th scope="col">浅色</th>
-                <th scope="col">深色</th>
+                {themeComparisons.map(({ id }) => (
+                  <th key={id} scope="col">
+                    {themeLabels[id]}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {Object.keys(lightSemantic).map((name) => (
+              {semanticColorTokenNames.map((name) => (
                 <tr key={name}>
                   <td>
                     <code>{name}</code>
@@ -514,12 +537,11 @@ export function DesignSystemViewer({
                   <td>
                     <span className="token-description">{describeToken(name)}</span>
                   </td>
-                  <td>
-                    <TokenValue value={lightSemantic[name as keyof typeof lightSemantic]} />
-                  </td>
-                  <td>
-                    <TokenValue value={darkSemantic[name as keyof typeof darkSemantic]} />
-                  </td>
+                  {themeComparisons.map(({ id, semantic }) => (
+                    <td key={id}>
+                      <TokenValue value={semantic[name]} />
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>

@@ -1,6 +1,12 @@
-export const themeNames = ['light', 'dark'] as const;
+export const themeNames = ['light', 'dark', 'dopamine'] as const;
 
 export type ThemeName = (typeof themeNames)[number];
+
+export const themeLabels: Readonly<Record<ThemeName, string>> = {
+  light: '浅色',
+  dark: '深色',
+  dopamine: '多巴胺',
+};
 
 /** 业务对象可选的身份色；红色严格保留给错误和危险语义。 */
 export const businessColorNames = ['lime', 'blue', 'amber', 'violet'] as const;
@@ -19,6 +25,16 @@ export const primitiveTokens = {
   'color.neutral.750': '#242424',
   'color.neutral.850': '#1b1b1b',
   'color.neutral.950': '#111111',
+  'color.gray.50': '#f5f5f5',
+  'color.gray.100': '#ededed',
+  'color.gray.200': '#e2e2e2',
+  'color.gray.300': '#c9c9c9',
+  'color.gray.500': '#626262',
+  'color.electric.700': '#2455e6',
+  'color.pink.500': '#f032b4',
+  'color.pink.700': '#ad167b',
+  'color.green.500': '#20db86',
+  'color.yellow.300': '#ffe44d',
   'color.lime.300': '#d9ff00',
   'color.lime.500': '#aee300',
   'color.lime.700': '#5d7800',
@@ -85,9 +101,13 @@ export const semanticThemeTokens = {
     'color.background.canvas': primitiveTokens['color.neutral.50'],
     'color.background.surface': primitiveTokens['color.neutral.0'],
     'color.background.selected': primitiveTokens['color.neutral.100'],
+    'color.background.control-selected': primitiveTokens['color.neutral.100'],
     'color.background.hover': primitiveTokens['color.neutral.200'],
     'color.background.pressed': primitiveTokens['color.neutral.300'],
     'color.background.navigation-selected': primitiveTokens['color.neutral.200'],
+    'color.background.navigation-hover': primitiveTokens['color.neutral.200'],
+    'color.background.navigation-pressed': primitiveTokens['color.neutral.300'],
+    'color.focus.navigation': primitiveTokens['color.neutral.600'],
     'color.background.navigation': primitiveTokens['color.neutral.0'],
     'color.text.primary': primitiveTokens['color.neutral.950'],
     'color.text.secondary': primitiveTokens['color.neutral.500'],
@@ -97,6 +117,8 @@ export const semanticThemeTokens = {
     // Interactive controls stay monochrome in the light theme.
     'color.action.primary': primitiveTokens['color.neutral.950'],
     'color.action.primary-text': primitiveTokens['color.neutral.0'],
+    'color.action.button-background': primitiveTokens['color.neutral.100'],
+    'color.action.button-text': primitiveTokens['color.neutral.950'],
     'color.focus.ring': primitiveTokens['color.neutral.600'],
     'color.accent.calendar': primitiveTokens['color.blue.700'],
     'color.status.info': primitiveTokens['color.blue.700'],
@@ -112,9 +134,13 @@ export const semanticThemeTokens = {
     'color.background.canvas': primitiveTokens['color.neutral.850'],
     'color.background.surface': primitiveTokens['color.neutral.750'],
     'color.background.selected': primitiveTokens['color.neutral.700'],
+    'color.background.control-selected': primitiveTokens['color.neutral.700'],
     'color.background.hover': primitiveTokens['color.neutral.600'],
     'color.background.pressed': primitiveTokens['color.neutral.500'],
     'color.background.navigation-selected': primitiveTokens['color.neutral.700'],
+    'color.background.navigation-hover': primitiveTokens['color.neutral.600'],
+    'color.background.navigation-pressed': primitiveTokens['color.neutral.500'],
+    'color.focus.navigation': primitiveTokens['color.neutral.300'],
     'color.background.navigation': primitiveTokens['color.neutral.950'],
     'color.text.primary': primitiveTokens['color.neutral.50'],
     'color.text.secondary': primitiveTokens['color.neutral.300'],
@@ -124,6 +150,8 @@ export const semanticThemeTokens = {
     // Interactive controls stay monochrome in the dark theme.
     'color.action.primary': primitiveTokens['color.neutral.50'],
     'color.action.primary-text': primitiveTokens['color.neutral.950'],
+    'color.action.button-background': primitiveTokens['color.neutral.700'],
+    'color.action.button-text': primitiveTokens['color.neutral.50'],
     'color.focus.ring': primitiveTokens['color.neutral.300'],
     'color.accent.calendar': primitiveTokens['color.blue.300'],
     'color.status.info': primitiveTokens['color.blue.300'],
@@ -134,6 +162,38 @@ export const semanticThemeTokens = {
     'color.business.blue': primitiveTokens['color.blue.300'],
     'color.business.amber': primitiveTokens['color.amber.300'],
     'color.business.violet': primitiveTokens['color.violet.300'],
+  },
+  dopamine: {
+    'color.background.canvas': primitiveTokens['color.neutral.0'],
+    'color.background.surface': primitiveTokens['color.neutral.0'],
+    'color.background.selected': primitiveTokens['color.gray.100'],
+    'color.background.control-selected': primitiveTokens['color.gray.100'],
+    'color.background.hover': primitiveTokens['color.gray.200'],
+    'color.background.pressed': primitiveTokens['color.gray.300'],
+    'color.background.navigation-selected': primitiveTokens['color.neutral.750'],
+    'color.background.navigation-hover': primitiveTokens['color.neutral.700'],
+    'color.background.navigation-pressed': primitiveTokens['color.neutral.600'],
+    'color.focus.navigation': primitiveTokens['color.neutral.0'],
+    'color.background.navigation': primitiveTokens['color.neutral.950'],
+    'color.text.primary': primitiveTokens['color.neutral.950'],
+    'color.text.secondary': primitiveTokens['color.gray.500'],
+    'color.text.navigation': primitiveTokens['color.neutral.0'],
+    'color.border.default': primitiveTokens['color.gray.200'],
+    'color.border.strong': primitiveTokens['color.gray.500'],
+    'color.action.primary': primitiveTokens['color.neutral.950'],
+    'color.action.primary-text': primitiveTokens['color.neutral.0'],
+    'color.action.button-background': primitiveTokens['color.neutral.950'],
+    'color.action.button-text': primitiveTokens['color.neutral.0'],
+    'color.focus.ring': primitiveTokens['color.gray.500'],
+    'color.accent.calendar': primitiveTokens['color.pink.700'],
+    'color.status.info': primitiveTokens['color.electric.700'],
+    'color.status.success': primitiveTokens['color.lime.700'],
+    'color.status.warning': primitiveTokens['color.amber.700'],
+    'color.status.error': primitiveTokens['color.red.700'],
+    'color.business.lime': primitiveTokens['color.green.500'],
+    'color.business.blue': primitiveTokens['color.electric.700'],
+    'color.business.amber': primitiveTokens['color.yellow.300'],
+    'color.business.violet': primitiveTokens['color.pink.500'],
   },
 } as const;
 
@@ -157,9 +217,13 @@ const semanticPrimitiveSources: Readonly<
     'color.background.canvas': 'color.neutral.50',
     'color.background.surface': 'color.neutral.0',
     'color.background.selected': 'color.neutral.100',
+    'color.background.control-selected': 'color.neutral.100',
     'color.background.hover': 'color.neutral.200',
     'color.background.pressed': 'color.neutral.300',
     'color.background.navigation-selected': 'color.neutral.200',
+    'color.background.navigation-hover': 'color.neutral.200',
+    'color.background.navigation-pressed': 'color.neutral.300',
+    'color.focus.navigation': 'color.neutral.600',
     'color.background.navigation': 'color.neutral.0',
     'color.text.primary': 'color.neutral.950',
     'color.text.secondary': 'color.neutral.500',
@@ -168,6 +232,8 @@ const semanticPrimitiveSources: Readonly<
     'color.border.strong': 'color.neutral.600',
     'color.action.primary': 'color.neutral.950',
     'color.action.primary-text': 'color.neutral.0',
+    'color.action.button-background': 'color.neutral.100',
+    'color.action.button-text': 'color.neutral.950',
     'color.focus.ring': 'color.neutral.600',
     'color.accent.calendar': 'color.blue.700',
     'color.status.info': 'color.blue.700',
@@ -183,9 +249,13 @@ const semanticPrimitiveSources: Readonly<
     'color.background.canvas': 'color.neutral.850',
     'color.background.surface': 'color.neutral.750',
     'color.background.selected': 'color.neutral.700',
+    'color.background.control-selected': 'color.neutral.700',
     'color.background.hover': 'color.neutral.600',
     'color.background.pressed': 'color.neutral.500',
     'color.background.navigation-selected': 'color.neutral.700',
+    'color.background.navigation-hover': 'color.neutral.600',
+    'color.background.navigation-pressed': 'color.neutral.500',
+    'color.focus.navigation': 'color.neutral.300',
     'color.background.navigation': 'color.neutral.950',
     'color.text.primary': 'color.neutral.50',
     'color.text.secondary': 'color.neutral.300',
@@ -194,6 +264,8 @@ const semanticPrimitiveSources: Readonly<
     'color.border.strong': 'color.neutral.300',
     'color.action.primary': 'color.neutral.50',
     'color.action.primary-text': 'color.neutral.950',
+    'color.action.button-background': 'color.neutral.700',
+    'color.action.button-text': 'color.neutral.50',
     'color.focus.ring': 'color.neutral.300',
     'color.accent.calendar': 'color.blue.300',
     'color.status.info': 'color.blue.300',
@@ -204,6 +276,38 @@ const semanticPrimitiveSources: Readonly<
     'color.business.blue': 'color.blue.300',
     'color.business.amber': 'color.amber.300',
     'color.business.violet': 'color.violet.300',
+  },
+  dopamine: {
+    'color.background.canvas': 'color.neutral.0',
+    'color.background.surface': 'color.neutral.0',
+    'color.background.selected': 'color.gray.100',
+    'color.background.control-selected': 'color.gray.100',
+    'color.background.hover': 'color.gray.200',
+    'color.background.pressed': 'color.gray.300',
+    'color.background.navigation-selected': 'color.neutral.750',
+    'color.background.navigation-hover': 'color.neutral.700',
+    'color.background.navigation-pressed': 'color.neutral.600',
+    'color.focus.navigation': 'color.neutral.0',
+    'color.background.navigation': 'color.neutral.950',
+    'color.text.primary': 'color.neutral.950',
+    'color.text.secondary': 'color.gray.500',
+    'color.text.navigation': 'color.neutral.0',
+    'color.border.default': 'color.gray.200',
+    'color.border.strong': 'color.gray.500',
+    'color.action.primary': 'color.neutral.950',
+    'color.action.primary-text': 'color.neutral.0',
+    'color.action.button-background': 'color.neutral.950',
+    'color.action.button-text': 'color.neutral.0',
+    'color.focus.ring': 'color.gray.500',
+    'color.accent.calendar': 'color.pink.700',
+    'color.status.info': 'color.electric.700',
+    'color.status.success': 'color.lime.700',
+    'color.status.warning': 'color.amber.700',
+    'color.status.error': 'color.red.700',
+    'color.business.lime': 'color.green.500',
+    'color.business.blue': 'color.electric.700',
+    'color.business.amber': 'color.yellow.300',
+    'color.business.violet': 'color.pink.500',
   },
 };
 
@@ -265,6 +369,22 @@ export function resolveThemeTokens(
     const override = colorOverrides[name] ?? colorOverrides[semanticPrimitiveSources[theme][name]];
     if (override) {
       (semantic as Record<string, string>)[name] = override;
+    }
+  }
+
+  // Preserve existing light/dark customizations until the new roles are overridden explicitly.
+  if (theme !== 'dopamine') {
+    for (const [target, source] of [
+      ['color.background.control-selected', 'color.background.selected'],
+      ['color.action.button-background', 'color.background.selected'],
+      ['color.action.button-text', 'color.text.primary'],
+      ['color.background.navigation-hover', 'color.background.hover'],
+      ['color.background.navigation-pressed', 'color.background.pressed'],
+      ['color.focus.navigation', 'color.focus.ring'],
+    ] as const) {
+      if (!colorOverrides[target] && colorOverrides[source]) {
+        (semantic as Record<string, string>)[target] = semantic[source];
+      }
     }
   }
 

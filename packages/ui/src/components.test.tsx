@@ -333,7 +333,7 @@ describe('composite controls', () => {
       <ChoiceGroup
         ariaLabel="主题设置"
         options={[
-          { id: 'light', label: '浅色' },
+          { id: 'light', label: '浅色', icon: <span aria-hidden="true">icon</span> },
           { id: 'dark', label: '深色' },
         ]}
         value="light"
@@ -345,6 +345,7 @@ describe('composite controls', () => {
     expect(group).toBeInTheDocument();
     expect(screen.queryByRole('tablist', { name: '主题设置' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '浅色' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: '浅色' })).toHaveAttribute('title', '浅色');
     expect(screen.getByRole('button', { name: '浅色' })).not.toHaveClass('amt-toggle-button');
     fireEvent.click(screen.getByRole('button', { name: '深色' }));
     expect(onChange).toHaveBeenCalledWith('dark');
