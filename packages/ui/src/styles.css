@@ -16,10 +16,6 @@
     background var(--amt-motion-fast) var(--amt-motion-easing-standard);
 }
 
-.amt-button:hover:not(:disabled) {
-  background: var(--amt-color-background-selected);
-}
-
 .amt-button:focus-visible {
   outline: var(--amt-focus-ring-width) solid var(--amt-color-focus-ring);
   outline-offset: var(--amt-focus-ring-offset);
@@ -35,16 +31,8 @@
   background: var(--amt-color-background-selected);
 }
 
-.amt-button-primary:hover:not(:disabled) {
-  background: var(--amt-color-background-selected);
-}
-
 .amt-button-danger {
   color: var(--amt-color-action-primary-text);
-  background: var(--amt-color-status-error);
-}
-
-.amt-button-danger:hover:not(:disabled) {
   background: var(--amt-color-status-error);
 }
 
@@ -72,11 +60,6 @@
   background: transparent;
 }
 
-.amt-toggle-button:hover:not(:disabled) {
-  color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-selected);
-}
-
 .amt-toggle-button[aria-pressed='true'] {
   color: var(--amt-color-text-primary);
   background: var(--amt-color-background-selected);
@@ -95,13 +78,19 @@
   background: var(--amt-color-text-primary);
 }
 
-.amt-toggle-button[aria-pressed='true']:hover:not(:disabled) {
-  color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-selected);
+.amt-button-label {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: inherit;
+  gap: var(--amt-space-2);
+  transition: opacity var(--amt-motion-fast) var(--amt-motion-easing-standard);
 }
 
-.amt-button-label {
-  transition: opacity var(--amt-motion-fast) var(--amt-motion-easing-standard);
+.amt-button-label > svg {
+  width: var(--amt-primitive-dimension-icon-default);
+  height: var(--amt-primitive-dimension-icon-default);
+  flex: none;
 }
 
 .amt-button[aria-busy='true'] .amt-button-label {
@@ -133,7 +122,6 @@
     background var(--amt-motion-fast) var(--amt-motion-easing-standard);
 }
 
-.amt-icon-button:hover:not(:disabled),
 .amt-icon-button[aria-pressed='true'] {
   color: var(--amt-color-action-primary);
   background: var(--amt-color-background-selected);
@@ -174,7 +162,6 @@
   gap: var(--amt-space-2);
 }
 
-.amt-navigation-item:hover:not(:disabled),
 .amt-navigation-item[aria-current='page'] {
   color: var(--amt-color-text-primary);
   background: var(--amt-color-background-selected);
@@ -226,7 +213,7 @@
   background: transparent;
   cursor: pointer;
   font: inherit;
-  font-weight: var(--amt-typography-weight-regular);
+  font-weight: var(--amt-typography-weight-medium);
   text-align: left;
   white-space: nowrap;
   transition:
@@ -251,12 +238,7 @@
 .amt-tab-control-item[aria-selected='true'] {
   color: var(--amt-color-text-primary);
   background: var(--amt-color-background-selected);
-  font-weight: var(--amt-typography-weight-bold);
-}
-
-.amt-tab-control-item:hover:not(:disabled) {
-  color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-selected);
+  font-weight: var(--amt-typography-weight-medium);
 }
 
 .amt-tab-control-item:disabled {
@@ -277,6 +259,8 @@
   gap: var(--amt-space-2);
   padding: 0 var(--amt-space-3);
   border: 0;
+  border-radius: var(--amt-radius-control);
+  font-weight: var(--amt-typography-weight-medium);
   color: var(--amt-color-text-secondary);
   background: transparent;
   cursor: pointer;
@@ -288,11 +272,6 @@
 .amt-tab svg {
   width: var(--amt-primitive-dimension-icon-default);
   height: var(--amt-primitive-dimension-icon-default);
-}
-
-.amt-tab:hover {
-  color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-selected);
 }
 
 .amt-tab[aria-selected='true'] {
@@ -365,22 +344,13 @@
   color: var(--amt-color-text-secondary);
   background: transparent;
   text-align: left;
-}
-
-.amt-choice-option.amt-button:hover:not(:disabled) {
-  color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-selected);
+  font-weight: var(--amt-typography-weight-medium);
 }
 
 .amt-choice-option.amt-button[aria-pressed='true'] {
   color: var(--amt-color-text-primary);
   background: var(--amt-color-background-selected);
-  font-weight: var(--amt-typography-weight-bold);
-}
-
-.amt-choice-option.amt-button[aria-pressed='true']:hover:not(:disabled) {
-  color: var(--amt-color-text-primary);
-  background: var(--amt-color-background-selected);
+  font-weight: var(--amt-typography-weight-medium);
 }
 
 .amt-choice-option-copy {
@@ -394,8 +364,7 @@
 }
 
 .amt-choice-option.amt-button[aria-pressed='true'] .amt-choice-option-description {
-  color: inherit;
-  opacity: var(--amt-control-disabled-opacity);
+  color: var(--amt-color-text-secondary);
 }
 
 .amt-choice-option-icon {
@@ -486,9 +455,23 @@
   outline-offset: var(--amt-focus-ring-offset);
 }
 
+.amt-field-input::placeholder {
+  color: var(--amt-color-text-secondary);
+  opacity: 1;
+}
+
 .amt-field-input:disabled {
   cursor: not-allowed;
   background: var(--amt-color-background-selected);
+  opacity: var(--amt-control-disabled-opacity);
+}
+
+.amt-field-input[readonly] {
+  background: var(--amt-color-background-canvas);
+}
+
+.amt-field-input[aria-invalid='true'] {
+  box-shadow: inset var(--amt-focus-ring-width) 0 0 var(--amt-color-status-error);
 }
 
 .amt-textarea-field-input {
@@ -542,11 +525,6 @@
 
 .amt-stepper-button:last-child {
   border-radius: 0 var(--amt-radius-control) var(--amt-radius-control) 0;
-}
-
-.amt-stepper-button:hover:not(:disabled) {
-  color: var(--amt-color-action-primary);
-  background: var(--amt-color-background-surface);
 }
 
 .amt-stepper-button:focus-visible,
@@ -663,10 +641,6 @@
   text-align: left;
 }
 
-.amt-disclosure-trigger:hover:not(:disabled) {
-  color: var(--amt-color-action-primary);
-}
-
 .amt-disclosure-trigger:disabled {
   cursor: not-allowed;
   opacity: var(--amt-control-disabled-opacity);
@@ -766,6 +740,7 @@
   z-index: var(--amt-primitive-z-index-notification);
   top: 50%;
   left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   width: min(calc(var(--amt-space-10) * 16), calc(100vw - var(--amt-space-8)));
   align-items: center;
@@ -816,6 +791,61 @@
   }
 }
 
+/* State rules follow variants so selected controls retain pointer feedback. */
+@media (hover: hover) {
+  .amt-button:hover:not(:disabled),
+  .amt-icon-button:hover:not(:disabled),
+  .amt-tab:hover:not(:disabled),
+  .amt-tab-control-item:hover:not(:disabled),
+  .amt-stepper-button:hover:not(:disabled),
+  .amt-disclosure-trigger:hover:not(:disabled),
+  .amt-choice-option.amt-button:hover:not(:disabled),
+  .amt-field-input:hover:not(:disabled):not([readonly]):not(:focus),
+  .amt-toggle-button[aria-pressed='true']:hover:not(:disabled) {
+    color: var(--amt-color-text-primary);
+    background: var(--amt-color-background-hover);
+  }
+
+  .amt-button-danger:hover:not(:disabled) {
+    color: var(--amt-color-action-primary-text);
+    background: color-mix(
+      in srgb,
+      var(--amt-color-text-primary) var(--amt-control-hover-mix),
+      var(--amt-color-status-error)
+    );
+  }
+}
+
+.amt-button:active:not(:disabled),
+.amt-icon-button:active:not(:disabled),
+.amt-tab:active:not(:disabled),
+.amt-tab-control-item:active:not(:disabled),
+.amt-stepper-button:active:not(:disabled),
+.amt-disclosure-trigger:active:not(:disabled),
+.amt-choice-option.amt-button:active:not(:disabled),
+.amt-toggle-button[aria-pressed='true']:active:not(:disabled) {
+  color: var(--amt-color-text-primary);
+  background: var(--amt-color-background-pressed);
+}
+
+.amt-button-danger:active:not(:disabled) {
+  color: var(--amt-color-action-primary-text);
+  background: color-mix(
+    in srgb,
+    var(--amt-color-text-primary) var(--amt-control-pressed-mix),
+    var(--amt-color-status-error)
+  );
+}
+
+.amt-choice-option.amt-button:active:not(:disabled) .amt-choice-option-description {
+  color: var(--amt-color-text-primary);
+}
+
+.amt-tab:disabled {
+  cursor: not-allowed;
+  opacity: var(--amt-control-disabled-opacity);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .amt-button-spinner,
   .amt-inline-message,
@@ -831,5 +861,11 @@
     align-items: flex-start;
     flex-direction: column;
     gap: var(--amt-space-3);
+  }
+}
+
+@media (max-width: 720px) {
+  .amt-field-input {
+    font-size: var(--amt-typography-size-section-title);
   }
 }

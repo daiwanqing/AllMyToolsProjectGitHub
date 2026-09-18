@@ -1,4 +1,4 @@
-import { useEffect, useRef, type HTMLAttributes, type ReactNode } from 'react';
+import { useEffect, useRef, type HTMLAttributes, type KeyboardEvent, type ReactNode } from 'react';
 
 export type ModalProps = Readonly<{
   children: ReactNode;
@@ -8,6 +8,31 @@ export type ModalProps = Readonly<{
   onClose: () => void;
   open: boolean;
 }>;
+
+function tabbableElements(dialog: HTMLDialogElement) {
+  return Array.from(
+    dialog.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]'),
+  ).filter((element) => {
+    if (
+      element.tabIndex < 0 ||
+      element.matches(':disabled') ||
+      element.closest('[hidden], [inert]')
+    )
+      return false;
+    // Inspect ancestors as hidden tab panels still contain otherwise focusable controls.
+    for (let ancestor: HTMLElement | null = element; ancestor; ancestor = ancestor.parentElement) {
+      const style = getComputedStyle(ancestor);
+      if (
+        style.display === 'none' ||
+        style.visibility === 'hidden' ||
+        style.visibility === 'collapse'
+      )
+        return false;
+      if (ancestor === dialog) break;
+    }
+    return element.getAttribute('type') !== 'hidden';
+  });
+}
 
 /** 统一模态对话框：原生 modal 优先，并为测试/非原生宿主提供焦点回退。 */
 export function Modal({
@@ -22,6 +47,28 @@ export function Modal({
   const restoreFocusRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+
+  function handleKeyDown(event: KeyboardEvent<HTMLDialogElement>) {
+    const dialog = event.currentTarget;
+    if (event.target instanceof Element && event.target.closest('dialog') !== dialog) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onCloseRef.current();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const focusable = tabbableElements(dialog);
+    if (!focusable.length) {
+      event.preventDefault();
+      dialog.focus();
+      return;
+    }
+    const current = focusable.indexOf(document.activeElement as HTMLElement);
+    if (current < 0 || (event.shiftKey ? current === 0 : current === focusable.length - 1)) {
+      event.preventDefault();
+      focusable[event.shiftKey ? focusable.length - 1 : 0].focus();
+    }
+  }
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -38,36 +85,11 @@ export function Modal({
     } else {
       dialog.setAttribute('open', '');
     }
-    const firstFocusable = dialog.querySelector<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    );
-    firstFocusable?.focus();
+    (tabbableElements(dialog)[0] ?? dialog).focus();
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onCloseRef.current();
-        return;
-      }
-      if (event.key !== 'Tab' || !dialog.contains(document.activeElement)) return;
-      const focusable = Array.from(
-        dialog.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        ),
-      ).filter((element) => !element.hasAttribute('disabled'));
-      if (!focusable.length) return;
-      const current = focusable.indexOf(document.activeElement as HTMLElement);
-      const next = event.shiftKey
-        ? focusable[(current - 1 + focusable.length) % focusable.length]
-        : focusable[(current + 1) % focusable.length];
-      event.preventDefault();
-      next?.focus();
-    };
-    dialog.addEventListener('keydown', handleKeyDown);
     return () => {
-      dialog.removeEventListener('keydown', handleKeyDown);
       if (dialog.open && typeof dialog.close === 'function') dialog.close();
-      restoreFocusRef.current?.focus();
+      if (restoreFocusRef.current?.isConnected) restoreFocusRef.current.focus();
     };
   }, [open]);
 
@@ -79,6 +101,8 @@ export function Modal({
       {...debugAttributes}
       aria-labelledby={labelledBy}
       aria-modal="true"
+      tabIndex={-1}
+      onKeyDown={handleKeyDown}
       onCancel={(event) => {
         event.preventDefault();
         onCloseRef.current();

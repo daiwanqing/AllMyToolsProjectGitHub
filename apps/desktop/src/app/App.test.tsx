@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
+import { toolRegistry } from '../features/registeredTools';
 
 afterEach(() => {
   cleanup();
@@ -82,6 +83,17 @@ describe('desktop shell', () => {
       expect(themeChoice).toHaveClass('mobile-theme-choice');
       expect(within(themeChoice).getByRole('button', { name: '浅色' })).toBeInTheDocument();
       expect(within(themeChoice).getByRole('button', { name: '深色' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: '工具工作台' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '常用' })).toBeInTheDocument();
+      fireEvent.click(within(themeChoice).getByRole('button', { name: '深色' }));
+      expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+      fireEvent.click(screen.getByRole('button', { name: '收藏 旅行笔记' }));
+      expect(screen.getByRole('button', { name: '取消收藏 旅行笔记' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      expect(screen.getAllByRole('article')).toHaveLength(5);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
       expect(within(navigation).getByRole('tab', { name: '全部工具' })).toHaveTextContent(
         '全部工具',
       );
@@ -108,6 +120,34 @@ describe('desktop shell', () => {
       }
     }
   });
+
+  it.each(['load-failed', 'missing-capability'] as const)(
+    '显示加载反馈并在 %s 后保持目录可用',
+    async (code) => {
+      let finish!: (result: Awaited<ReturnType<typeof toolRegistry.activate>>) => void;
+      const activation = vi.spyOn(toolRegistry, 'activate').mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finish = resolve;
+          }),
+      );
+      try {
+        render(<App />);
+        fireEvent.click(screen.getByRole('button', { name: '复习笔记' }));
+        expect(screen.getByRole('status')).toHaveTextContent('正在打开');
+        expect(screen.getByRole('button', { name: '复习笔记' })).toBeDisabled();
+        finish({ ok: false, failure: { code, message: '工具暂不可用，请重试。' } });
+        await waitFor(() =>
+          expect(screen.getByRole('alert')).toHaveTextContent('工具暂不可用，请重试。'),
+        );
+        expect(screen.queryByText('正在打开')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '复习笔记' })).toBeEnabled();
+        expect(screen.getByRole('button', { name: '打开设置' })).toBeEnabled();
+      } finally {
+        activation.mockRestore();
+      }
+    },
+  );
 
   it('opens travel notes and saves a quick entry in its own namespace', async () => {
     render(<App />);
@@ -758,6 +798,25 @@ describe('desktop shell', () => {
     expect(screen.getByRole('heading', { name: '公共组件' })).toBeInTheDocument();
     expect(screen.getByText('SettingRow')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '组件展厅' })).toBeInTheDocument();
+    const loadingPreview = screen.getByRole('button', { name: '保存示例' });
+    expect(loadingPreview).toBeDisabled();
+    expect(loadingPreview).toHaveAttribute('aria-busy', 'true');
+    fireEvent.click(screen.getByRole('button', { name: '加载状态' }));
+    expect(loadingPreview).toBeEnabled();
+    fireEvent.click(loadingPreview);
+    expect(screen.getByText('保存命令已执行')).toBeVisible();
+    expect(screen.getByRole('button', { name: '不可用命令' })).toBeDisabled();
+    expect(screen.getByRole('textbox', { name: '错误名称' })).toHaveAttribute(
+      'aria-invalid',
+      'true',
+    );
+    expect(screen.getByText('未获得文件访问权限，请授权后重试。')).toBeVisible();
+    const countPreview = screen.getByRole('spinbutton', { name: '保留最近工具数' });
+    fireEvent.change(countPreview, { target: { value: '' } });
+    expect(countPreview).toHaveDisplayValue('');
+    fireEvent.change(countPreview, { target: { value: '8' } });
+    fireEvent.keyDown(countPreview, { key: 'Enter' });
+    expect(countPreview).toHaveValue(8);
     const showcaseToggle = screen.getByRole('button', { name: '调试状态' });
     expect(showcaseToggle).toHaveAttribute('aria-pressed', 'false');
     fireEvent.click(showcaseToggle);

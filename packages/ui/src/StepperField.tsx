@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useEffect, useId, useState } from 'react';
 import type { ChangeEvent } from 'react';
 
 export type StepperFieldProps = Readonly<{
@@ -33,16 +33,32 @@ export function StepperField({
   const generatedId = useId();
   const id = suppliedId ?? generatedId;
   const descriptionId = description ? `${id}-description` : undefined;
+  const [draft, setDraft] = useState<string | null>(null);
+
+  useEffect(() => {
+    setDraft(null);
+  }, [value, min, max, disabled]);
+
+  function draftValue() {
+    const parsed = draft === null || draft.trim() === '' ? NaN : Number(draft);
+    return Number.isFinite(parsed) ? parsed : value;
+  }
+  const currentValue = clamp(draftValue(), min, max);
+
+  function commit() {
+    const nextValue = currentValue;
+    setDraft(null);
+    if (nextValue !== value) onChange(nextValue);
+  }
 
   function updateFromInput(event: ChangeEvent<HTMLInputElement>) {
-    const nextValue = Number(event.target.value);
-    if (Number.isFinite(nextValue)) {
-      onChange(clamp(nextValue, min, max));
-    }
+    setDraft(event.target.value);
   }
 
   function updateBy(delta: number) {
-    onChange(clamp(value + delta, min, max));
+    const nextValue = clamp(currentValue + delta, min, max);
+    setDraft(null);
+    if (nextValue !== value) onChange(nextValue);
   }
 
   return (
@@ -55,7 +71,7 @@ export function StepperField({
           className="amt-stepper-button"
           type="button"
           aria-label={`减少${label}`}
-          disabled={disabled || (min !== undefined && value <= min)}
+          disabled={disabled || (min !== undefined && currentValue <= min)}
           onClick={() => updateBy(-step)}
         >
           −
@@ -64,19 +80,30 @@ export function StepperField({
           id={id}
           className="amt-field-input amt-stepper-input"
           type="number"
-          value={value}
+          value={draft ?? value}
           min={min}
           max={max}
           step={step}
           disabled={disabled}
           onChange={updateFromInput}
+          onBlur={commit}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              commit();
+            } else if (event.key === 'Escape') {
+              event.preventDefault();
+              event.stopPropagation();
+              setDraft(null);
+            }
+          }}
           aria-describedby={descriptionId}
         />
         <button
           className="amt-stepper-button"
           type="button"
           aria-label={`增加${label}`}
-          disabled={disabled || (max !== undefined && value >= max)}
+          disabled={disabled || (max !== undefined && currentValue >= max)}
           onClick={() => updateBy(step)}
         >
           +

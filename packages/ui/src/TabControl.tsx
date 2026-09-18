@@ -24,35 +24,32 @@ function TabControl({
   value,
 }: TabControlProps & { orientation: 'horizontal' | 'vertical' }) {
   const instanceId = useId().replaceAll(':', '');
-  const activeIndex = Math.max(
-    0,
-    items.findIndex((item) => item.id === value),
-  );
+  const enabledItems = items.filter((item) => !item.disabled);
+  const tabStop = enabledItems.find((item) => item.id === value)?.id ?? enabledItems[0]?.id;
 
-  function move(event: KeyboardEvent<HTMLButtonElement>) {
+  function move(event: KeyboardEvent<HTMLButtonElement>, id: string) {
     const forward = orientation === 'horizontal' ? 'ArrowRight' : 'ArrowDown';
     const backward = orientation === 'horizontal' ? 'ArrowLeft' : 'ArrowUp';
+    const activeIndex = enabledItems.findIndex((item) => item.id === id);
     let nextIndex = activeIndex;
-    if (items.length === 0) {
+    if (enabledItems.length === 0) {
       return;
     }
     if (event.key === forward) {
-      nextIndex = (activeIndex + 1) % items.length;
+      nextIndex = (activeIndex + 1) % enabledItems.length;
     } else if (event.key === backward) {
-      nextIndex = (activeIndex - 1 + items.length) % items.length;
+      nextIndex = (activeIndex - 1 + enabledItems.length) % enabledItems.length;
     } else if (event.key === 'Home') {
       nextIndex = 0;
     } else if (event.key === 'End') {
-      nextIndex = items.length - 1;
+      nextIndex = enabledItems.length - 1;
     } else {
       return;
     }
 
     event.preventDefault();
-    const next = items[nextIndex];
-    if (!next.disabled) {
-      onChange(next.id);
-    }
+    const next = enabledItems[nextIndex];
+    onChange(next.id);
     window.setTimeout(
       () => document.getElementById(`amt-tab-control-${instanceId}-${next.id}`)?.focus(),
       0,
@@ -76,10 +73,10 @@ function TabControl({
           type="button"
           role="tab"
           aria-selected={value === item.id}
-          tabIndex={value === item.id ? 0 : -1}
+          tabIndex={tabStop === item.id ? 0 : -1}
           disabled={item.disabled}
           onClick={() => onChange(item.id)}
-          onKeyDown={move}
+          onKeyDown={(event) => move(event, item.id)}
         >
           {item.icon ? (
             <span className="amt-tab-control-item-icon" aria-hidden="true">

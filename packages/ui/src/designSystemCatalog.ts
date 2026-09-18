@@ -14,7 +14,7 @@ export const uiComponentCatalog: readonly UiComponentDefinition[] = [
   {
     name: 'Button',
     category: '基础操作',
-    contract: '主、次、危险红色、加载和禁用状态。',
+    contract: '主、次、危险红色；区分悬停与按下，加载保留尺寸及名称且不可重复触发。',
   },
   {
     name: 'ToggleButton',
@@ -47,24 +47,23 @@ export const uiComponentCatalog: readonly UiComponentDefinition[] = [
   {
     name: 'Tabs',
     category: '页签控件',
-    contract: '带内容面板的受控 tablist/tab/tabpanel，负责页签视图切换与键盘导航。',
+    contract: '带面板的受控 tablist/tab/tabpanel；支持 disabled 项，方向键和 Home/End 跳过禁用项。',
   },
   {
     name: 'HorizontalTabs',
     category: '页签控件',
-    contract:
-      '无外框横向 tablist，负责同级页签/导航切换；整行文字项、浅灰选中态、方向键和 Home/End 导航。',
+    contract: '无外框横向 tablist；方向键和 Home/End 跳过禁用项，无有效值时保留可用键盘入口。',
   },
   {
     name: 'VerticalTabs',
     category: '页签控件',
-    contract:
-      '填满父容器的无外框竖向 tablist，负责同级页签/导航切换；整行文字项、浅灰选中态、方向键和 Home/End 导航。',
+    contract: '填满父容器的无外框竖向 tablist；上下方向键和 Home/End 跳过禁用项。',
   },
   {
     name: 'ChoiceGroup',
     category: '状态控件',
-    contract: '互斥状态选择组，使用独立边界、aria-pressed 和键盘可达按钮；不输出 tablist 语义。',
+    contract:
+      '互斥状态选择组，使用无描边选中表面、aria-pressed 和键盘可达按钮；不输出 tablist 语义。',
   },
   {
     name: 'ToggleField',
@@ -84,7 +83,7 @@ export const uiComponentCatalog: readonly UiComponentDefinition[] = [
   {
     name: 'StepperField',
     category: '复合控件',
-    contract: '组合数值输入、增减按钮和边界约束。',
+    contract: '数值草稿允许清空，失焦或 Enter 校验范围并提交，Escape 取消；增减按钮立即提交。',
   },
   {
     name: 'StatusBadge',
@@ -104,7 +103,7 @@ export const uiComponentCatalog: readonly UiComponentDefinition[] = [
   {
     name: 'Modal',
     category: '复合控件',
-    contract: '真正 modal 对话框、Escape/遮罩关闭、焦点限制和关闭后焦点恢复。',
+    contract: 'modal 对话框；Tab 排除隐藏、禁用和负 tabIndex 元素并在首尾循环，关闭后恢复焦点。',
   },
 ];
 
@@ -114,6 +113,7 @@ export const uiGuidelineGroups: readonly UiGuidelineGroup[] = [
     rules: [
       '组件只读取语义样式变量，不在业务页面重新定义颜色或间距。',
       '浅色与深色由主题语义值切换，不修改组件代码。',
+      '暖灰画布、白色或炭黑表面与轻结构线建立层级；自定义控件无描边，焦点环保留。',
       '业务身份色仅使用绿、蓝、黄、紫等业务 Token；红色只表示错误和危险操作。',
       '按钮、输入、菜单、面板和图片裁切统一使用 4px 圆角；圆形标记除外。',
       '动效只使用共享时长和标准缓动；系统请求减少动效时立即显示结果。',
@@ -124,12 +124,14 @@ export const uiGuidelineGroups: readonly UiGuidelineGroup[] = [
     rules: [
       '设置按外观、快捷键和开发者页签组织，开发者内部按诊断目标分组。',
       '运行工作区优先保证密度与扫描效率，不使用嵌套卡片作为装饰。',
+      '工作台保留原有字体、小方块色标、主题快捷入口与常用分组；手机工具双列排列。',
     ],
   },
   {
     title: '可访问性与交互',
     rules: [
       '控件必须提供可见标签、关联说明、焦点反馈和键盘路径，状态不能只用颜色表达。',
+      '悬停、按下、持久选中使用不同状态；禁用和加载不可触发，切换不改变控件尺寸。',
       '不熟悉的图标按钮必须提供 title 和 aria-label，复制操作必须反馈结果。',
     ],
   },
@@ -138,6 +140,8 @@ export const uiGuidelineGroups: readonly UiGuidelineGroup[] = [
     rules: [
       '加载、空、错误和权限拒绝状态必须提供文字原因与可恢复的下一步。',
       '复合控件只负责布局与无业务行为，业务状态由页面控制。',
+      '手机输入使用共享 16px 字号，保持统一 4px 圆角，不另设手机视觉主题。',
+      '输入占位文字使用辅助文字语义色，浅深主题均保持可读对比度。',
       '动效只用于反馈操作、内容切换和进度变化，不使用装饰性循环或整页位移动画。',
     ],
   },

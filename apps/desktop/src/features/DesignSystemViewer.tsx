@@ -54,13 +54,15 @@ type TokenRow = Readonly<{
 const semanticTokenDescriptions: Readonly<Record<string, string>> = {
   'color.background.canvas': '页面最底层画布背景。',
   'color.background.surface': '卡片、面板和输入区域的表面背景。',
-  'color.background.selected': '悬停、选中和轻量强调状态的背景。',
+  'color.background.selected': '持久选中和主命令的中性表面，不用于临时悬停或按下。',
+  'color.background.hover': '鼠标悬停反馈，与持久选中态分开。',
+  'color.background.pressed': '指针按下期间的反馈，松开后恢复。',
   'color.background.navigation-selected': '一级导航悬停和选中状态的中性表面。',
-  'color.background.navigation': '桌面主导航轨道的高对比背景。',
+  'color.background.navigation': '桌面导航轨道与手机底栏共用的背景。',
   'color.text.primary': '标题、正文和主要内容文字。',
   'color.text.secondary': '辅助说明、元数据和次要文字。',
   'color.text.navigation': '深色主导航轨道上的高对比文字。',
-  'color.border.default': '普通分隔线、边框和网格线。',
+  'color.border.default': '页面分区和网格的轻结构线，不用于普通控件描边。',
   'color.border.strong': '需要更高对比度的边界和分隔线。',
   'color.action.primary': '主要操作控件的前景或填充颜色。',
   'color.action.primary-text': '主要操作控件上的反色文字。',
@@ -77,6 +79,13 @@ const semanticTokenDescriptions: Readonly<Record<string, string>> = {
 };
 
 function describeToken(name: string): string {
+  if (
+    name === 'control.hover.mix' ||
+    name === 'control.pressed.mix' ||
+    name.startsWith('interaction.')
+  ) {
+    return '危险按钮交互反馈的共享混色比例，不改变红色语义。';
+  }
   const semanticDescription = semanticTokenDescriptions[name];
   if (semanticDescription) {
     return semanticDescription;
@@ -315,6 +324,8 @@ export function DesignSystemViewer({
   const [previewToggle, setPreviewToggle] = useState(false);
   const [previewMode, setPreviewMode] = useState('system');
   const [previewCount, setPreviewCount] = useState(3);
+  const [previewCommand, setPreviewCommand] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(true);
   const [motionPreviewVersion, setMotionPreviewVersion] = useState(0);
   const [motionPreviewProgress, setMotionPreviewProgress] = useState(0);
   const [motionPreviewStep, setMotionPreviewStep] = useState(0);
@@ -550,18 +561,45 @@ export function DesignSystemViewer({
             <section className="component-showcase-group" aria-labelledby="showcase-button-heading">
               <h4 id="showcase-button-heading">BUTTON / ACTION</h4>
               <div className="component-button-row">
-                <Button variant="primary">新建任务</Button>
-                <Button variant="secondary">取消</Button>
-                <IconButton label="添加任务">
+                <Button variant="primary" onClick={() => setPreviewCommand('命令已执行')}>
+                  新建任务
+                </Button>
+                <Button variant="secondary" onClick={() => setPreviewCommand('已取消')}>
+                  取消
+                </Button>
+                <IconButton label="添加任务" onClick={() => setPreviewCommand('添加命令已执行')}>
+                  <Plus aria-hidden="true" />
+                </IconButton>
+                <Button variant="danger" onClick={() => setPreviewCommand('删除命令已执行')}>
+                  删除示例
+                </Button>
+                <Button disabled>不可用命令</Button>
+                <Button
+                  loading={previewLoading}
+                  onClick={() => setPreviewCommand('保存命令已执行')}
+                >
+                  保存示例
+                </Button>
+                <ToggleButton
+                  pressed={previewLoading}
+                  onClick={() => setPreviewLoading((current) => !current)}
+                >
+                  加载状态
+                </ToggleButton>
+                <IconButton label="不可用图标" disabled>
                   <Plus aria-hidden="true" />
                 </IconButton>
               </div>
-              <p className="component-showcase-note">主操作与选中态共用灰阶层级。</p>
+              <p className="component-showcase-note" role="status">
+                {previewCommand}
+              </p>
             </section>
             <section className="component-showcase-group" aria-labelledby="showcase-input-heading">
               <h4 id="showcase-input-heading">INPUT / SEARCH</h4>
               <TextField label="搜索任务" placeholder="搜索任务" leadingIcon={<Search />} />
-              <p className="component-showcase-note">浅色表面配细边框，聚焦时仅强化黑白反差。</p>
+              <TextField label="只读名称" value="只读示例" readOnly />
+              <TextField label="禁用名称" value="不可编辑" disabled />
+              <TextField label="错误名称" error="名称不能为空。" defaultValue="" />
             </section>
             <section className="component-showcase-group" aria-labelledby="showcase-status-heading">
               <h4 id="showcase-status-heading">TAG / STATUS</h4>
@@ -582,10 +620,10 @@ export function DesignSystemViewer({
                 onChange={setPreviewTab}
                 items={[
                   { id: 'overview', label: '概览', panel: <p>保持当前工作上下文。</p> },
+                  { id: 'unavailable', label: '不可用', disabled: true, panel: null },
                   { id: 'details', label: '详情', panel: <p>在同一工作区查看补充信息。</p> },
                 ]}
               />
-              <p className="component-showcase-note">选中态使用浅灰表面和边界共同表达。</p>
             </section>
             <section className="component-showcase-group" aria-labelledby="showcase-toggle-heading">
               <h4 id="showcase-toggle-heading">TOGGLE / STATE</h4>
@@ -595,6 +633,9 @@ export function DesignSystemViewer({
                 onClick={() => setPreviewToggle((current) => !current)}
               >
                 示例开关
+              </ToggleButton>
+              <ToggleButton pressed disabled>
+                禁用开关
               </ToggleButton>
               <p className="component-showcase-note">
                 二态开关只表达独立状态，使用圆点和 aria-pressed 反馈。
@@ -622,6 +663,9 @@ export function DesignSystemViewer({
               <h4 id="showcase-notice-heading">NOTICE / PROGRESS</h4>
               <InlineMessage title="本周还有 03 项待完成">保持当前节奏即可完成计划。</InlineMessage>
               <ProgressBar label="完成进度" value={68} />
+              <InlineMessage tone="error" title="访问被拒绝">
+                未获得文件访问权限，请授权后重试。
+              </InlineMessage>
             </section>
             <section className="component-showcase-group" aria-labelledby="showcase-row-heading">
               <h4 id="showcase-row-heading">ROW / TASK</h4>
@@ -641,6 +685,7 @@ export function DesignSystemViewer({
                   { id: 'compact', label: '紧凑' },
                   { id: 'comfortable', label: '舒适' },
                   { id: 'auto', label: '自动' },
+                  { id: 'unavailable', label: '不可选', disabled: true },
                 ]}
                 value={previewDensity}
                 onChange={setPreviewDensity}
@@ -656,6 +701,7 @@ export function DesignSystemViewer({
                 ariaLabel="查看方向"
                 items={[
                   { id: 'overview', label: '概览' },
+                  { id: 'unavailable', label: '不可用', disabled: true },
                   { id: 'details', label: '详情' },
                 ]}
                 value={previewDirection}
@@ -669,7 +715,14 @@ export function DesignSystemViewer({
                 description="下一步再来看看。"
                 framed
                 icon={<Plus />}
-                action={<Button variant="secondary">创建视图</Button>}
+                action={
+                  <Button
+                    variant="secondary"
+                    onClick={() => setPreviewCommand('创建视图命令已执行')}
+                  >
+                    创建视图
+                  </Button>
+                }
               />
             </section>
             <section

@@ -365,6 +365,7 @@ function ToolTile({
     >
       <button
         className="tool-tile-open"
+        aria-labelledby={`tool-${entry.id}`}
         type="button"
         aria-busy={loading || undefined}
         disabled={loading}
@@ -374,6 +375,11 @@ function ToolTile({
           <span className="tool-tile-marker" aria-hidden="true" />
           <span>{entry.name}</span>
         </h3>
+        {loading ? (
+          <span className="tool-tile-loading" role="status">
+            正在打开
+          </span>
+        ) : null}
       </button>
       <IconButton
         className="tool-tile-favorite"
@@ -1227,12 +1233,12 @@ export function App() {
           <div className="catalog-heading">
             <div className="search-field">
               <div className="search-input-shell">
-                <Search aria-hidden="true" />
                 <TextField
                   label="搜索工具"
+                  leadingIcon={<Search aria-hidden="true" />}
                   data-debug-source="apps/desktop/src/app/App.tsx:865"
                   data-debug-code={'<TextField label="搜索工具" ... />'}
-                  placeholder="按名称或关键词搜索"
+                  placeholder={isMobileLayout ? '搜索工具' : '按名称或关键词搜索'}
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                 />

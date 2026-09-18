@@ -5,6 +5,7 @@ export type TabsItem = Readonly<{
   label: ReactNode;
   icon?: ReactNode;
   panel: ReactNode;
+  disabled?: boolean;
 }>;
 
 export type TabsProps = Readonly<{
@@ -26,32 +27,34 @@ export function Tabs({ ariaLabel, className, idPrefix, items, onChange, value }:
   const generatedId = useId();
   const baseId = createBaseId(idPrefix, generatedId);
   const classes = ['amt-tabs', className].filter(Boolean).join(' ');
-  const activeIndex = items.findIndex((item) => item.id === value);
+  const enabledItems = items.filter((item) => !item.disabled);
+  const tabStop = enabledItems.find((item) => item.id === value)?.id ?? enabledItems[0]?.id;
 
   function focusTab(id: string) {
     window.setTimeout(() => document.getElementById(`${baseId}-tab-${id}`)?.focus(), 0);
   }
 
-  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
-    if (activeIndex < 0 || items.length === 0) {
+  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, id: string) {
+    const activeIndex = enabledItems.findIndex((item) => item.id === id);
+    if (activeIndex < 0 || enabledItems.length === 0) {
       return;
     }
 
     let nextIndex = activeIndex;
-    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-      nextIndex = (activeIndex + 1) % items.length;
-    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-      nextIndex = (activeIndex - 1 + items.length) % items.length;
+    if (event.key === 'ArrowRight') {
+      nextIndex = (activeIndex + 1) % enabledItems.length;
+    } else if (event.key === 'ArrowLeft') {
+      nextIndex = (activeIndex - 1 + enabledItems.length) % enabledItems.length;
     } else if (event.key === 'Home') {
       nextIndex = 0;
     } else if (event.key === 'End') {
-      nextIndex = items.length - 1;
+      nextIndex = enabledItems.length - 1;
     } else {
       return;
     }
 
     event.preventDefault();
-    const nextItem = items[nextIndex];
+    const nextItem = enabledItems[nextIndex];
     onChange(nextItem.id);
     focusTab(nextItem.id);
   }
@@ -68,9 +71,10 @@ export function Tabs({ ariaLabel, className, idPrefix, items, onChange, value }:
             role="tab"
             aria-selected={value === item.id}
             aria-controls={`${baseId}-panel-${item.id}`}
-            tabIndex={value === item.id ? 0 : -1}
+            tabIndex={tabStop === item.id ? 0 : -1}
+            disabled={item.disabled}
             onClick={() => onChange(item.id)}
-            onKeyDown={handleKeyDown}
+            onKeyDown={(event) => handleKeyDown(event, item.id)}
           >
             {item.icon}
             <span>{item.label}</span>

@@ -29,6 +29,65 @@ function contrastRatio(foreground: string, background: string) {
 }
 
 describe('设计 Token', () => {
+  it('分离悬停、按下和选中，并保持交互前景对比度和颜色覆盖', () => {
+    for (const theme of themeNames) {
+      const { semantic, component } = resolveThemeTokens(theme);
+      expect(
+        new Set([
+          semantic['color.background.selected'],
+          semantic['color.background.hover'],
+          semantic['color.background.pressed'],
+        ]).size,
+      ).toBe(3);
+      for (const background of ['color.background.hover', 'color.background.pressed'] as const) {
+        expect(
+          contrastRatio(semantic['color.text.primary'], semantic[background]),
+        ).toBeGreaterThanOrEqual(4.5);
+      }
+      expect(component['control.hover.mix']).toBe('8%');
+      expect(component['control.pressed.mix']).toBe('16%');
+      expect(
+        resolveThemeTokens(theme, { 'color.background.hover': '#123456' }).semantic[
+          'color.background.hover'
+        ],
+      ).toBe('#123456');
+    }
+  });
+
+  it('危险命令的默认、悬停与按下始终保持可读前景', () => {
+    function mix(base: string, foreground: string, ratio: number) {
+      return (
+        '#' +
+        [1, 3, 5]
+          .map((offset) =>
+            Math.round(
+              Number.parseInt(base.slice(offset, offset + 2), 16) * (1 - ratio) +
+                Number.parseInt(foreground.slice(offset, offset + 2), 16) * ratio,
+            )
+              .toString(16)
+              .padStart(2, '0'),
+          )
+          .join('')
+      );
+    }
+    for (const theme of themeNames) {
+      const { semantic, component } = resolveThemeTokens(theme);
+      for (const ratio of [
+        0,
+        Number.parseFloat(component['control.hover.mix']) / 100,
+        Number.parseFloat(component['control.pressed.mix']) / 100,
+      ]) {
+        const background = mix(
+          semantic['color.status.error'],
+          semantic['color.text.primary'],
+          ratio,
+        );
+        expect(
+          contrastRatio(semantic['color.action.primary-text'], background),
+        ).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
   it('为全部内置主题解析相同的 Token 层结构', () => {
     for (const theme of themeNames) {
       const resolved = resolveThemeTokens(theme);
@@ -161,7 +220,7 @@ describe('设计 Token', () => {
   });
 
   it('提供示例工作台的高对比中性灰阶和鲜明身份色', () => {
-    expect(primitiveTokens['color.neutral.50']).toBe('#f5f5f2');
+    expect(primitiveTokens['color.neutral.50']).toBe('#f3f3f1');
     expect(primitiveTokens['color.neutral.600']).toBe('#494947');
     expect(primitiveTokens['color.neutral.850']).toBe('#1b1b1b');
     expect(primitiveTokens['color.lime.500']).toBe('#aee300');
@@ -180,5 +239,52 @@ describe('设计 Token', () => {
   it('提供移动导航可复用的默认控件触控尺寸', () => {
     expect(resolveThemeTokens('light').component['button.default.height']).toBe('40px');
     expect(resolveThemeTokens('dark').component['button.default.height']).toBe('40px');
+  });
+
+  it('使用轻结构线与柔和深色选中底，保留原有字体和圆角', () => {
+    expect(semanticThemeTokens.light['color.border.default']).toBe(
+      primitiveTokens['color.neutral.200'],
+    );
+    expect(semanticThemeTokens.dark['color.border.default']).toBe(
+      primitiveTokens['color.neutral.700'],
+    );
+    expect(semanticThemeTokens.dark['color.background.selected']).toBe(
+      primitiveTokens['color.neutral.700'],
+    );
+    for (const theme of themeNames) {
+      const resolved = resolveThemeTokens(theme);
+      expect(resolved.component['button.default.radius']).toBe('4px');
+      expect(resolved.primitive['typography.font-family.sans']).toContain('Archivo');
+      for (const background of [
+        'color.background.canvas',
+        'color.background.surface',
+        'color.background.selected',
+      ] as const) {
+        for (const foreground of ['color.text.primary', 'color.text.secondary'] as const) {
+          expect(
+            contrastRatio(resolved.semantic[foreground], resolved.semantic[background]),
+          ).toBeGreaterThanOrEqual(4.5);
+        }
+      }
+    }
+  });
+
+  it('结构线的新引用仍尊重原始和语义颜色覆盖', () => {
+    expect(
+      resolveThemeTokens('light', { 'color.neutral.200': '#123456' }).semantic[
+        'color.border.default'
+      ],
+    ).toBe('#123456');
+    expect(
+      resolveThemeTokens('dark', { 'color.neutral.700': '#345678' }).semantic[
+        'color.background.selected'
+      ],
+    ).toBe('#345678');
+    expect(
+      resolveThemeTokens('dark', {
+        'color.neutral.700': '#345678',
+        'color.border.default': '#abcdef',
+      }).semantic['color.border.default'],
+    ).toBe('#abcdef');
   });
 });
